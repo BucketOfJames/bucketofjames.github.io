@@ -1,1 +1,9 @@
-
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "bucket-spotify-now-playing",
+  "main": "src/index.js",
+  "compatibility_date": "2026-03-18",
+  "vars": {
+    "ALLOWED_ORIGIN": "https://bucketofjames.github.io/"
+  }
+}
