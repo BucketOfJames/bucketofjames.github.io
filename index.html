@@ -53,12 +53,16 @@
       }
 
       .page-body {
+        --spotify-width: 320px;
         padding: 0 20px;
         max-width: 520px;
+        width: 100%;
+        box-sizing: border-box;
       }
 
       .about-row {
         position: relative;
+        width: 100%;
       }
 
       .linkage {
@@ -227,9 +231,9 @@
         .spotify-card {
           position: absolute;
           top: 50%;
-          left: clamp(-420px, calc(-25vw - 10px), -150px);
+          left: calc(-1 * (((100vw - 520px) / 4) + 10px + (var(--spotify-width) / 2)));
           transform: translateY(-50%);
-          width: 280px;
+          width: var(--spotify-width);
           max-width: none;
           margin: 0;
         }
@@ -258,7 +262,19 @@
         </div>
         <div class="page-body">
           <div class="about-row">
-          <div class="about"></div>
+          <div class="about">
+            I love video games and music - that's how I fill most of my free time, too. I am passionate, but a little tired of life. I am true to myself and very direct, which may come off as rude, but I always wish kindness into this world. I am Jack of all trades and interested in a lot of things, so never hesitate
+            to strike up a conversation. I can be argumentative, but I also enjoy being in silence. I am very understanding and tolerant, but my humour is very dark and satirical. Either way... fuck it, we ball. <br><br>
+            "Used to tell her everything I was feeling. But then I guess I
+            stopped. Because I wanted her to love who she thought I was, not
+            who I felt myself becoming. Ever think about how horrified the
+            people we love would be if they found out who we truly are? So we
+            just dig ourselves deeper, into our lies every day, ultimately
+            only hurting the people who were brave enough to love us. Wish I
+            didn't do that! Wish I was brave enough to love them back. I don't
+            know. Maybe you should try it. We don't have as much time as we
+            think. Ooo eee."<br><p style="text-align: right;">-Mr. Poopybutthole, <i>Rick and Morty</i></p>
+          </div>
           <section id="spotify-card" class="spotify-card" hidden>
             <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
 
@@ -326,7 +342,7 @@
       </div>
     </div>
     <script>
-    const SPOTIFY_API_URL = "https://bucket-spotify-now-playing.bucketofjames.workers.dev/now-playing"; // replace this with your real Cloudflare Worker URL
+    const SPOTIFY_API_URL = "https://bucket-spotify-now-playing.bucketofjames.workers.dev/now-playing";
 
     const card = document.getElementById("spotify-card");
     const cover = document.getElementById("spotify-cover");
