@@ -146,6 +146,14 @@
         border-radius: 14px;
         object-fit: cover;
         flex: 0 0 88px;
+        background-color: transparent;
+      }
+
+      .spotify-cover.offline {
+        background-color: #0d0f11;
+        object-fit: contain;
+        padding: 14px;
+        box-sizing: border-box;
       }
 
       .spotify-meta {
@@ -219,6 +227,12 @@
 
       .spotify-link:hover {
         filter: brightness(1.07);
+      }
+
+      .spotify-link.is-disabled {
+        background: #394047;
+        pointer-events: none;
+        cursor: default;
       }
 
       @media screen and (max-width: 400px) {
@@ -390,15 +404,49 @@
         ? "Listening on Spotify"
         : "Spotify is paused at";
 
-      cover.src = data.albumArtUrl || "";
-      cover.alt = data.title ? `${data.title} album cover` : "Album cover";
-      cover.style.display = data.albumArtUrl ? "block" : "none";
+      if (data.albumArtUrl) {
+        cover.src = data.albumArtUrl;
+        cover.alt = data.title ? `${data.title} album cover` : "Album cover";
+        cover.classList.remove("offline");
+      } else {
+        cover.src = "assets/spotify.svg";
+        cover.alt = "Spotify icon";
+        cover.classList.add("offline");
+      }
+
+      cover.style.display = "block";
       titleEl.textContent = data.title || "Nothing playing";
       artistEl.textContent = data.artist || "";
       linkEl.href = data.trackUrl || "#";
+      linkEl.textContent = "Play on Spotify";
+      linkEl.classList.remove("is-disabled");
 
       card.hidden = false;
       updateProgressDisplay();
+    }
+
+    function renderOfflineState() {
+      playbackState = {
+        isPlaying: false,
+        progressMs: 0,
+        durationMs: 0,
+      };
+
+      labelEl.textContent = "Spotify is closed";
+      cover.src = "assets/spotify.svg";
+      cover.alt = "Spotify icon";
+      cover.classList.add("offline");
+      cover.style.display = "block";
+      titleEl.textContent = "[no song found]";
+      artistEl.textContent = "[no artist either]";
+      currentEl.textContent = "-:--";
+      durationEl.textContent = "-:--";
+      progressBar.style.width = "0%";
+      linkEl.href = "#";
+      linkEl.textContent = "Spotify unavailable";
+      linkEl.classList.add("is-disabled");
+
+      card.hidden = false;
     }
 
     function startTicking() {
@@ -430,7 +478,7 @@
         const data = await response.json();
 
         if (!data || !data.trackUrl) {
-          card.hidden = true;
+          renderOfflineState();
           clearInterval(tickInterval);
           return;
         }
@@ -439,7 +487,7 @@
         startTicking();
       } catch (error) {
         console.error("Spotify widget error:", error);
-        card.hidden = true;
+        renderOfflineState();
         clearInterval(tickInterval);
       }
     }
