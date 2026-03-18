@@ -504,6 +504,457 @@
       }
 
       .page-body {
+        --spotify-width: 480px;
+        padding: 0 20px;
+        max-width: 520px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .about-row {
+        position: relative;
+        width: 100%;
+      }
+
+      .linkage {
+        font-family: 'Roboto', sans-serif;
+        margin-top: 40px;
+        text-align: center;
+        display: flex;
+        justify-content: space-evenly;
+      }
+
+      .linkage .link-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        font-weight: 400;
+        color: #e8edf2;
+        position: relative;
+      }
+
+      .custom-tooltip {
+        position: absolute;
+        bottom: calc(100% + 12px);
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #161b20;
+        color: #e8edf2;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        line-height: 1.3;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.12s ease;
+        z-index: 10;
+      }
+
+      .custom-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 7px;
+        border-style: solid;
+        border-color: #161b20 transparent transparent transparent;
+      }
+
+      .link-item:hover .custom-tooltip {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .linkage .icon {
+        height: 90px;
+        width: 90px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+        background-color: transparent;
+      }
+
+      .spotify-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 34px auto 0;
+        padding: 16px;
+        max-width: 520px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        box-sizing: border-box;
+      }
+
+      .spotify-cover {
+        width: 88px;
+        height: 88px;
+        border-radius: 14px;
+        object-fit: cover;
+        flex: 0 0 88px;
+      }
+
+      .spotify-meta {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .spotify-label {
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.85rem;
+        opacity: 0.75;
+        margin-bottom: 4px;
+      }
+
+      .spotify-title {
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.08rem;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
+      }
+
+      .spotify-artist {
+        font-family: 'Roboto', sans-serif;
+        margin-top: 4px;
+        opacity: 0.85;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .spotify-time-row {
+        font-family: 'Roboto', sans-serif;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 12px;
+        font-size: 0.8rem;
+        opacity: 0.75;
+      }
+
+      .spotify-progress {
+        width: 100%;
+        height: 6px;
+        margin-top: 6px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .spotify-progress-bar {
+        width: 0%;
+        height: 100%;
+        border-radius: 999px;
+        background: #1db954;
+      }
+
+      .spotify-link {
+        display: inline-block;
+        margin-top: 14px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        text-decoration: none;
+        color: #ffffff;
+        background: #1db954;
+        font-family: 'Roboto', sans-serif;
+        font-weight: 600;
+      }
+
+      .spotify-link:hover {
+        filter: brightness(1.07);
+      }
+
+      @media screen and (max-width: 400px) {
+        .linkage .icon {
+          height: 64px;
+          width: 64px;
+        }
+      }
+
+      @media (min-width: 1180px) {
+        .spotify-card {
+          position: absolute;
+          top: 50%;
+          left: calc(-1 * (((100vw - 520px) / 4) + 10px + (var(--spotify-width) / 2)));
+          transform: translateY(-50%);
+          width: var(--spotify-width);
+          max-width: none;
+          margin: 0;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .spotify-card {
+          align-items: flex-start;
+        }
+
+        .spotify-cover {
+          width: 72px;
+          height: 72px;
+          flex-basis: 72px;
+        }
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="page-home">
+        <div class="profile-photo" title="Unexpected ocelot!<3"></div>
+        <div class="profile-text">
+          <h1>BucketOfJames</h1>
+        </div>
+        <div class="page-body">
+          <div class="about-row">
+          <div class="about">
+             I love video games and music - that's how I fill most of my free time, too. I am passionate, but a little tired of life. I am true to myself and very direct, which may come off as rude, but I always wish kindness into this world. I am Jack of all trades and interested in a lot of things, so never hesitate
+            to strike up a conversation. I can be argumentative, but I also enjoy being in silence. I am very understanding and tolerant, but my humour is very dark and satirical. Either way... fuck it, we ball. <br><br>
+            "Used to tell her everything I was feeling. But then I guess I
+            stopped. Because I wanted her to love who she thought I was, not
+            who I felt myself becoming. Ever think about how horrified the
+            people we love would be if they found out who we truly are? So we
+            just dig ourselves deeper, into our lies every day, ultimately
+            only hurting the people who were brave enough to love us. Wish I
+            didn't do that! Wish I was brave enough to love them back. I don't
+            know. Maybe you should try it. We don't have as much time as we
+            think. Ooo eee."<br><p style="text-align: right;">-Mr. Poopybutthole, <i>Rick and Morty</i></p>
+          </div>
+          <section id="spotify-card" class="spotify-card" hidden>
+            <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
+
+            <div class="spotify-meta">
+              <div id="spotify-label" class="spotify-label">Listening on Spotify</div>
+              <div id="spotify-title" class="spotify-title">Nothing playing</div>
+              <div id="spotify-artist" class="spotify-artist"></div>
+
+              <div class="spotify-time-row">
+                <span id="spotify-current">0:00</span>
+                <span id="spotify-duration">0:00</span>
+              </div>
+
+              <div class="spotify-progress">
+                <div id="spotify-progress-bar" class="spotify-progress-bar"></div>
+              </div>
+
+              <a
+                id="spotify-link"
+                class="spotify-link"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Play on Spotify
+              </a>
+            </div>
+          </section>
+          </div>
+
+          <div class="linkage">
+            <a href="https://open.spotify.com/user/0ksfj8yes49dkju5w48dr3x3u?si=2205d68da45e48fa" class="link-item spotify">
+              <div class="icon"
+                style="background-image:url('assets/spotify.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
+                </div>
+              <div class="label">Spotify</div>
+            </a>
+            <a href="https://steamcommunity.com/id/bucketofjames/" class="link-item steam">
+              <div class="icon"
+                style="background-image:url('assets/steam.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
+                </div>
+              <div class="label">Steam</div>
+            </a>
+            <a href="https://fluxer.gg/NFR4JYst" class="link-item fluxer">
+              <div class="custom-tooltip">My Fluxer server. FluxerTag is just BucketOfJames.</div>
+              <div class="icon"
+                style="background-image:url('assets/fluxer.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
+                </div>
+              <div class="label">Fluxer</div>
+            </a>
+            <a href="https://medal.tv/u/BucketOfJames/?invite=ur-MSxzVVgsMTczOTM5ODA5" class="link-item medal">
+              <div class="icon"
+                style="background-image:url('assets/medal.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
+                </div>
+              <div class="label">Medal.tv</div>
+            </a>
+            <a href="https://youtube.com/@bucketofjames?si=9ODTwmbXb2_LDSkW" class="link-item youtube">
+              <div class="icon"
+                style="background-image:url('assets/youtube.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
+                </div>
+              <div class="label">YouTube</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+    const SPOTIFY_API_URL = "https://bucket-spotify-now-playing.bucketofjames.workers.dev/now-playing";
+
+    const card = document.getElementById("spotify-card");
+    const cover = document.getElementById("spotify-cover");
+    const labelEl = document.getElementById("spotify-label");
+    const titleEl = document.getElementById("spotify-title");
+    const artistEl = document.getElementById("spotify-artist");
+    const currentEl = document.getElementById("spotify-current");
+    const durationEl = document.getElementById("spotify-duration");
+    const progressBar = document.getElementById("spotify-progress-bar");
+    const linkEl = document.getElementById("spotify-link");
+
+    let playbackState = null;
+    let tickInterval = null;
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function updateProgressDisplay() {
+      if (!playbackState) return;
+
+      currentEl.textContent = formatTime(playbackState.progressMs);
+      durationEl.textContent = formatTime(playbackState.durationMs);
+
+      const pct =
+        playbackState.durationMs > 0
+          ? (playbackState.progressMs / playbackState.durationMs) * 100
+          : 0;
+
+      progressBar.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+    }
+
+    function renderPlayback(data) {
+      playbackState = {
+        isPlaying: Boolean(data.isPlaying),
+        progressMs: data.progressMs || 0,
+        durationMs: data.durationMs || 0,
+      };
+
+      labelEl.textContent = playbackState.isPlaying
+        ? "Listening on Spotify"
+        : "Spotify is paused at";
+
+      cover.src = data.albumArtUrl || "";
+      cover.alt = data.title ? `${data.title} album cover` : "Album cover";
+      cover.style.display = data.albumArtUrl ? "block" : "none";
+      titleEl.textContent = data.title || "Nothing playing";
+      artistEl.textContent = data.artist || "";
+      linkEl.href = data.trackUrl || "#";
+
+      card.hidden = false;
+      updateProgressDisplay();
+    }
+
+    function startTicking() {
+      clearInterval(tickInterval);
+
+      tickInterval = setInterval(() => {
+        if (!playbackState || !playbackState.isPlaying) return;
+
+        playbackState.progressMs += 1000;
+
+        if (playbackState.progressMs > playbackState.durationMs) {
+          playbackState.progressMs = playbackState.durationMs;
+        }
+
+        updateProgressDisplay();
+      }, 1000);
+    }
+
+    async function refreshSpotifyWidget() {
+      try {
+        const response = await fetch(SPOTIFY_API_URL, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.trackUrl) {
+          card.hidden = true;
+          clearInterval(tickInterval);
+          return;
+        }
+
+        renderPlayback(data);
+        startTicking();
+      } catch (error) {
+        console.error("Spotify widget error:", error);
+        card.hidden = true;
+        clearInterval(tickInterval);
+      }
+    }
+
+    refreshSpotifyWidget();
+    setInterval(refreshSpotifyWidget, 10000);
+  </script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>BucketOfJames</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Roboto Slab', serif;
+        font-weight: 300;
+        color: #e8edf2;
+        background-color: #0d0f11;
+      }
+      strong {
+        font-weight: 600;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      #page-home {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 60px;
+      }
+
+      .profile-photo {
+        width: 130px;
+        height: 130px;
+        background-color: transparent;
+        border-radius: 50%;
+        background-repeat: no-repeat;
+        background-image: url('assets/profile.jpeg');
+        background-size: 118%;
+        background-position: 70% 28%
+      }
+      .profile-photo:hover {
+        background-image: url('assets/profile-alt.jpeg');
+        background-size: 100%;
+      }
+
+      .profile-text h1 {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 900;
+        margin-top: 0.5em;
+        font-size: 2em;
+        text-align: center;
+      }
+
+      .page-body {
         --spotify-width: 320px;
         padding: 0 20px;
         max-width: 520px;
