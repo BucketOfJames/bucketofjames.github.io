@@ -279,7 +279,7 @@
             <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
 
             <div class="spotify-meta">
-              <div class="spotify-label">Listening on Spotify</div>
+              <div id="spotify-label" class="spotify-label">Listening on Spotify</div>
               <div id="spotify-title" class="spotify-title">Nothing playing</div>
               <div id="spotify-artist" class="spotify-artist"></div>
 
@@ -346,6 +346,7 @@
 
     const card = document.getElementById("spotify-card");
     const cover = document.getElementById("spotify-cover");
+    const labelEl = document.getElementById("spotify-label");
     const titleEl = document.getElementById("spotify-title");
     const artistEl = document.getElementById("spotify-artist");
     const currentEl = document.getElementById("spotify-current");
@@ -383,6 +384,10 @@
         progressMs: data.progressMs || 0,
         durationMs: data.durationMs || 0,
       };
+
+      labelEl.textContent = playbackState.isPlaying
+        ? "Listening on Spotify"
+        : "Spotify is paused at";
 
       cover.src = data.albumArtUrl || "";
       cover.alt = data.title ? `${data.title} album cover` : "Album cover";
