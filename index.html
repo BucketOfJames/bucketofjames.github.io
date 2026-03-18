@@ -18,6 +18,10 @@
         font-weight: 600;
       }
 
+      [hidden] {
+        display: none !important;
+      }
+
       #page-home {
         display: flex;
         flex-direction: column;
@@ -223,9 +227,9 @@
         .spotify-card {
           position: absolute;
           top: 50%;
-          right: calc(100% + clamp(24px, 4vw, 72px));
+          left: clamp(-420px, calc(-25vw - 10px), -150px);
           transform: translateY(-50%);
-          width: clamp(220px, 22vw, 280px);
+          width: 280px;
           max-width: none;
           margin: 0;
         }
@@ -254,7 +258,7 @@
         </div>
         <div class="page-body">
           <div class="about-row">
-          <div class="about">$1</div>
+          <div class="about"></div>
           <section id="spotify-card" class="spotify-card" hidden>
             <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
 
@@ -322,7 +326,7 @@
       </div>
     </div>
     <script>
-    const SPOTIFY_API_URL = "https://bucket-spotify-now-playing.bucketofjames.workers.dev/now-playing";
+    const SPOTIFY_API_URL = "https://bucket-spotify-now-playing.bucketofjames.workers.dev/now-playing"; // replace this with your real Cloudflare Worker URL
 
     const card = document.getElementById("spotify-card");
     const cover = document.getElementById("spotify-cover");
@@ -366,6 +370,7 @@
 
       cover.src = data.albumArtUrl || "";
       cover.alt = data.title ? `${data.title} album cover` : "Album cover";
+      cover.style.display = data.albumArtUrl ? "block" : "none";
       titleEl.textContent = data.title || "Nothing playing";
       artistEl.textContent = data.artist || "";
       linkEl.href = data.trackUrl || "#";
