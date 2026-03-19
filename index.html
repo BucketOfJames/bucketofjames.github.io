@@ -235,6 +235,10 @@
         cursor: default;
       }
 
+      .spotify-link.youtube-search {
+        background: #c62828;
+      }
+
       @media screen and (max-width: 400px) {
         .linkage .icon {
           height: 64px;
@@ -278,8 +282,8 @@
         <div class="page-body">
           <div class="about-row">
           <div class="about">
-            I am the guy you love to hate.<br><br>
-            I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.<br><br>
+             I love video games and music - that's how I fill most of my free time, too. I am passionate, but a little tired of life. I am true to myself and very direct, which may come off as rude, but I always wish kindness into this world. I am Jack of all trades and interested in a lot of things, so never hesitate
+            to strike up a conversation. I can be argumentative, but I also enjoy being in silence. I am very understanding and tolerant, but my humour is very dark and satirical. Either way... fuck it, we ball. <br><br>
             "Used to tell her everything I was feeling. But then I guess I
             stopped. Because I wanted her to love who she thought I was, not
             who I felt myself becoming. Ever think about how horrified the
@@ -382,18 +386,48 @@
     function updateProgressDisplay() {
       if (!playbackState) return;
 
-      currentEl.textContent = formatTime(playbackState.progressMs);
-      durationEl.textContent = formatTime(playbackState.durationMs);
+      currentEl.textContent = playbackState.durationMs > 0
+        ? formatTime(playbackState.progressMs)
+        : "-:--";
+      durationEl.textContent = playbackState.durationMs > 0
+        ? formatTime(playbackState.durationMs)
+        : "-:--";
 
       const pct =
         playbackState.durationMs > 0
           ? (playbackState.progressMs / playbackState.durationMs) * 100
           : 0;
 
-      progressBar.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+      progressBar.style.width = Math.max(0, Math.min(100, pct)) + "%";
+    }
+
+    function normalizeTrackTitle(title) {
+      const rawTitle = (title || "").trim();
+      const suffix = " [local]";
+      return rawTitle.toLowerCase().endsWith(suffix)
+        ? rawTitle.slice(0, -suffix.length).trim()
+        : rawTitle;
+    }
+
+    function isSpecialYouTubeTrack(title, artist) {
+      return normalizeTrackTitle(title).toLowerCase() === "into the darkness"
+        && (artist || "").trim().toLowerCase() === "the indians";
+    }
+
+    function getYouTubeUrl(title, artist) {
+      if (isSpecialYouTubeTrack(title, artist)) {
+        return "https://www.youtube.com/watch?v=cYX5RyQXODA";
+      }
+
+      const query = (normalizeTrackTitle(title) + " " + ((artist || "").trim())).trim();
+      return "https://www.youtube.com/results?search_query=" + encodeURIComponent(query);
     }
 
     function renderPlayback(data) {
+      const cleanTitle = normalizeTrackTitle(data.title);
+      const cleanArtist = (data.artist || "").trim();
+      const isLocalTrack = !data.trackUrl && Boolean(cleanTitle);
+
       playbackState = {
         isPlaying: Boolean(data.isPlaying),
         progressMs: data.progressMs || 0,
@@ -406,20 +440,31 @@
 
       if (data.albumArtUrl) {
         cover.src = data.albumArtUrl;
-        cover.alt = data.title ? `${data.title} album cover` : "Album cover";
+        cover.alt = cleanTitle ? cleanTitle + " album cover" : "Album cover";
         cover.classList.remove("offline");
       } else {
         cover.src = "assets/spotify.svg";
-        cover.alt = "Spotify icon";
+        cover.alt = isLocalTrack ? "Spotify local track icon" : "Spotify icon";
         cover.classList.add("offline");
       }
 
       cover.style.display = "block";
-      titleEl.textContent = data.title || "Nothing playing";
-      artistEl.textContent = data.artist || "";
-      linkEl.href = data.trackUrl || "#";
-      linkEl.textContent = "Play on Spotify";
-      linkEl.classList.remove("is-disabled");
+      titleEl.textContent = cleanTitle || "Nothing playing";
+      artistEl.textContent = cleanArtist;
+
+      if (isLocalTrack) {
+        linkEl.href = getYouTubeUrl(cleanTitle, cleanArtist);
+        linkEl.textContent = isSpecialYouTubeTrack(cleanTitle, cleanArtist)
+          ? "Play on YouTube"
+          : "Search on YouTube";
+        linkEl.classList.add("youtube-search");
+        linkEl.classList.remove("is-disabled");
+      } else {
+        linkEl.href = data.trackUrl || "#";
+        linkEl.textContent = "Play on Spotify";
+        linkEl.classList.remove("youtube-search");
+        linkEl.classList.remove("is-disabled");
+      }
 
       card.hidden = false;
       updateProgressDisplay();
@@ -444,6 +489,7 @@
       progressBar.style.width = "0%";
       linkEl.href = "#";
       linkEl.textContent = "Spotify unavailable";
+      linkEl.classList.remove("youtube-search");
       linkEl.classList.add("is-disabled");
 
       card.hidden = false;
@@ -477,7 +523,7 @@
 
         const data = await response.json();
 
-        if (!data || !data.trackUrl) {
+        if (!data || (!data.trackUrl && !data.title)) {
           renderOfflineState();
           clearInterval(tickInterval);
           return;
