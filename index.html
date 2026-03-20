@@ -199,368 +199,54 @@
       .retro-player-menubar button,
       .retro-player-tabs button,
       .retro-player-control-cluster button {
-        appearance: none;
-        -webkit-appearance: none;
-        border: 1px solid #4d6178;
-        color: #eef6ff;
-        font-family: 'Roboto', sans-serif;
-        cursor: default;
-        user-select: none;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.13),
-          0 1px 0 rgba(0, 0, 0, 0.28);
-      }
-
-      .retro-window-controls button {
-        width: 28px;
-        height: 24px;
-        border-radius: 7px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(180deg, #587493 0%, #2d435d 100%);
-        padding: 0;
-      }
-
-      .retro-window-controls button span {
-        display: block;
-        line-height: 1;
-        font-size: 0.98rem;
-        font-weight: 700;
-        transform: translateY(-1px);
-      }
-
-      .retro-window-controls button:last-child {
-        background: linear-gradient(180deg, #7f5367 0%, #4c2537 100%);
-        border-color: #8f6172;
-      }
-
-      .retro-player-menubar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 10px 12px 0;
-      }
-
-      .retro-player-menubar button {
         position: relative;
-        min-width: 76px;
-        height: 29px;
-        padding: 0 16px;
-        border-radius: 9px;
-        border: 1px solid #6e89a6;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 38%, rgba(255, 255, 255, 0) 39%),
-          linear-gradient(180deg, #40566d 0%, #2a3d52 48%, #152231 100%);
-        color: #ffffff;
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.24),
-          inset 0 -1px 0 rgba(8, 14, 22, 0.48),
-          0 1px 0 rgba(0, 0, 0, 0.26);
-      }
-
-      .retro-player-menubar button::before {
-        content: '';
-        position: absolute;
-        left: 8px;
-        right: 8px;
-        top: 3px;
-        height: 10px;
-        border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
-        pointer-events: none;
-      }
-
-      .retro-player-tabs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0;
-        padding: 12px 14px 0;
-        position: relative;
-        z-index: 1;
-      }
-
-      .retro-player-tabs::before {
-        content: '';
-        position: absolute;
-        left: 12px;
-        right: 12px;
-        bottom: 0;
-        height: 15px;
-        border-radius: 10px 10px 0 0;
-        background: linear-gradient(180deg, #19283a 0%, #0e1620 100%);
-        border: 1px solid rgba(96, 129, 167, 0.32);
-        border-bottom: 0;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        pointer-events: none;
-      }
-
-      .retro-player-tabs button {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 96px;
-        height: 36px;
-        margin-right: -8px;
-        padding: 0 18px;
-        border-radius: 10px 10px 0 0;
-        border: 1px solid #7da6d0;
-        border-bottom: 0;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.16) 24%, rgba(255, 255, 255, 0.02) 25%),
-          linear-gradient(180deg, #76acea 0%, #4a79b7 45%, #20375c 100%);
-        color: #f7fbff;
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.45),
-          inset 0 -1px 0 rgba(9, 18, 31, 0.45),
-          0 2px 0 rgba(0, 0, 0, 0.22);
-        transform: skewX(-24deg);
-        transform-origin: bottom center;
-      }
-
-      .retro-player-tabs button span {
-        display: block;
-        transform: skewX(24deg);
-        white-space: nowrap;
-      }
-
-      .retro-player-tabs button::before {
-        content: '';
-        position: absolute;
-        left: 8px;
-        right: 8px;
-        top: 3px;
-        height: 12px;
-        border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0));
-        pointer-events: none;
-      }
-
-      .retro-player-tabs button::after {
-        content: '';
-        position: absolute;
-        right: -1px;
-        top: 4px;
-        bottom: 2px;
-        width: 1px;
-        background: rgba(220, 236, 255, 0.22);
-        transform: skewX(24deg);
-        pointer-events: none;
-      }
-
-      .retro-player-tabs button.is-active {
-        z-index: 2;
-        min-width: 108px;
-        border-color: #b5d4f4;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.22) 24%, rgba(255, 255, 255, 0.03) 25%),
-          linear-gradient(180deg, #a6d4ff 0%, #6799d4 44%, #2f4f7f 100%);
-        color: #ffffff;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.72),
-          inset 0 -1px 0 rgba(13, 23, 39, 0.38),
-          0 0 0 1px rgba(131, 184, 244, 0.18),
-          0 2px 0 rgba(0, 0, 0, 0.2);
-      }
-
-      .retro-player-main {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 132px;
-        gap: 18px;
-        align-items: start;
-        padding: 18px 16px 14px;
-      }
-
-      .retro-cover-column {
-        display: flex;
-        justify-content: flex-end;
-      }
-
-      .retro-cover-frame {
-        width: 132px;
-        padding: 8px;
-        border-radius: 14px;
-        background: linear-gradient(180deg, #182536 0%, #0d131d 100%);
-        border: 1px solid #2e3d50;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.06),
-          inset 0 0 0 1px rgba(6, 10, 15, 0.55);
-      }
-
-      .spotify-cover {
-        display: block;
-        width: 116px;
-        height: 116px;
-        border-radius: 10px;
-        object-fit: cover;
-        background: #04070c;
-      }
-
-      .spotify-cover.offline {
-        background: radial-gradient(circle at 35% 35%, #1d2a3b, #080b11 72%);
-        object-fit: contain;
-        padding: 18px;
-        box-sizing: border-box;
-      }
-
-      .spotify-meta {
-        min-width: 0;
-      }
-
-      .spotify-label {
-        font-family: 'Roboto', sans-serif;
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #90aac5;
-        margin-bottom: 8px;
-      }
-
-      .spotify-title {
-        font-family: 'Roboto', sans-serif;
-        font-size: 1.2rem;
-        font-weight: 900;
-        line-height: 1.18;
-        color: #f5fbff;
-        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
-        overflow-wrap: anywhere;
-      }
-
-      .spotify-artist {
-        font-family: 'Roboto', sans-serif;
-        margin-top: 6px;
-        color: #c1cfdf;
-        font-size: 0.96rem;
-        overflow-wrap: anywhere;
-      }
-
-      .spotify-time-row {
-        font-family: 'Roboto', sans-serif;
-        display: flex;
-        justify-content: space-between;
-        margin-top: 16px;
-        font-size: 0.8rem;
-        color: #8fa5be;
-      }
-
-      .spotify-progress {
-        width: 100%;
-        height: 12px;
-        margin-top: 8px;
-        padding: 2px;
-        border-radius: 999px;
-        overflow: hidden;
-        background: linear-gradient(180deg, #1f2834 0%, #0a0f16 100%);
-        border: 1px solid #314355;
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.55);
-        box-sizing: border-box;
-      }
-
-      .spotify-progress-bar {
-        width: 0%;
-        height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #3fa9f5 0%, #69d5ff 48%, #76ffae 100%);
-        box-shadow: 0 0 10px rgba(99, 213, 255, 0.35);
-      }
-
-      .spotify-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 168px;
-        margin-top: 16px;
-        padding: 10px 16px;
-        border-radius: 10px;
-        text-decoration: none;
-        color: #ffffff;
-        background: linear-gradient(180deg, #28c86d 0%, #138942 100%);
-        border: 1px solid #2ed676;
-        font-family: 'Roboto', sans-serif;
-        font-weight: 700;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.22),
-          0 1px 0 rgba(0, 0, 0, 0.24);
-      }
-
-      .spotify-link:hover {
-        filter: brightness(1.06);
-      }
-
-      .spotify-link.is-disabled {
-        background: linear-gradient(180deg, #4e5a67 0%, #343c44 100%);
-        border-color: #65717d;
-        pointer-events: none;
-        cursor: default;
-      }
-
-      .spotify-link.youtube-search {
-        background: linear-gradient(180deg, #d94c41 0%, #991f22 100%);
-        border-color: #f0665b;
-      }
-
-      .retro-player-controls {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        padding: 12px 16px 16px;
-        border-top: 1px solid rgba(94, 121, 152, 0.3);
-        background: linear-gradient(180deg, rgba(17, 24, 36, 0.24), rgba(5, 8, 12, 0.88));
-      }
-
-      .retro-player-control-cluster {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .retro-player-control-cluster button {
-        position: relative;
-        width: 40px;
-        min-width: 40px;
+        width: 42px;
+        min-width: 42px;
         height: 34px;
         border-radius: 10px;
         padding: 0;
+        border: 1px solid #60768f;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 36%, rgba(255, 255, 255, 0) 37%),
-          linear-gradient(180deg, #42556d 0%, #29384b 52%, #152130 100%);
-        border: 1px solid #5f7691;
+          linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.14) 24%, rgba(255, 255, 255, 0.02) 25%),
+          linear-gradient(180deg, #53687e 0%, #34475b 48%, #162231 100%);
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.22),
-          inset 0 -1px 0 rgba(10, 16, 24, 0.5),
-          0 1px 0 rgba(0, 0, 0, 0.32);
+          inset 0 1px 0 rgba(255, 255, 255, 0.25),
+          inset 0 -1px 0 rgba(10, 16, 24, 0.58),
+          0 1px 0 rgba(0, 0, 0, 0.34);
       }
 
       .retro-player-control-cluster button::before {
         content: '';
         position: absolute;
-        left: 7px;
-        right: 7px;
+        left: 6px;
+        right: 6px;
         top: 3px;
         height: 11px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.33), rgba(255, 255, 255, 0));
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+        pointer-events: none;
+      }
+
+      .retro-player-control-cluster button::after {
+        content: '';
+        position: absolute;
+        inset: 1px;
+        border-radius: 8px;
+        border: 1px solid rgba(199, 219, 242, 0.12);
         pointer-events: none;
       }
 
       .retro-player-control-cluster button.is-primary {
-        width: 48px;
-        min-width: 48px;
+        width: 50px;
+        min-width: 50px;
+        border-color: #7f9fd4;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 36%, rgba(255, 255, 255, 0) 37%),
-          linear-gradient(180deg, #5a92e6 0%, #3b6dc2 50%, #20478e 100%);
-        border-color: #82a8e8;
+          linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.16) 24%, rgba(255, 255, 255, 0.02) 25%),
+          linear-gradient(180deg, #6aa0ed 0%, #4375ca 50%, #22488f 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.34),
+          inset 0 -1px 0 rgba(11, 22, 41, 0.55),
+          0 1px 0 rgba(0, 0, 0, 0.34);
       }
 
       .control-icon {
@@ -568,6 +254,7 @@
         display: inline-block;
         width: 18px;
         height: 18px;
+        filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.18));
       }
 
       .control-icon::before,
@@ -577,7 +264,7 @@
       }
 
       .icon-play::before {
-        left: 6px;
+        left: 5px;
         top: 3px;
         width: 0;
         height: 0;
@@ -613,12 +300,12 @@
       }
 
       .icon-prev::before {
-        left: 5px;
+        left: 3px;
         border-right: 7px solid #f6fbff;
       }
 
       .icon-prev::after {
-        left: 11px;
+        left: 9px;
         top: 3px;
         width: 0;
         height: 0;
@@ -628,12 +315,12 @@
       }
 
       .icon-next::before {
-        left: 6px;
+        left: 5px;
         border-left: 7px solid #f6fbff;
       }
 
       .icon-next::after {
-        left: 11px;
+        left: 10px;
         top: 3px;
         width: 0;
         height: 0;
