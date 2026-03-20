@@ -252,21 +252,58 @@
       .retro-player-tabs {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 0;
         padding: 10px 12px 0;
+        position: relative;
+        z-index: 1;
       }
 
       .retro-player-tabs button {
-        background: linear-gradient(180deg, #33485f 0%, #1a2635 100%);
-        border-radius: 10px 10px 0 0;
-        padding: 8px 12px;
-        font-size: 0.84rem;
+        position: relative;
+        min-width: 84px;
+        height: 34px;
+        margin-right: -6px;
+        padding: 0 18px;
+        border-radius: 16px;
+        border: 1px solid #7ca2cd;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 28%, rgba(255, 255, 255, 0) 29%),
+          linear-gradient(180deg, #6fa5e6 0%, #3d6ca7 48%, #1c3455 100%);
+        color: #f6fbff;
+        font-size: 0.82rem;
         font-weight: 700;
+        letter-spacing: 0.01em;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.45),
+          inset 0 -1px 0 rgba(6, 13, 22, 0.5),
+          0 1px 0 rgba(0, 0, 0, 0.3);
+        clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
+      }
+
+      .retro-player-tabs button::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        top: 3px;
+        height: 12px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+        pointer-events: none;
       }
 
       .retro-player-tabs button.is-active {
-        background: linear-gradient(180deg, #4d6b8b 0%, #24384f 100%);
+        z-index: 2;
+        border-color: #a9c9ee;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.12) 30%, rgba(255, 255, 255, 0) 31%),
+          linear-gradient(180deg, #8dc3ff 0%, #4f84c6 44%, #254674 100%);
         color: #ffffff;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.6),
+          inset 0 -1px 0 rgba(11, 20, 33, 0.45),
+          0 0 0 1px rgba(112, 162, 221, 0.22);
       }
 
       .retro-player-main {
