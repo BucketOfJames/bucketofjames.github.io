@@ -128,136 +128,324 @@
       }
       .retro-player {
         max-width: 520px;
+        width: 100%;
         margin: 34px auto 0;
         box-sizing: border-box;
       }
 
-      .retro-player .window-body {
-        padding: 16px;
+      .retro-player-shell {
+        position: relative;
+        overflow: hidden;
+        color: #d9e6f5;
+        border: 1px solid #304052;
+        border-radius: 16px;
+        background:
+          radial-gradient(circle at top right, rgba(89, 140, 210, 0.18), transparent 32%),
+          linear-gradient(180deg, #111824 0%, #0c1017 42%, #090c11 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 18px 38px rgba(0, 0, 0, 0.45);
       }
 
-      .retro-player .content {
+      .retro-player-shell::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 22%);
+      }
+
+      .retro-player-topbar {
         display: flex;
-        gap: 16px;
         align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px 9px;
+        background: linear-gradient(180deg, #476686 0%, #273a52 42%, #172435 100%);
+        border-bottom: 1px solid #4a647e;
       }
 
-      .window.retro-player {
-        background-color: #1a1a1a;
-        color: #e8edf2;
-        border-color: #333;
+      .retro-player-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.96rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: #f5fbff;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
       }
 
-      .window.retro-player .window-body {
-        background-color: #1a1a1a;
+      .retro-player-appdot {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        border-radius: 4px;
+        background: linear-gradient(180deg, #79d7ff 0%, #3b7ddd 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.65),
+          0 0 0 1px rgba(10, 18, 28, 0.7);
       }
 
-      .window.retro-player .title-bar {
-        background: linear-gradient(#0e3a6c, #071f3d);
+      .retro-window-controls {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .retro-window-controls button,
+      .retro-player-menubar button,
+      .retro-player-tabs button,
+      .retro-player-control-cluster button {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 1px solid #4d6178;
+        color: #eef6ff;
+        font-family: 'Roboto', sans-serif;
+        cursor: default;
+        user-select: none;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.13),
+          0 1px 0 rgba(0, 0, 0, 0.28);
+      }
+
+      .retro-window-controls button {
+        width: 28px;
+        height: 24px;
+        border-radius: 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #587493 0%, #2d435d 100%);
+        padding: 0;
+      }
+
+      .retro-window-controls button span {
+        display: block;
+        line-height: 1;
+        font-size: 0.98rem;
+        font-weight: 700;
+        transform: translateY(-1px);
+      }
+
+      .retro-window-controls button:last-child {
+        background: linear-gradient(180deg, #7f5367 0%, #4c2537 100%);
+        border-color: #8f6172;
+      }
+
+      .retro-player-menubar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 10px 12px 0;
+      }
+
+      .retro-player-menubar button {
+        background: linear-gradient(180deg, #314457 0%, #1b2733 100%);
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 0.8rem;
+      }
+
+      .retro-player-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px 12px 0;
+      }
+
+      .retro-player-tabs button {
+        background: linear-gradient(180deg, #33485f 0%, #1a2635 100%);
+        border-radius: 10px 10px 0 0;
+        padding: 8px 12px;
+        font-size: 0.84rem;
+        font-weight: 700;
+      }
+
+      .retro-player-tabs button.is-active {
+        background: linear-gradient(180deg, #4d6b8b 0%, #24384f 100%);
         color: #ffffff;
       }
 
-      .window.retro-player .title-bar-controls button {
-        background: #0e3a6c;
+      .retro-player-main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 132px;
+        gap: 18px;
+        align-items: start;
+        padding: 18px 16px 14px;
+      }
+
+      .retro-cover-column {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .retro-cover-frame {
+        width: 132px;
+        padding: 8px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #182536 0%, #0d131d 100%);
+        border: 1px solid #2e3d50;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          inset 0 0 0 1px rgba(6, 10, 15, 0.55);
       }
 
       .spotify-cover {
-        width: 88px;
-        height: 88px;
-        border-radius: 14px;
+        display: block;
+        width: 116px;
+        height: 116px;
+        border-radius: 10px;
         object-fit: cover;
-        flex: 0 0 88px;
-        background-color: transparent;
+        background: #04070c;
       }
 
       .spotify-cover.offline {
-        background-color: #0d0f11;
+        background: radial-gradient(circle at 35% 35%, #1d2a3b, #080b11 72%);
         object-fit: contain;
-        padding: 14px;
+        padding: 18px;
         box-sizing: border-box;
       }
 
       .spotify-meta {
         min-width: 0;
-        flex: 1;
       }
 
       .spotify-label {
         font-family: 'Roboto', sans-serif;
-        font-size: 0.85rem;
-        opacity: 0.75;
-        margin-bottom: 4px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #90aac5;
+        margin-bottom: 8px;
       }
 
       .spotify-title {
         font-family: 'Roboto', sans-serif;
-        font-size: 1.08rem;
-        font-weight: 700;
-        line-height: 1.2;
-        white-space: normal;
-        overflow: visible;
-        text-overflow: clip;
+        font-size: 1.2rem;
+        font-weight: 900;
+        line-height: 1.18;
+        color: #f5fbff;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
         overflow-wrap: anywhere;
       }
 
       .spotify-artist {
         font-family: 'Roboto', sans-serif;
-        margin-top: 4px;
-        opacity: 0.85;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        margin-top: 6px;
+        color: #c1cfdf;
+        font-size: 0.96rem;
+        overflow-wrap: anywhere;
       }
 
       .spotify-time-row {
         font-family: 'Roboto', sans-serif;
         display: flex;
         justify-content: space-between;
-        margin-top: 12px;
+        margin-top: 16px;
         font-size: 0.8rem;
-        opacity: 0.75;
+        color: #8fa5be;
       }
 
       .spotify-progress {
         width: 100%;
-        height: 6px;
-        margin-top: 6px;
+        height: 12px;
+        margin-top: 8px;
+        padding: 2px;
         border-radius: 999px;
         overflow: hidden;
-        background: rgba(255, 255, 255, 0.12);
+        background: linear-gradient(180deg, #1f2834 0%, #0a0f16 100%);
+        border: 1px solid #314355;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.55);
+        box-sizing: border-box;
       }
 
       .spotify-progress-bar {
         width: 0%;
         height: 100%;
         border-radius: 999px;
-        background: #1db954;
+        background: linear-gradient(90deg, #3fa9f5 0%, #69d5ff 48%, #76ffae 100%);
+        box-shadow: 0 0 10px rgba(99, 213, 255, 0.35);
       }
 
       .spotify-link {
-        display: inline-block;
-        margin-top: 14px;
-        padding: 10px 14px;
-        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 168px;
+        margin-top: 16px;
+        padding: 10px 16px;
+        border-radius: 10px;
         text-decoration: none;
         color: #ffffff;
-        background: #1db954;
+        background: linear-gradient(180deg, #28c86d 0%, #138942 100%);
+        border: 1px solid #2ed676;
         font-family: 'Roboto', sans-serif;
-        font-weight: 600;
+        font-weight: 700;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.22),
+          0 1px 0 rgba(0, 0, 0, 0.24);
       }
 
       .spotify-link:hover {
-        filter: brightness(1.07);
+        filter: brightness(1.06);
       }
 
       .spotify-link.is-disabled {
-        background: #394047;
+        background: linear-gradient(180deg, #4e5a67 0%, #343c44 100%);
+        border-color: #65717d;
         pointer-events: none;
         cursor: default;
       }
 
       .spotify-link.youtube-search {
-        background: #c62828;
+        background: linear-gradient(180deg, #d94c41 0%, #991f22 100%);
+        border-color: #f0665b;
+      }
+
+      .retro-player-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 12px 16px 16px;
+        border-top: 1px solid rgba(94, 121, 152, 0.3);
+        background: linear-gradient(180deg, rgba(17, 24, 36, 0.24), rgba(5, 8, 12, 0.88));
+      }
+
+      .retro-player-control-cluster {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .retro-player-control-cluster button {
+        min-width: 42px;
+        height: 34px;
+        border-radius: 10px;
+        padding: 0 12px;
+        background: linear-gradient(180deg, #31465d 0%, #172332 100%);
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+
+      .retro-player-control-cluster button.is-primary {
+        min-width: 50px;
+        background: linear-gradient(180deg, #4c86d9 0%, #2951a1 100%);
+        border-color: #6793de;
+      }
+
+      .retro-player-status {
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #88a2bf;
+        white-space: nowrap;
       }
 
       @media screen and (max-width: 400px) {
@@ -280,14 +468,27 @@
       }
 
       @media (max-width: 640px) {
-        .retro-player {
-          align-items: flex-start;
+        .retro-player-main {
+          grid-template-columns: 1fr;
+        }
+
+        .retro-cover-column {
+          order: -1;
+          justify-content: flex-start;
+        }
+
+        .retro-cover-frame {
+          width: 108px;
         }
 
         .spotify-cover {
-          width: 72px;
-          height: 72px;
-          flex-basis: 72px;
+          width: 92px;
+          height: 92px;
+        }
+
+        .retro-player-controls {
+          flex-direction: column;
+          align-items: flex-start;
         }
       }
 
@@ -315,19 +516,37 @@
             know. Maybe you should try it. We don't have as much time as we
             think. Ooo eee."<br><p style="text-align: right;">-Mr. Poopybutthole, <i>Rick and Morty</i></p>
           </div>
-          <div id="spotify-card" class="window retro-player" hidden>
-            <div class="title-bar">
-              <div class="title-bar-text">Now Playing</div>
-              <div class="title-bar-controls">
-                <button aria-label="Minimize"></button>
-                <button aria-label="Maximize"></button>
-                <button aria-label="Close"></button>
+          <div id="spotify-card" class="retro-player" hidden>
+            <div class="retro-player-shell">
+              <div class="retro-player-topbar">
+                <div class="retro-player-brand">
+                  <span class="retro-player-appdot" aria-hidden="true"></span>
+                  <span>Windows Media Player</span>
+                </div>
+                <div class="retro-window-controls">
+                  <button type="button" aria-label="Minimize"><span>−</span></button>
+                  <button type="button" aria-label="Maximize"><span>□</span></button>
+                  <button type="button" aria-label="Close"><span>×</span></button>
+                </div>
               </div>
-            </div>
-            <div class="window-body">
-              <div class="content">
-                <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
 
+              <div class="retro-player-menubar">
+                <button type="button">File</button>
+                <button type="button">View</button>
+                <button type="button">Play</button>
+                <button type="button">Tools</button>
+                <button type="button">Help</button>
+              </div>
+
+              <div class="retro-player-tabs">
+                <button type="button" class="is-active">Now Playing</button>
+                <button type="button">Library</button>
+                <button type="button">Rip</button>
+                <button type="button">Burn</button>
+                <button type="button">Sync</button>
+              </div>
+
+              <div class="retro-player-main">
                 <div class="spotify-meta">
                   <div id="spotify-label" class="spotify-label">Listening on Spotify</div>
                   <div id="spotify-title" class="spotify-title">Nothing playing</div>
@@ -352,6 +571,23 @@
                     Play on Spotify
                   </a>
                 </div>
+
+                <div class="retro-cover-column">
+                  <div class="retro-cover-frame">
+                    <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="retro-player-controls">
+                <div class="retro-player-control-cluster">
+                  <button type="button" aria-label="Previous">⏮</button>
+                  <button type="button" class="is-primary" aria-label="Play">▶</button>
+                  <button type="button" aria-label="Pause">⏸</button>
+                  <button type="button" aria-label="Next">⏭</button>
+                  <button type="button" aria-label="Shuffle">🔀</button>
+                </div>
+                <div class="retro-player-status">Now Playing</div>
               </div>
             </div>
           </div>
