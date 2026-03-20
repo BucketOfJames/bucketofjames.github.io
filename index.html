@@ -54,16 +54,22 @@
       }
 
       .page-body {
-        --spotify-width: 480px;
+        --spotify-width: 620px;
         padding: 0 20px;
-        max-width: 520px;
+        max-width: 660px;
         width: 100%;
         box-sizing: border-box;
       }
 
       .about-row {
         position: relative;
-        width: 100%;
+        width: min(620px, 100%);
+        margin: 0 auto;
+      }
+
+      .about {
+        max-width: 520px;
+        margin: 0 auto;
       }
 
       .linkage {
@@ -127,7 +133,7 @@
         background-color: transparent;
       }
       .retro-player {
-        max-width: 520px;
+        max-width: 620px;
         width: 100%;
         margin: 34px auto 0;
         box-sizing: border-box;
@@ -521,26 +527,26 @@
       .retro-player-controls {
         padding: 12px 16px 16px;
         border-top: 1px solid rgba(94, 121, 152, 0.3);
-        background: linear-gradient(180deg, rgba(17, 24, 36, 0.18), rgba(4, 7, 11, 0.94));
+        background: linear-gradient(180deg, rgba(17, 24, 36, 0.15), rgba(4, 7, 11, 0.96));
       }
 
       .retro-controls-tray {
         position: relative;
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 16px;
-        min-height: 54px;
-        padding: 7px 14px;
-        border-radius: 28px;
-        border: 1px solid #233a54;
+        justify-content: space-between;
+        gap: 18px;
+        min-height: 56px;
+        padding: 8px 18px;
+        border-radius: 30px;
+        border: 1px solid #23415f;
         background:
-          radial-gradient(circle at left center, rgba(0, 0, 0, 0.72) 0, rgba(0, 0, 0, 0.72) 58px, transparent 84px),
-          radial-gradient(circle at right center, rgba(0, 0, 0, 0.72) 0, rgba(0, 0, 0, 0.72) 58px, transparent 84px),
-          linear-gradient(180deg, #1b2736 0%, #101720 32%, #080d13 100%);
+          radial-gradient(circle at left center, rgba(0, 0, 0, 0.8) 0, rgba(0, 0, 0, 0.8) 64px, transparent 94px),
+          radial-gradient(circle at right center, rgba(0, 0, 0, 0.8) 0, rgba(0, 0, 0, 0.8) 64px, transparent 94px),
+          linear-gradient(180deg, #192534 0%, #0c1219 35%, #04070c 100%);
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.07),
-          inset 0 -1px 0 rgba(0, 0, 0, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.75),
           0 1px 0 rgba(0, 0, 0, 0.34);
       }
 
@@ -550,9 +556,9 @@
         left: 16px;
         right: 16px;
         top: 4px;
-        height: 14px;
+        height: 12px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0));
         pointer-events: none;
       }
 
@@ -601,14 +607,14 @@
         align-items: center;
         justify-content: center;
         gap: 0;
-        height: 34px;
+        height: 36px;
         padding: 0 18px;
         border-radius: 18px;
-        border: 1px solid #2a405a;
-        background: linear-gradient(180deg, #212d3d 0%, #0b1017 54%, #05080d 100%);
+        border: 1px solid #243d59;
+        background: linear-gradient(180deg, #1a2431 0%, #090d13 56%, #030509 100%);
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.08),
-          inset 0 -1px 0 rgba(0, 0, 0, 0.68);
+          inset 0 1px 0 rgba(255, 255, 255, 0.05),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.72);
       }
 
       .retro-transport-dock::before {
@@ -617,37 +623,37 @@
         left: 14px;
         right: 14px;
         top: 3px;
-        height: 8px;
+        height: 7px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
         pointer-events: none;
       }
 
       .transport-wing {
         position: relative;
-        width: 54px;
-        height: 26px;
-        margin: 0 -1px;
+        width: 58px;
+        height: 28px;
+        margin: 0 -2px;
         border-radius: 8px;
-        border: 1px solid #6d7287;
+        border: 1px solid #4c5564;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.16) 36%, rgba(255, 255, 255, 0.02) 37%),
-          linear-gradient(180deg, #9aa1af 0%, #5d6778 54%, #2f3948 100%);
+          linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0.02) 31%),
+          linear-gradient(180deg, #838b97 0%, #4b5360 24%, #161d28 52%, #05070b 76%, #1a2230 100%);
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.32),
-          inset 0 -1px 0 rgba(20, 26, 36, 0.5),
-          0 1px 0 rgba(0, 0, 0, 0.22);
+          inset 0 1px 0 rgba(255, 255, 255, 0.22),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.58),
+          0 1px 0 rgba(0, 0, 0, 0.24);
       }
 
       .transport-wing::before {
         content: '';
         position: absolute;
-        left: 6px;
-        right: 6px;
+        left: 7px;
+        right: 7px;
         top: 2px;
-        height: 8px;
+        height: 7px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
         pointer-events: none;
       }
 
@@ -662,30 +668,42 @@
       .transport-core {
         position: relative;
         z-index: 2;
-        width: 58px;
-        height: 58px;
-        margin: 0 -6px;
-        transform: translateY(-3px);
+        width: 60px;
+        height: 60px;
+        margin: 0 -7px;
+        transform: translateY(-4px);
         border-radius: 50%;
-        border: 1px solid #7ca1ff;
+        border: 1px solid #87a6ff;
         background:
-          radial-gradient(circle at 50% 24%, #edf7ff 0%, #c9e8ff 14%, #8fbfff 28%, #3979f0 47%, #224ec2 66%, #101f67 100%);
+          linear-gradient(180deg, #f4fbff 0%, #d8ecff 12%, #5f84f1 26%, #22439e 44%, #0b1540 68%, #5dc6ff 100%);
         box-shadow:
-          0 0 0 4px rgba(17, 47, 128, 0.34),
-          0 0 18px rgba(67, 123, 255, 0.36),
-          inset 0 2px 2px rgba(255, 255, 255, 0.35),
-          inset 0 -3px 5px rgba(11, 22, 74, 0.45);
+          0 0 0 4px rgba(26, 63, 170, 0.3),
+          0 0 18px rgba(72, 126, 255, 0.34),
+          inset 0 2px 2px rgba(255, 255, 255, 0.28),
+          inset 0 -4px 6px rgba(17, 34, 92, 0.38);
       }
 
       .transport-core::before {
         content: '';
         position: absolute;
-        left: 9px;
-        right: 9px;
-        top: 5px;
-        height: 18px;
+        left: 10px;
+        right: 10px;
+        top: 4px;
+        height: 16px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0));
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0));
+        pointer-events: none;
+      }
+
+      .transport-core::after {
+        content: '';
+        position: absolute;
+        left: 7px;
+        right: 7px;
+        bottom: 7px;
+        height: 16px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(154, 226, 255, 0), rgba(154, 226, 255, 0.28));
         pointer-events: none;
       }
 
@@ -923,7 +941,7 @@
         .retro-player {
           position: absolute;
           top: 50%;
-          left: calc(-1 * (((100vw - 520px) / 4) + 10px + (var(--spotify-width) / 2)));
+          left: calc(-1 * (((100vw - 660px) / 4) + 10px + (var(--spotify-width) / 2)));
           transform: translateY(-50%);
           width: var(--spotify-width);
           max-width: none;
@@ -996,15 +1014,6 @@
                   <button type="button" aria-label="Close"><span>×</span></button>
                 </div>
               </div>
-
-              <div class="retro-player-menubar">
-                <button type="button">File</button>
-                <button type="button">View</button>
-                <button type="button">Play</button>
-                <button type="button">Tools</button>
-                <button type="button">Help</button>
-              </div>
-
               <div class="retro-player-tabs">
                 <button type="button" class="is-active"><span>Now Playing</span></button>
                 <button type="button"><span>Library</span></button>
