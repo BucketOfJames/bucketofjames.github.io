@@ -248,30 +248,39 @@
         height: 29px;
         padding: 0 16px;
         border-radius: 9px;
-        border: 1px solid #6e89a6;
+        border: 1px solid #6f8ca8;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 38%, rgba(255, 255, 255, 0) 39%),
-          linear-gradient(180deg, #40566d 0%, #2a3d52 48%, #152231 100%);
+          linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.12) 22%, rgba(255, 255, 255, 0.02) 23%),
+          linear-gradient(180deg, #4d6378 0%, #314559 46%, #182534 100%);
         color: #ffffff;
-        font-size: 0.82rem;
+        font-size: 0.81rem;
         font-weight: 700;
         letter-spacing: 0.01em;
-        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.62);
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.24),
-          inset 0 -1px 0 rgba(8, 14, 22, 0.48),
-          0 1px 0 rgba(0, 0, 0, 0.26);
+          inset 0 1px 0 rgba(255, 255, 255, 0.28),
+          inset 0 -1px 0 rgba(7, 13, 20, 0.58),
+          0 1px 0 rgba(0, 0, 0, 0.28);
       }
 
       .retro-player-menubar button::before {
         content: '';
         position: absolute;
-        left: 8px;
-        right: 8px;
+        left: 7px;
+        right: 7px;
         top: 3px;
-        height: 10px;
+        height: 9px;
         border-radius: 999px;
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+        pointer-events: none;
+      }
+
+      .retro-player-menubar button::after {
+        content: '';
+        position: absolute;
+        inset: 1px;
+        border-radius: 7px;
+        border: 1px solid rgba(202, 222, 246, 0.12);
         pointer-events: none;
       }
 
@@ -510,57 +519,217 @@
       }
 
       .retro-player-controls {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
         padding: 12px 16px 16px;
         border-top: 1px solid rgba(94, 121, 152, 0.3);
-        background: linear-gradient(180deg, rgba(17, 24, 36, 0.24), rgba(5, 8, 12, 0.88));
+        background: linear-gradient(180deg, rgba(17, 24, 36, 0.18), rgba(4, 7, 11, 0.94));
       }
 
-      .retro-player-control-cluster {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .retro-player-control-cluster button {
+      .retro-controls-tray {
         position: relative;
-        width: 40px;
-        min-width: 40px;
-        height: 34px;
-        border-radius: 10px;
-        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        min-height: 54px;
+        padding: 7px 14px;
+        border-radius: 28px;
+        border: 1px solid #233a54;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 36%, rgba(255, 255, 255, 0) 37%),
-          linear-gradient(180deg, #42556d 0%, #29384b 52%, #152130 100%);
-        border: 1px solid #5f7691;
+          radial-gradient(circle at left center, rgba(0, 0, 0, 0.72) 0, rgba(0, 0, 0, 0.72) 58px, transparent 84px),
+          radial-gradient(circle at right center, rgba(0, 0, 0, 0.72) 0, rgba(0, 0, 0, 0.72) 58px, transparent 84px),
+          linear-gradient(180deg, #1b2736 0%, #101720 32%, #080d13 100%);
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.22),
-          inset 0 -1px 0 rgba(10, 16, 24, 0.5),
-          0 1px 0 rgba(0, 0, 0, 0.32);
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.7),
+          0 1px 0 rgba(0, 0, 0, 0.34);
       }
 
-      .retro-player-control-cluster button::before {
+      .retro-controls-tray::before {
+        content: '';
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        top: 4px;
+        height: 14px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+        pointer-events: none;
+      }
+
+      .retro-aux-controls,
+      .retro-volume-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 0 0 auto;
+      }
+
+      .retro-mini-button,
+      .transport-wing,
+      .transport-core,
+      .volume-button {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        cursor: default;
+        user-select: none;
+        background: transparent;
+      }
+
+      .retro-mini-button {
+        position: relative;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+      }
+
+      .retro-mini-button::before {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 62%);
+        opacity: 0.55;
+        pointer-events: none;
+      }
+
+      .retro-transport-dock {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        height: 34px;
+        padding: 0 18px;
+        border-radius: 18px;
+        border: 1px solid #2a405a;
+        background: linear-gradient(180deg, #212d3d 0%, #0b1017 54%, #05080d 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.68);
+      }
+
+      .retro-transport-dock::before {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 3px;
+        height: 8px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+        pointer-events: none;
+      }
+
+      .transport-wing {
+        position: relative;
+        width: 54px;
+        height: 26px;
+        margin: 0 -1px;
+        border-radius: 8px;
+        border: 1px solid #6d7287;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.16) 36%, rgba(255, 255, 255, 0.02) 37%),
+          linear-gradient(180deg, #9aa1af 0%, #5d6778 54%, #2f3948 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.32),
+          inset 0 -1px 0 rgba(20, 26, 36, 0.5),
+          0 1px 0 rgba(0, 0, 0, 0.22);
+      }
+
+      .transport-wing::before {
+        content: '';
+        position: absolute;
+        left: 6px;
+        right: 6px;
+        top: 2px;
+        height: 8px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+        pointer-events: none;
+      }
+
+      .transport-wing.prev {
+        border-radius: 8px 4px 4px 8px;
+      }
+
+      .transport-wing.next {
+        border-radius: 4px 8px 8px 4px;
+      }
+
+      .transport-core {
+        position: relative;
+        z-index: 2;
+        width: 58px;
+        height: 58px;
+        margin: 0 -6px;
+        transform: translateY(-3px);
+        border-radius: 50%;
+        border: 1px solid #7ca1ff;
+        background:
+          radial-gradient(circle at 50% 24%, #edf7ff 0%, #c9e8ff 14%, #8fbfff 28%, #3979f0 47%, #224ec2 66%, #101f67 100%);
+        box-shadow:
+          0 0 0 4px rgba(17, 47, 128, 0.34),
+          0 0 18px rgba(67, 123, 255, 0.36),
+          inset 0 2px 2px rgba(255, 255, 255, 0.35),
+          inset 0 -3px 5px rgba(11, 22, 74, 0.45);
+      }
+
+      .transport-core::before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        right: 9px;
+        top: 5px;
+        height: 18px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0));
+        pointer-events: none;
+      }
+
+      .volume-button {
+        position: relative;
+        width: 18px;
+        height: 18px;
+      }
+
+      .retro-volume-slider {
+        position: relative;
+        width: 64px;
+        height: 10px;
+        border-radius: 999px;
+        border: 1px solid #1f3147;
+        background: linear-gradient(180deg, #151d28 0%, #0a0e14 100%);
+        box-shadow:
+          inset 0 1px 1px rgba(0, 0, 0, 0.72),
+          inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .retro-volume-slider::before {
         content: '';
         position: absolute;
         left: 7px;
         right: 7px;
         top: 3px;
-        height: 11px;
+        height: 2px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.33), rgba(255, 255, 255, 0));
-        pointer-events: none;
+        background: rgba(154, 191, 255, 0.16);
       }
 
-      .retro-player-control-cluster button.is-primary {
-        width: 48px;
-        min-width: 48px;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 36%, rgba(255, 255, 255, 0) 37%),
-          linear-gradient(180deg, #5a92e6 0%, #3b6dc2 50%, #20478e 100%);
-        border-color: #82a8e8;
+      .retro-volume-knob {
+        position: absolute;
+        top: 50%;
+        left: 42px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle at 50% 28%, #dff3ff 0%, #7fb6ff 42%, #265dd8 100%);
+        box-shadow:
+          0 0 0 1px rgba(132, 176, 255, 0.5),
+          0 0 8px rgba(71, 133, 255, 0.34);
       }
 
       .control-icon {
@@ -568,6 +737,7 @@
         display: inline-block;
         width: 18px;
         height: 18px;
+        filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.18));
       }
 
       .control-icon::before,
@@ -603,43 +773,35 @@
         right: 4px;
       }
 
-      .icon-prev::before,
-      .icon-next::before {
-        top: 3px;
+      .icon-stop::before {
+        left: 4px;
+        top: 4px;
+        width: 10px;
+        height: 10px;
+        background: #f6fbff;
+        border-radius: 1px;
+      }
+
+      .icon-repeat::before {
+        left: 2px;
+        top: 5px;
+        width: 10px;
+        height: 6px;
+        border: 2px solid #81b0ff;
+        border-right-color: transparent;
+        border-radius: 999px;
+        transform: rotate(-6deg);
+      }
+
+      .icon-repeat::after {
+        right: 1px;
+        top: 4px;
         width: 0;
         height: 0;
-        border-top: 6px solid transparent;
-        border-bottom: 6px solid transparent;
-      }
-
-      .icon-prev::before {
-        left: 5px;
-        border-right: 7px solid #f6fbff;
-      }
-
-      .icon-prev::after {
-        left: 11px;
-        top: 3px;
-        width: 0;
-        height: 0;
-        border-top: 6px solid transparent;
-        border-bottom: 6px solid transparent;
-        border-right: 7px solid #f6fbff;
-      }
-
-      .icon-next::before {
-        left: 6px;
-        border-left: 7px solid #f6fbff;
-      }
-
-      .icon-next::after {
-        left: 11px;
-        top: 3px;
-        width: 0;
-        height: 0;
-        border-top: 6px solid transparent;
-        border-bottom: 6px solid transparent;
-        border-left: 7px solid #f6fbff;
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        border-left: 5px solid #81b0ff;
+        transform: rotate(8deg);
       }
 
       .icon-shuffle::before {
@@ -660,7 +822,6 @@
         border-top: 4px solid transparent;
         border-bottom: 4px solid transparent;
         border-left: 6px solid #f6fbff;
-        box-shadow: 0 8px 0 -1px transparent;
       }
 
       .icon-shuffle span {
@@ -674,14 +835,81 @@
         border-left: 6px solid #f6fbff;
       }
 
-      .retro-player-status {
-        font-family: 'Roboto', sans-serif;
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: #88a2bf;
-        white-space: nowrap;
+      .icon-prev::before,
+      .icon-next::before,
+      .icon-prev::after,
+      .icon-next::after {
+        top: 3px;
+        width: 0;
+        height: 0;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+      }
+
+      .icon-prev::before {
+        left: 2px;
+        border-right: 7px solid #f6fbff;
+      }
+
+      .icon-prev::after {
+        left: 8px;
+        border-right: 7px solid #f6fbff;
+      }
+
+      .icon-prev span,
+      .icon-next span {
+        position: absolute;
+        top: 3px;
+        width: 2px;
+        height: 12px;
+        background: #f6fbff;
+        border-radius: 1px;
+      }
+
+      .icon-prev span {
+        left: 13px;
+      }
+
+      .icon-next::before {
+        left: 9px;
+        border-left: 7px solid #f6fbff;
+      }
+
+      .icon-next::after {
+        left: 3px;
+        border-left: 7px solid #f6fbff;
+      }
+
+      .icon-next span {
+        left: 1px;
+      }
+
+      .icon-speaker::before {
+        left: 1px;
+        top: 6px;
+        width: 5px;
+        height: 6px;
+        background: #f6fbff;
+      }
+
+      .icon-speaker::after {
+        left: 6px;
+        top: 4px;
+        width: 0;
+        height: 0;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 7px solid #f6fbff;
+      }
+
+      .icon-speaker span {
+        position: absolute;
+        right: 0;
+        top: 3px;
+        width: 7px;
+        height: 10px;
+        border-right: 2px solid #8ebcff;
+        border-radius: 0 10px 10px 0;
       }
 
       @media screen and (max-width: 400px) {
@@ -722,9 +950,12 @@
           height: 92px;
         }
 
-        .retro-player-controls {
-          flex-direction: column;
-          align-items: flex-start;
+        .retro-controls-tray {
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 12px;
+          padding-top: 10px;
+          padding-bottom: 10px;
         }
       }
 
@@ -816,14 +1047,24 @@
               </div>
 
               <div class="retro-player-controls">
-                <div class="retro-player-control-cluster">
-                  <button type="button" aria-label="Previous"><span class="control-icon icon-prev"></span></button>
-                  <button type="button" class="is-primary" aria-label="Play"><span class="control-icon icon-play"></span></button>
-                  <button type="button" aria-label="Pause"><span class="control-icon icon-pause"></span></button>
-                  <button type="button" aria-label="Next"><span class="control-icon icon-next"></span></button>
-                  <button type="button" aria-label="Shuffle"><span class="control-icon icon-shuffle"><span></span></span></button>
+                <div class="retro-controls-tray">
+                  <div class="retro-aux-controls">
+                    <button type="button" class="retro-mini-button" aria-label="Shuffle"><span class="control-icon icon-shuffle"><span></span></span></button>
+                    <button type="button" class="retro-mini-button" aria-label="Repeat"><span class="control-icon icon-repeat"></span></button>
+                    <button type="button" class="retro-mini-button" aria-label="Stop"><span class="control-icon icon-stop"></span></button>
+                  </div>
+
+                  <div class="retro-transport-dock">
+                    <button type="button" class="transport-wing prev" aria-label="Previous"><span class="control-icon icon-prev"><span></span></span></button>
+                    <button type="button" class="transport-core" aria-label="Pause"><span class="control-icon icon-pause"></span></button>
+                    <button type="button" class="transport-wing next" aria-label="Next"><span class="control-icon icon-next"><span></span></span></button>
+                  </div>
+
+                  <div class="retro-volume-controls">
+                    <button type="button" class="volume-button" aria-label="Volume"><span class="control-icon icon-speaker"><span></span></span></button>
+                    <div class="retro-volume-slider" aria-hidden="true"><span class="retro-volume-knob"></span></div>
+                  </div>
                 </div>
-                <div class="retro-player-status">Now Playing</div>
               </div>
             </div>
           </div>
