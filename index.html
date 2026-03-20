@@ -7,6 +7,7 @@
     <title>BucketOfJames</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/xp.css" />
     <style>
       body {
         font-family: 'Roboto Slab', serif;
@@ -125,19 +126,39 @@
         margin-bottom: 10px;
         background-color: transparent;
       }
-
-      .spotify-card {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin: 34px auto 0;
-        padding: 16px;
+      .retro-player {
         max-width: 520px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(8px);
+        margin: 34px auto 0;
         box-sizing: border-box;
+      }
+
+      .retro-player .window-body {
+        padding: 16px;
+      }
+
+      .retro-player .content {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .window.retro-player {
+        background-color: #1a1a1a;
+        color: #e8edf2;
+        border-color: #333;
+      }
+
+      .window.retro-player .window-body {
+        background-color: #1a1a1a;
+      }
+
+      .window.retro-player .title-bar {
+        background: linear-gradient(#0e3a6c, #071f3d);
+        color: #ffffff;
+      }
+
+      .window.retro-player .title-bar-controls button {
+        background: #0e3a6c;
       }
 
       .spotify-cover {
@@ -247,7 +268,7 @@
       }
 
       @media (min-width: 1180px) {
-        .spotify-card {
+        .retro-player {
           position: absolute;
           top: 50%;
           left: calc(-1 * (((100vw - 520px) / 4) + 10px + (var(--spotify-width) / 2)));
@@ -259,7 +280,7 @@
       }
 
       @media (max-width: 640px) {
-        .spotify-card {
+        .retro-player {
           align-items: flex-start;
         }
 
@@ -294,34 +315,46 @@
             know. Maybe you should try it. We don't have as much time as we
             think. Ooo eee."<br><p style="text-align: right;">-Mr. Poopybutthole, <i>Rick and Morty</i></p>
           </div>
-          <section id="spotify-card" class="spotify-card" hidden>
-            <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
-
-            <div class="spotify-meta">
-              <div id="spotify-label" class="spotify-label">Listening on Spotify</div>
-              <div id="spotify-title" class="spotify-title">Nothing playing</div>
-              <div id="spotify-artist" class="spotify-artist"></div>
-
-              <div class="spotify-time-row">
-                <span id="spotify-current">0:00</span>
-                <span id="spotify-duration">0:00</span>
+          <div id="spotify-card" class="window retro-player" hidden>
+            <div class="title-bar">
+              <div class="title-bar-text">Now Playing</div>
+              <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close"></button>
               </div>
-
-              <div class="spotify-progress">
-                <div id="spotify-progress-bar" class="spotify-progress-bar"></div>
-              </div>
-
-              <a
-                id="spotify-link"
-                class="spotify-link"
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Play on Spotify
-              </a>
             </div>
-          </section>
+            <div class="window-body">
+              <div class="content">
+                <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
+
+                <div class="spotify-meta">
+                  <div id="spotify-label" class="spotify-label">Listening on Spotify</div>
+                  <div id="spotify-title" class="spotify-title">Nothing playing</div>
+                  <div id="spotify-artist" class="spotify-artist"></div>
+
+                  <div class="spotify-time-row">
+                    <span id="spotify-current">0:00</span>
+                    <span id="spotify-duration">0:00</span>
+                  </div>
+
+                  <div class="spotify-progress">
+                    <div id="spotify-progress-bar" class="spotify-progress-bar"></div>
+                  </div>
+
+                  <a
+                    id="spotify-link"
+                    class="spotify-link"
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Play on Spotify
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
           </div>
 
           <div class="linkage">
