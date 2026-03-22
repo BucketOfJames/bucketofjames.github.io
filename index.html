@@ -532,12 +532,12 @@
 
       .retro-controls-tray {
         position: relative;
-        display: flex;
+        display: grid;
+        grid-template-columns: minmax(88px, 1fr) auto minmax(88px, 1fr);
         align-items: center;
-        justify-content: space-between;
-        gap: 18px;
+        gap: 10px;
         min-height: 56px;
-        padding: 8px 18px;
+        padding: 8px 14px;
         border-radius: 30px;
         border: 1px solid #23415f;
         background:
@@ -566,8 +566,16 @@
       .retro-volume-controls {
         display: flex;
         align-items: center;
-        gap: 10px;
-        flex: 0 0 auto;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .retro-aux-controls {
+        justify-self: start;
+      }
+
+      .retro-volume-controls {
+        justify-self: end;
       }
 
       .retro-mini-button,
@@ -607,8 +615,9 @@
         align-items: center;
         justify-content: center;
         gap: 0;
+        justify-self: center;
         height: 36px;
-        padding: 0 18px;
+        padding: 0 14px;
         border-radius: 18px;
         border: 1px solid #243d59;
         background: linear-gradient(180deg, #1a2431 0%, #090d13 56%, #030509 100%);
@@ -715,7 +724,7 @@
 
       .retro-volume-slider {
         position: relative;
-        width: 64px;
+        width: 54px;
         height: 10px;
         border-radius: 999px;
         border: 1px solid #1f3147;
@@ -739,7 +748,7 @@
       .retro-volume-knob {
         position: absolute;
         top: 50%;
-        left: 42px;
+        left: 35px;
         width: 12px;
         height: 12px;
         border-radius: 50%;
@@ -969,11 +978,17 @@
         }
 
         .retro-controls-tray {
-          flex-wrap: wrap;
-          justify-content: center;
+          grid-template-columns: 1fr;
+          justify-items: center;
           gap: 12px;
           padding-top: 10px;
           padding-bottom: 10px;
+        }
+
+        .retro-aux-controls,
+        .retro-volume-controls,
+        .retro-transport-dock {
+          justify-self: center;
         }
       }
 
