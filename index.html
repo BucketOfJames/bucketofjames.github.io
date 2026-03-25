@@ -169,6 +169,13 @@
         padding: 10px 12px 9px;
         background: linear-gradient(180deg, #476686 0%, #273a52 42%, #172435 100%);
         border-bottom: 1px solid #4a647e;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+      }
+
+      .retro-player.dragging .retro-player-topbar {
+        cursor: grabbing;
       }
 
       .retro-player-brand {
@@ -723,6 +730,7 @@
       }
 
       .retro-volume-slider {
+        --volume-pos: 35px;
         position: relative;
         width: 54px;
         height: 10px;
@@ -745,10 +753,22 @@
         background: rgba(154, 191, 255, 0.16);
       }
 
+      .retro-volume-slider::after {
+        content: '';
+        position: absolute;
+        left: var(--volume-pos);
+        right: 7px;
+        top: 3px;
+        height: 2px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #3b7dff 0%, #8ed4ff 100%);
+        box-shadow: 0 0 6px rgba(87, 158, 255, 0.35);
+      }
+
       .retro-volume-knob {
         position: absolute;
         top: 50%;
-        left: 35px;
+        left: var(--volume-pos);
         width: 12px;
         height: 12px;
         border-radius: 50%;
@@ -933,12 +953,23 @@
       .icon-speaker span {
         position: absolute;
         left: 11px;
-        top: 3px;
-        width: 6px;
-        height: 10px;
+        top: 5px;
+        width: 4px;
+        height: 8px;
         box-sizing: border-box;
-        border: 2px solid #8ebcff;
-        border-left: 0;
+        border-right: 2px solid #8ebcff;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .icon-speaker span::after {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: -2px;
+        width: 6px;
+        height: 12px;
+        box-sizing: border-box;
+        border-right: 2px solid #8ebcff;
         border-radius: 0 10px 10px 0;
       }
 
@@ -1147,9 +1178,66 @@
     const durationEl = document.getElementById("spotify-duration");
     const progressBar = document.getElementById("spotify-progress-bar");
     const linkEl = document.getElementById("spotify-link");
+    const dragHandle = document.querySelector(".retro-player-topbar");
 
     let playbackState = null;
     let tickInterval = null;
+    let dragState = null;
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function beginWindowDrag(event) {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (event.target.closest(".retro-window-controls")) return;
+      if (card.hidden) return;
+
+      const rect = card.getBoundingClientRect();
+
+      card.style.width = rect.width + "px";
+      card.style.maxWidth = rect.width + "px";
+      card.style.position = "fixed";
+      card.style.left = rect.left + "px";
+      card.style.top = rect.top + "px";
+      card.style.margin = "0";
+      card.style.transform = "none";
+      card.style.zIndex = "9999";
+
+      dragState = {
+        offsetX: event.clientX - rect.left,
+        offsetY: event.clientY - rect.top,
+      };
+
+      card.classList.add("dragging");
+      dragHandle.setPointerCapture?.(event.pointerId);
+    }
+
+    function moveWindow(event) {
+      if (!dragState) return;
+
+      const rect = card.getBoundingClientRect();
+      const maxLeft = Math.max(0, window.innerWidth - rect.width);
+      const maxTop = Math.max(0, window.innerHeight - rect.height);
+      const nextLeft = clamp(event.clientX - dragState.offsetX, 0, maxLeft);
+      const nextTop = clamp(event.clientY - dragState.offsetY, 0, maxTop);
+
+      card.style.left = nextLeft + "px";
+      card.style.top = nextTop + "px";
+    }
+
+    function endWindowDrag(event) {
+      if (!dragState) return;
+
+      dragState = null;
+      card.classList.remove("dragging");
+      dragHandle.releasePointerCapture?.(event.pointerId);
+    }
+
+    dragHandle?.addEventListener("pointerdown", beginWindowDrag);
+    window.addEventListener("pointermove", moveWindow);
+    window.addEventListener("pointerup", endWindowDrag);
+    window.addEventListener("pointercancel", endWindowDrag);
 
     function formatTime(ms) {
       const totalSeconds = Math.floor(ms / 1000);
@@ -1225,96 +1313,4 @@
 
       cover.style.display = "block";
       titleEl.textContent = cleanTitle || "Nothing playing";
-      artistEl.textContent = cleanArtist;
-
-      if (isLocalTrack) {
-        linkEl.href = getYouTubeUrl(cleanTitle, cleanArtist);
-        linkEl.textContent = isSpecialYouTubeTrack(cleanTitle, cleanArtist)
-          ? "Play on YouTube"
-          : "Search on YouTube";
-        linkEl.classList.add("youtube-search");
-        linkEl.classList.remove("is-disabled");
-      } else {
-        linkEl.href = data.trackUrl || "#";
-        linkEl.textContent = "Play on Spotify";
-        linkEl.classList.remove("youtube-search");
-        linkEl.classList.remove("is-disabled");
-      }
-
-      card.hidden = false;
-      updateProgressDisplay();
-    }
-
-    function renderOfflineState() {
-      playbackState = {
-        isPlaying: false,
-        progressMs: 0,
-        durationMs: 0,
-      };
-
-      labelEl.textContent = "Spotify is closed";
-      cover.src = "assets/spotify.svg";
-      cover.alt = "Spotify icon";
-      cover.classList.add("offline");
-      cover.style.display = "block";
-      titleEl.textContent = "[no song found]";
-      artistEl.textContent = "[no artist either]";
-      currentEl.textContent = "-:--";
-      durationEl.textContent = "-:--";
-      progressBar.style.width = "0%";
-      linkEl.href = "#";
-      linkEl.textContent = "Spotify unavailable";
-      linkEl.classList.remove("youtube-search");
-      linkEl.classList.add("is-disabled");
-
-      card.hidden = false;
-    }
-
-    function startTicking() {
-      clearInterval(tickInterval);
-
-      tickInterval = setInterval(() => {
-        if (!playbackState || !playbackState.isPlaying) return;
-
-        playbackState.progressMs += 1000;
-
-        if (playbackState.progressMs > playbackState.durationMs) {
-          playbackState.progressMs = playbackState.durationMs;
-        }
-
-        updateProgressDisplay();
-      }, 1000);
-    }
-
-    async function refreshSpotifyWidget() {
-      try {
-        const response = await fetch(SPOTIFY_API_URL, {
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!data || (!data.trackUrl && !data.title)) {
-          renderOfflineState();
-          clearInterval(tickInterval);
-          return;
-        }
-
-        renderPlayback(data);
-        startTicking();
-      } catch (error) {
-        console.error("Spotify widget error:", error);
-        renderOfflineState();
-        clearInterval(tickInterval);
-      }
-    }
-
-    refreshSpotifyWidget();
-    setInterval(refreshSpotifyWidget, 10000);
-  </script>
-  </body>
-</html>
+      
