@@ -1334,6 +1334,24 @@
         card.style.left = nextLeft + "px";
         card.style.top = nextTop + "px";
       }
-
       function endWindowDrag(event) {
-        if (!dragState || 
+  if (!dragState || !card) return;
+  dragState = null;
+  card.classList.remove("dragging");
+  if (dragHandle && dragHandle.releasePointerCapture) {
+    dragHandle.releasePointerCapture(event.pointerId);
+  }
+}
+
+if (dragHandle) {
+  dragHandle.addEventListener("pointerdown", beginWindowDrag);
+}
+window.addEventListener("pointermove", moveWindow);
+window.addEventListener("pointerup", endWindowDrag);
+window.addEventListener("pointercancel", endWindowDrag);
+
+refreshPlayback();
+window.setInterval(refreshPlayback, 15000);
+</script>
+</body>
+</html>
