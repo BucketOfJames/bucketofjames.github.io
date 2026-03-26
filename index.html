@@ -10,11 +10,13 @@
     <link rel="stylesheet" href="https://unpkg.com/xp.css" />
     <style>
       body {
+        margin: 0;
         font-family: 'Roboto Slab', serif;
         font-weight: 300;
         color: #e8edf2;
         background-color: #0d0f11;
       }
+
       strong {
         font-weight: 600;
       }
@@ -30,6 +32,20 @@
         margin-top: 60px;
       }
 
+      .page-body {
+        --spotify-width: 620px;
+        padding: 0 20px 40px;
+        max-width: 660px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .profile-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
       .profile-photo {
         width: 130px;
         height: 130px;
@@ -38,8 +54,9 @@
         background-repeat: no-repeat;
         background-image: url('assets/profile.jpeg');
         background-size: 118%;
-        background-position: 70% 28%
+        background-position: 70% 28%;
       }
+
       .profile-photo:hover {
         background-image: url('assets/profile-alt.jpeg');
         background-size: 100%;
@@ -49,26 +66,14 @@
         font-family: 'Roboto', sans-serif;
         font-weight: 900;
         margin-top: 0.5em;
+        margin-bottom: 0;
         font-size: 2em;
         text-align: center;
-      }
-
-      .page-body {
-        --spotify-width: 620px;
-        padding: 0 20px;
-        max-width: 660px;
-        width: 100%;
-        box-sizing: border-box;
       }
 
       .about-row {
         position: relative;
         width: min(620px, 100%);
-        margin: 0 auto;
-      }
-
-      .about {
-        max-width: 520px;
         margin: 0 auto;
       }
 
@@ -78,6 +83,8 @@
         text-align: center;
         display: flex;
         justify-content: space-evenly;
+        flex-wrap: wrap;
+        gap: 20px;
       }
 
       .linkage .link-item {
@@ -132,6 +139,7 @@
         margin-bottom: 10px;
         background-color: transparent;
       }
+
       .retro-player {
         max-width: 620px;
         width: 100%;
@@ -208,10 +216,7 @@
         flex-shrink: 0;
       }
 
-      .retro-window-controls button,
-      .retro-player-menubar button,
-      .retro-player-tabs button,
-      .retro-player-control-cluster button {
+      .retro-window-controls button {
         appearance: none;
         -webkit-appearance: none;
         border: 1px solid #4d6178;
@@ -222,9 +227,6 @@
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.13),
           0 1px 0 rgba(0, 0, 0, 0.28);
-      }
-
-      .retro-window-controls button {
         width: 28px;
         height: 24px;
         border-radius: 7px;
@@ -246,55 +248,6 @@
       .retro-window-controls button:last-child {
         background: linear-gradient(180deg, #7f5367 0%, #4c2537 100%);
         border-color: #8f6172;
-      }
-
-      .retro-player-menubar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 10px 12px 0;
-      }
-
-      .retro-player-menubar button {
-        position: relative;
-        min-width: 76px;
-        height: 29px;
-        padding: 0 16px;
-        border-radius: 9px;
-        border: 1px solid #6f8ca8;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.12) 22%, rgba(255, 255, 255, 0.02) 23%),
-          linear-gradient(180deg, #4d6378 0%, #314559 46%, #182534 100%);
-        color: #ffffff;
-        font-size: 0.81rem;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.62);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.28),
-          inset 0 -1px 0 rgba(7, 13, 20, 0.58),
-          0 1px 0 rgba(0, 0, 0, 0.28);
-      }
-
-      .retro-player-menubar button::before {
-        content: '';
-        position: absolute;
-        left: 7px;
-        right: 7px;
-        top: 3px;
-        height: 9px;
-        border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
-        pointer-events: none;
-      }
-
-      .retro-player-menubar button::after {
-        content: '';
-        position: absolute;
-        inset: 1px;
-        border-radius: 7px;
-        border: 1px solid rgba(202, 222, 246, 0.12);
-        pointer-events: none;
       }
 
       .retro-player-tabs {
@@ -322,6 +275,8 @@
       }
 
       .retro-player-tabs button {
+        appearance: none;
+        -webkit-appearance: none;
         position: relative;
         display: inline-flex;
         align-items: center;
@@ -725,7 +680,7 @@
 
       .volume-button {
         position: relative;
-        width: 18px;
+        width: 24px;
         height: 18px;
       }
 
@@ -791,16 +746,6 @@
       .control-icon::after {
         content: '';
         position: absolute;
-      }
-
-      .icon-play::before {
-        left: 6px;
-        top: 3px;
-        width: 0;
-        height: 0;
-        border-top: 6px solid transparent;
-        border-bottom: 6px solid transparent;
-        border-left: 10px solid #f6fbff;
       }
 
       .icon-pause::before,
@@ -971,11 +916,76 @@
         box-sizing: border-box;
         border-right: 2px solid #8ebcff;
         border-radius: 0 12px 12px 0;
-      }abel="Minimize"><span>−</span></button>
+      }
+
+      @media (min-width: 1180px) {
+        .retro-player {
+          position: absolute;
+          top: 50%;
+          left: calc(-1 * (((100vw - 660px) / 4) + 10px + (var(--spotify-width) / 2)));
+          transform: translateY(-50%);
+          margin: 0;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .retro-player-main {
+          grid-template-columns: 1fr;
+        }
+
+        .retro-cover-column {
+          order: -1;
+          justify-content: flex-start;
+        }
+
+        .retro-cover-frame {
+          width: 108px;
+        }
+
+        .spotify-cover {
+          width: 92px;
+          height: 92px;
+        }
+
+        .retro-controls-tray {
+          grid-template-columns: 1fr;
+          justify-items: center;
+          gap: 12px;
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+
+        .retro-aux-controls,
+        .retro-volume-controls,
+        .retro-transport-dock {
+          justify-self: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="page-home">
+      <div class="page-body">
+        <div class="profile-text">
+          <div class="profile-photo"></div>
+          <h1>BucketOfJames</h1>
+        </div>
+
+        <div class="about-row">
+          <div id="spotify-card" class="retro-player" hidden>
+            <div class="retro-player-shell">
+              <div class="retro-player-topbar">
+                <div class="retro-player-brand">
+                  <span class="retro-player-appdot" aria-hidden="true"></span>
+                  <span>Windows Media Player</span>
+                </div>
+                <div class="retro-window-controls">
+                  <button type="button" aria-label="Minimize"><span>−</span></button>
                   <button type="button" aria-label="Maximize"><span>□</span></button>
                   <button type="button" aria-label="Close"><span>×</span></button>
                 </div>
               </div>
+
               <div class="retro-player-tabs">
                 <button type="button" class="is-active"><span>Now Playing</span></button>
                 <button type="button"><span>Library</span></button>
@@ -1039,309 +1049,291 @@
               </div>
             </div>
           </div>
-          </div>
+        </div>
 
-          <div class="linkage">
-            <a href="https://open.spotify.com/user/0ksfj8yes49dkju5w48dr3x3u?si=2205d68da45e48fa" class="link-item spotify">
-              <div class="icon"
-                style="background-image:url('assets/spotify.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
-                </div>
-              <div class="label">Spotify</div>
-            </a>
-            <a href="https://steamcommunity.com/id/bucketofjames/" class="link-item steam">
-              <div class="icon"
-                style="background-image:url('assets/steam.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
-                </div>
-              <div class="label">Steam</div>
-            </a>
-            <a href="https://fluxer.gg/NFR4JYst" class="link-item fluxer">
-              <div class="custom-tooltip">My Fluxer server. FluxerTag is just BucketOfJames.</div>
-              <div class="icon"
-                style="background-image:url('assets/fluxer.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
-                </div>
-              <div class="label">Fluxer</div>
-            </a>
-            <a href="https://medal.tv/u/BucketOfJames/?invite=ur-MSxzVVgsMTczOTM5ODA5" class="link-item medal">
-              <div class="icon"
-                style="background-image:url('assets/medal.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
-                </div>
-              <div class="label">Medal.tv</div>
-            </a>
-            <a href="https://youtube.com/@bucketofjames?si=9ODTwmbXb2_LDSkW" class="link-item youtube">
-              <div class="icon"
-                style="background-image:url('assets/youtube.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;">
-                </div>
-              <div class="label">YouTube</div>
-            </a>
-          </div>
+        <div class="linkage">
+          <a href="https://open.spotify.com/user/0ksfj8yes49dkju5w48dr3x3u?si=2205d68da45e48fa" class="link-item spotify">
+            <div class="icon" style="background-image:url('assets/spotify.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+            <div class="label">Spotify</div>
+          </a>
+          <a href="https://steamcommunity.com/id/bucketofjames/" class="link-item steam">
+            <div class="icon" style="background-image:url('assets/steam.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+            <div class="label">Steam</div>
+          </a>
+          <a href="https://fluxer.gg/NFR4JYst" class="link-item fluxer">
+            <div class="custom-tooltip">My Fluxer server. FluxerTag is just BucketOfJames.</div>
+            <div class="icon" style="background-image:url('assets/fluxer.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+            <div class="label">Fluxer</div>
+          </a>
+          <a href="https://medal.tv/u/BucketOfJames/?invite=ur-MSxzVVgsMTczOTM5ODA5" class="link-item medal">
+            <div class="icon" style="background-image:url('assets/medal.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+            <div class="label">Medal.tv</div>
+          </a>
+          <a href="https://youtube.com/@bucketofjames?si=9ODTwmbXb2_LDSkW" class="link-item youtube">
+            <div class="icon" style="background-image:url('assets/youtube.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+            <div class="label">YouTube</div>
+          </a>
         </div>
       </div>
     </div>
+
     <script>
-    const SPOTIFY_API_URL = "https://bucket-spotify-now-playing.bucketofjames.workers.dev/now-playing";
+      const SPOTIFY_API_URL = "https://bucket-spotify-now-playing.bucketofjames.workers.dev/now-playing";
 
-    const card = document.getElementById("spotify-card");
-    const cover = document.getElementById("spotify-cover");
-    const labelEl = document.getElementById("spotify-label");
-    const titleEl = document.getElementById("spotify-title");
-    const artistEl = document.getElementById("spotify-artist");
-    const currentEl = document.getElementById("spotify-current");
-    const durationEl = document.getElementById("spotify-duration");
-    const progressBar = document.getElementById("spotify-progress-bar");
-    const linkEl = document.getElementById("spotify-link");
-    const dragHandle = document.querySelector(".retro-player-topbar");
+      const card = document.getElementById("spotify-card");
+      const cover = document.getElementById("spotify-cover");
+      const labelEl = document.getElementById("spotify-label");
+      const titleEl = document.getElementById("spotify-title");
+      const artistEl = document.getElementById("spotify-artist");
+      const currentEl = document.getElementById("spotify-current");
+      const durationEl = document.getElementById("spotify-duration");
+      const progressBar = document.getElementById("spotify-progress-bar");
+      const linkEl = document.getElementById("spotify-link");
+      const dragHandle = document.querySelector(".retro-player-topbar");
 
-    let playbackState = null;
-    let tickInterval = null;
-    let dragState = null;
+      let playbackState = null;
+      let tickInterval = null;
+      let dragState = null;
 
-    card.hidden = false;
-
-    function clamp(value, min, max) {
-      return Math.min(Math.max(value, min), max);
-    }
-
-    function formatTime(ms) {
-      const totalSeconds = Math.floor((ms || 0) / 1000);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      return `${minutes}:${String(seconds).padStart(2, "0")}`;
-    }
-
-    function normalizeTrackTitle(title) {
-      const rawTitle = (title || "").trim();
-      const suffix = " [local]";
-      return rawTitle.toLowerCase().endsWith(suffix)
-        ? rawTitle.slice(0, -suffix.length).trim()
-        : rawTitle;
-    }
-
-    function isSpecialYouTubeTrack(title, artist) {
-      return normalizeTrackTitle(title).toLowerCase() === "into the darkness"
-        && (artist || "").trim().toLowerCase() === "the indians";
-    }
-
-    function getYouTubeUrl(title, artist) {
-      if (isSpecialYouTubeTrack(title, artist)) {
-        return "https://www.youtube.com/watch?v=cYX5RyQXODA";
+      if (card) {
+        card.hidden = false;
       }
 
-      const query = `${normalizeTrackTitle(title)} ${(artist || "").trim()}`.trim();
-      return "https://www.youtube.com/results?search_query=" + encodeURIComponent(query);
-    }
-
-    function setLinkState({ text, href, disabled = false, youtube = false }) {
-      linkEl.textContent = text;
-      linkEl.classList.toggle("is-disabled", disabled);
-      linkEl.classList.toggle("youtube-search", youtube);
-
-      if (disabled) {
-        linkEl.removeAttribute("href");
-        linkEl.removeAttribute("target");
-        linkEl.removeAttribute("rel");
-      } else {
-        linkEl.href = href;
-        linkEl.target = "_blank";
-        linkEl.rel = "noopener noreferrer";
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
       }
-    }
 
-    function updateProgressDisplay() {
-      if (!playbackState) return;
+      function formatTime(ms) {
+        const totalSeconds = Math.floor((ms || 0) / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${String(seconds).padStart(2, "0")}`;
+      }
 
-      currentEl.textContent = playbackState.durationMs > 0
-        ? formatTime(playbackState.progressMs)
-        : "-:--";
-      durationEl.textContent = playbackState.durationMs > 0
-        ? formatTime(playbackState.durationMs)
-        : "-:--";
+      function normalizeTrackTitle(title) {
+        const rawTitle = (title || "").trim();
+        const suffix = " [local]";
+        return rawTitle.toLowerCase().endsWith(suffix)
+          ? rawTitle.slice(0, -suffix.length).trim()
+          : rawTitle;
+      }
 
-      const pct = playbackState.durationMs > 0
-        ? (playbackState.progressMs / playbackState.durationMs) * 100
-        : 0;
+      function isSpecialYouTubeTrack(title, artist) {
+        return normalizeTrackTitle(title).toLowerCase() === "into the darkness"
+          && (artist || "").trim().toLowerCase() === "the indians";
+      }
 
-      progressBar.style.width = clamp(pct, 0, 100) + "%";
-    }
+      function getYouTubeUrl(title, artist) {
+        if (isSpecialYouTubeTrack(title, artist)) {
+          return "https://www.youtube.com/watch?v=cYX5RyQXODA";
+        }
 
-    function syncTicker() {
-      clearInterval(tickInterval);
-      tickInterval = null;
+        const query = `${normalizeTrackTitle(title)} ${(artist || "").trim()}`.trim();
+        return "https://www.youtube.com/results?search_query=" + encodeURIComponent(query);
+      }
 
-      if (!playbackState || !playbackState.isPlaying) return;
+      function setLinkState({ text, href, disabled = false, youtube = false }) {
+        if (!linkEl) return;
 
-      tickInterval = window.setInterval(() => {
+        linkEl.textContent = text;
+        linkEl.classList.toggle("is-disabled", disabled);
+        linkEl.classList.toggle("youtube-search", youtube);
+
+        if (disabled) {
+          linkEl.removeAttribute("href");
+          linkEl.removeAttribute("target");
+          linkEl.removeAttribute("rel");
+        } else {
+          linkEl.href = href;
+          linkEl.target = "_blank";
+          linkEl.rel = "noopener noreferrer";
+        }
+      }
+
+      function updateProgressDisplay() {
+        if (!playbackState || !currentEl || !durationEl || !progressBar) return;
+
+        currentEl.textContent = playbackState.durationMs > 0
+          ? formatTime(playbackState.progressMs)
+          : "-:--";
+        durationEl.textContent = playbackState.durationMs > 0
+          ? formatTime(playbackState.durationMs)
+          : "-:--";
+
+        const pct = playbackState.durationMs > 0
+          ? (playbackState.progressMs / playbackState.durationMs) * 100
+          : 0;
+
+        progressBar.style.width = clamp(pct, 0, 100) + "%";
+      }
+
+      function syncTicker() {
+        clearInterval(tickInterval);
+        tickInterval = null;
+
         if (!playbackState || !playbackState.isPlaying) return;
-        playbackState.progressMs = Math.min(
-          playbackState.progressMs + 1000,
-          playbackState.durationMs || playbackState.progressMs + 1000
-        );
-        updateProgressDisplay();
-      }, 1000);
-    }
 
-    function renderClosedState() {
-      playbackState = {
-        isPlaying: false,
-        progressMs: 0,
-        durationMs: 0,
-      };
-
-      labelEl.textContent = "Spotify is closed";
-      titleEl.textContent = "[no song found]";
-      artistEl.textContent = "[no artist either]";
-      currentEl.textContent = "-:--";
-      durationEl.textContent = "-:--";
-      progressBar.style.width = "0%";
-
-      cover.src = "assets/spotify.svg";
-      cover.alt = "Spotify icon";
-      cover.classList.add("offline");
-
-      setLinkState({
-        text: "Open Spotify",
-        href: "https://open.spotify.com/",
-        disabled: false,
-        youtube: false,
-      });
-
-      syncTicker();
-    }
-
-    function renderPlayback(data) {
-      const cleanTitle = normalizeTrackTitle(data.title);
-      const cleanArtist = (data.artist || "").trim();
-      const isLocalTrack = !data.trackUrl && Boolean(cleanTitle);
-      const hasTrack = Boolean(cleanTitle || cleanArtist || data.durationMs || data.progressMs);
-
-      if (!hasTrack) {
-        renderClosedState();
-        return;
+        tickInterval = window.setInterval(() => {
+          if (!playbackState || !playbackState.isPlaying) return;
+          playbackState.progressMs = Math.min(
+            playbackState.progressMs + 1000,
+            playbackState.durationMs || playbackState.progressMs + 1000
+          );
+          updateProgressDisplay();
+        }, 1000);
       }
 
-      playbackState = {
-        isPlaying: Boolean(data.isPlaying),
-        progressMs: Number(data.progressMs) || 0,
-        durationMs: Number(data.durationMs) || 0,
-      };
+      function renderClosedState() {
+        playbackState = {
+          isPlaying: false,
+          progressMs: 0,
+          durationMs: 0,
+        };
 
-      labelEl.textContent = playbackState.isPlaying
-        ? "Listening on Spotify"
-        : "Spotify is paused at";
-      titleEl.textContent = cleanTitle || "Nothing playing";
-      artistEl.textContent = cleanArtist || "";
+        if (labelEl) labelEl.textContent = "Spotify is closed";
+        if (titleEl) titleEl.textContent = "[no song found]";
+        if (artistEl) artistEl.textContent = "[no artist either]";
+        if (currentEl) currentEl.textContent = "-:--";
+        if (durationEl) durationEl.textContent = "-:--";
+        if (progressBar) progressBar.style.width = "0%";
 
-      if (data.albumArtUrl) {
-        cover.src = data.albumArtUrl;
-        cover.alt = cleanTitle ? `${cleanTitle} album cover` : "Album cover";
-        cover.classList.remove("offline");
-      } else {
-        cover.src = "assets/spotify.svg";
-        cover.alt = isLocalTrack ? "Spotify local track icon" : "Spotify icon";
-        cover.classList.add("offline");
-      }
+        if (cover) {
+          cover.src = "assets/spotify.svg";
+          cover.alt = "Spotify icon";
+          cover.classList.add("offline");
+        }
 
-      if (isLocalTrack) {
-        setLinkState({
-          text: isSpecialYouTubeTrack(cleanTitle, cleanArtist)
-            ? "Play on YouTube"
-            : "Search on YouTube",
-          href: getYouTubeUrl(cleanTitle, cleanArtist),
-          disabled: false,
-          youtube: true,
-        });
-      } else if (data.trackUrl) {
-        setLinkState({
-          text: "Play on Spotify",
-          href: data.trackUrl,
-          disabled: false,
-          youtube: false,
-        });
-      } else {
         setLinkState({
           text: "Open Spotify",
           href: "https://open.spotify.com/",
           disabled: false,
           youtube: false,
         });
+
+        syncTicker();
       }
 
-      updateProgressDisplay();
-      syncTicker();
-    }
+      function renderPlayback(data) {
+        const cleanTitle = normalizeTrackTitle(data.title);
+        const cleanArtist = (data.artist || "").trim();
+        const isLocalTrack = !data.trackUrl && Boolean(cleanTitle);
+        const hasTrack = Boolean(cleanTitle || cleanArtist || data.durationMs || data.progressMs);
 
-    async function refreshPlayback() {
-      try {
-        const response = await fetch(SPOTIFY_API_URL, { cache: "no-store" });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        renderPlayback(data || {});
-      } catch (error) {
-        console.error("Spotify widget refresh failed:", error);
-        renderClosedState();
+        if (!hasTrack) {
+          renderClosedState();
+          return;
+        }
+
+        playbackState = {
+          isPlaying: Boolean(data.isPlaying),
+          progressMs: Number(data.progressMs) || 0,
+          durationMs: Number(data.durationMs) || 0,
+        };
+
+        if (labelEl) {
+          labelEl.textContent = playbackState.isPlaying
+            ? "Listening on Spotify"
+            : "Spotify is paused at";
+        }
+        if (titleEl) titleEl.textContent = cleanTitle || "Nothing playing";
+        if (artistEl) artistEl.textContent = cleanArtist || "";
+
+        if (cover) {
+          if (data.albumArtUrl) {
+            cover.src = data.albumArtUrl;
+            cover.alt = cleanTitle ? `${cleanTitle} album cover` : "Album cover";
+            cover.classList.remove("offline");
+          } else {
+            cover.src = "assets/spotify.svg";
+            cover.alt = isLocalTrack ? "Spotify local track icon" : "Spotify icon";
+            cover.classList.add("offline");
+          }
+        }
+
+        if (isLocalTrack) {
+          setLinkState({
+            text: isSpecialYouTubeTrack(cleanTitle, cleanArtist)
+              ? "Play on YouTube"
+              : "Search on YouTube",
+            href: getYouTubeUrl(cleanTitle, cleanArtist),
+            disabled: false,
+            youtube: true,
+          });
+        } else if (data.trackUrl) {
+          setLinkState({
+            text: "Play on Spotify",
+            href: data.trackUrl,
+            disabled: false,
+            youtube: false,
+          });
+        } else {
+          setLinkState({
+            text: "Open Spotify",
+            href: "https://open.spotify.com/",
+            disabled: false,
+            youtube: false,
+          });
+        }
+
+        updateProgressDisplay();
+        syncTicker();
       }
-    }
 
-    function beginWindowDrag(event) {
-      if (event.button !== undefined && event.button !== 0) return;
-      if (event.target.closest(".retro-window-controls")) return;
-      if (card.hidden) return;
-
-      const rect = card.getBoundingClientRect();
-
-      card.style.width = rect.width + "px";
-      card.style.maxWidth = rect.width + "px";
-      card.style.position = "fixed";
-      card.style.left = rect.left + "px";
-      card.style.top = rect.top + "px";
-      card.style.right = "auto";
-      card.style.bottom = "auto";
-      card.style.margin = "0";
-      card.style.transform = "none";
-      card.style.zIndex = "9999";
-
-      dragState = {
-        offsetX: event.clientX - rect.left,
-        offsetY: event.clientY - rect.top,
-      };
-
-      card.classList.add("dragging");
-      if (dragHandle && dragHandle.setPointerCapture) {
-        dragHandle.setPointerCapture(event.pointerId);
+      async function refreshPlayback() {
+        try {
+          const response = await fetch(SPOTIFY_API_URL, { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          renderPlayback(data || {});
+        } catch (error) {
+          console.error("Spotify widget refresh failed:", error);
+          renderClosedState();
+        }
       }
-      event.preventDefault();
-    }
 
-    function moveWindow(event) {
-      if (!dragState) return;
+      function beginWindowDrag(event) {
+        if (!card) return;
+        if (event.button !== undefined && event.button !== 0) return;
+        if (event.target.closest(".retro-window-controls")) return;
+        if (card.hidden) return;
 
-      const rect = card.getBoundingClientRect();
-      const maxLeft = Math.max(0, window.innerWidth - rect.width);
-      const maxTop = Math.max(0, window.innerHeight - rect.height);
-      const nextLeft = clamp(event.clientX - dragState.offsetX, 0, maxLeft);
-      const nextTop = clamp(event.clientY - dragState.offsetY, 0, maxTop);
+        const rect = card.getBoundingClientRect();
 
-      card.style.left = nextLeft + "px";
-      card.style.top = nextTop + "px";
-    }
+        card.style.width = rect.width + "px";
+        card.style.maxWidth = rect.width + "px";
+        card.style.position = "fixed";
+        card.style.left = rect.left + "px";
+        card.style.top = rect.top + "px";
+        card.style.right = "auto";
+        card.style.bottom = "auto";
+        card.style.margin = "0";
+        card.style.transform = "none";
+        card.style.zIndex = "9999";
 
-    function endWindowDrag(event) {
-      if (!dragState) return;
-      dragState = null;
-      card.classList.remove("dragging");
-      if (dragHandle && dragHandle.releasePointerCapture) {
-        dragHandle.releasePointerCapture(event.pointerId);
+        dragState = {
+          offsetX: event.clientX - rect.left,
+          offsetY: event.clientY - rect.top,
+        };
+
+        card.classList.add("dragging");
+        if (dragHandle && dragHandle.setPointerCapture) {
+          dragHandle.setPointerCapture(event.pointerId);
+        }
+        event.preventDefault();
       }
-    }
 
-    if (dragHandle) {
-      dragHandle.addEventListener("pointerdown", beginWindowDrag);
-    }
-    window.addEventListener("pointermove", moveWindow);
-    window.addEventListener("pointerup", endWindowDrag);
-    window.addEventListener("pointercancel", endWindowDrag);
+      function moveWindow(event) {
+        if (!card || !dragState) return;
 
-    refreshPlayback();
-    window.setInterval(refreshPlayback, 15000);
-    </script>
-  </body>
-</html>
+        const rect = card.getBoundingClientRect();
+        const maxLeft = Math.max(0, window.innerWidth - rect.width);
+        const maxTop = Math.max(0, window.innerHeight - rect.height);
+        const nextLeft = clamp(event.clientX - dragState.offsetX, 0, maxLeft);
+        const nextTop = clamp(event.clientY - dragState.offsetY, 0, maxTop);
+
+        card.style.left = nextLeft + "px";
+        card.style.top = nextTop + "px";
+      }
+
+      function endWindowDrag(event) {
+        if (!dragState || 
