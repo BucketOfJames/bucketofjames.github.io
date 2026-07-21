@@ -58,7 +58,7 @@
       
 
     .container {
-        max-width: 1200px;
+        max-width: 1000px;
         margin: 0 auto;
         padding: 60px 30px;
         background-color: rgba(0, 0, 0, 0.5);
@@ -76,9 +76,8 @@
       }
 
       .page-body {
-        --spotify-width: 620px;
+        position: relative;
         padding: 0 20px 40px;
-        max-width: 1000px;
         width: 100%;
         box-sizing: border-box;
       }
@@ -192,9 +191,7 @@
       }
 
       .retro-player {
-        max-width: 620px;
-        width: 100%;
-        margin: 34px auto 0;
+        width: 620px;
         box-sizing: border-box;
       }
 
@@ -997,16 +994,6 @@
         border-radius: 0 12px 12px 0;
       }
 
-      @media (min-width: 1180px) {
-        .retro-player {
-          position: absolute;
-          top: 50%;
-          left: calc(-1 * (((100vw - 660px) / 4) + 10px + (var(--spotify-width) / 2)));
-          transform: translateY(-50%);
-          margin: 0;
-        }
-      }
-
       @media (max-width: 640px) {
         .retro-player-main {
           grid-template-columns: 1fr;
@@ -1045,21 +1032,7 @@
   <body>
     <div id="page-home">
       <div class="page-body">
-        <div class="container">
-        <div class="profile-text">
-          <div class="profile-photo" title="Unexpected ocelot!<3"></div>
-          <h1>BucketOfJames</h1>
-        </div>
-
-        
-        <div class="about-row">
-          <div class="about">
-            I am the guy you love to hate.<br><br>
-            I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.<br><br>
-            I use arch btw <sub>(cachyos)</sub>
-          </div>
-        
-          <div id="spotify-card" class="retro-player" hidden>
+        <div id="spotify-card" class="retro-player" hidden>
             <div class="retro-player-shell">
               <div class="retro-player-topbar">
                 <div class="retro-player-brand">
@@ -1136,6 +1109,21 @@
               </div>
             </div>
           </div>
+        <div class="container">
+        <div class="profile-text">
+          <div class="profile-photo" title="Unexpected ocelot!<3"></div>
+          <h1>BucketOfJames</h1>
+        </div>
+
+        
+        <div class="about-row">
+          <div class="about">
+            I am the guy you love to hate.<br><br>
+            I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.<br><br>
+            I use arch btw <sub>(cachyos)</sub>
+          </div>
+        
+  
         </div>
 
         <div class="linkage">
@@ -1387,12 +1375,13 @@
         if (card.hidden) return;
 
         const rect = card.getBoundingClientRect();
+        const zoom = parseFloat(document.body.style.zoom) || 1;
 
-        card.style.width = rect.width + "px";
-        card.style.maxWidth = rect.width + "px";
+        card.style.width = (rect.width / zoom) + "px";
+        card.style.maxWidth = (rect.width / zoom) + "px";
         card.style.position = "fixed";
-        card.style.left = rect.left + "px";
-        card.style.top = rect.top + "px";
+        card.style.left = (rect.left / zoom) + "px";
+        card.style.top = (rect.top / zoom) + "px";
         card.style.right = "auto";
         card.style.bottom = "auto";
         card.style.margin = "0";
@@ -1414,14 +1403,15 @@
       function moveWindow(event) {
         if (!card || !dragState) return;
 
+        const zoom = parseFloat(document.body.style.zoom) || 1;
         const rect = card.getBoundingClientRect();
         const maxLeft = Math.max(0, window.innerWidth - rect.width);
         const maxTop = Math.max(0, window.innerHeight - rect.height);
         const nextLeft = clamp(event.clientX - dragState.offsetX, 0, maxLeft);
         const nextTop = clamp(event.clientY - dragState.offsetY, 0, maxTop);
 
-        card.style.left = nextLeft + "px";
-        card.style.top = nextTop + "px";
+        card.style.left = (nextLeft / zoom) + "px";
+        card.style.top = (nextTop / zoom) + "px";
       }
       function endWindowDrag(event) {
   if (!dragState || !card) return;
@@ -1442,18 +1432,30 @@ window.addEventListener("pointercancel", endWindowDrag);
 refreshPlayback();
 window.setInterval(refreshPlayback, 15000);
 </script>
+<script>
+  function positionPlayer() {
+    var player = document.getElementById("spotify-card");
+    if (!player || player.hidden) return;
+    if (player.style.position === "fixed") return;
+
+    var designWidth = 2560;
+    var containerLeft = (designWidth - 1000) / 2;
+    var playerLeft = (containerLeft - player.offsetWidth) / 2;
+
+    player.style.position = "absolute";
+    player.style.left = playerLeft + "px";
+    player.style.top = "60px";
+  }
+
+  function applyScale() {
+    document.body.style.zoom = Math.min(window.innerWidth / 2560, 1);
+    positionPlayer();
+  }
+
+  applyScale();
+  window.addEventListener("resize", applyScale);
+</script>
 <div id="bg-overlay"></div>
 <div id="bg-main"></div>
-<script>
-(function() {
-  const DESIGN_WIDTH = 2560;
-  function applyScale() {
-    const scale = Math.min(window.innerWidth / DESIGN_WIDTH, 1);
-    document.body.style.zoom = scale;
-  }
-  applyScale();
-  window.addEventListener('resize', applyScale);
-})();
-</script>
 </body>
 </html>
