@@ -69,10 +69,13 @@
       }
 
       #page-home {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: start;
+        justify-content: center;
+        gap: 2rem;
         margin-top: 3.75rem;
+        padding: 0 1rem;
       }
 
       .page-body {
@@ -124,7 +127,7 @@
       .about {
         max-width: 50.0rem;
         margin: 0 auto;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
       }
 
       .linkage {
@@ -191,7 +194,7 @@
       }
 
       .retro-player {
-        width: 38.75rem;
+        width: min(38.75rem, 100%);
         box-sizing: border-box;
       }
 
@@ -579,8 +582,8 @@
         border-radius: 1.875rem;
         border: 1px solid #23415f;
         background:
-          radial-gradient(circle at left center, rgba(0, 0, 0, 0.8) 0, rgba(0, 0, 0, 0.8) 64px, transparent 94px),
-          radial-gradient(circle at right center, rgba(0, 0, 0, 0.8) 0, rgba(0, 0, 0, 0.8) 64px, transparent 94px),
+          radial-gradient(circle at left center, rgba(0, 0, 0, 0.8) 0, rgba(0, 0, 0, 0.8) 4rem, transparent 5.875rem),
+          radial-gradient(circle at right center, rgba(0, 0, 0, 0.8) 0, rgba(0, 0, 0, 0.8) 4rem, transparent 5.875rem),
           linear-gradient(180deg, #192534 0%, #0c1219 35%, #04070c 100%);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -994,7 +997,12 @@
         border-radius: 0 0.75rem 0.75rem 0;
       }
 
-      @media (max-width: 640px) {
+      @media (max-width: 40em) {
+        #page-home {
+          grid-template-columns: 1fr;
+          justify-items: center;
+        }
+
         .retro-player-main {
           grid-template-columns: 1fr;
         }
@@ -1031,8 +1039,7 @@
   </head>
   <body>
     <div id="page-home">
-      <div class="page-body">
-        <div id="spotify-card" class="retro-player" hidden>
+      <div id="spotify-card" class="retro-player" hidden>
             <div class="retro-player-shell">
               <div class="retro-player-topbar">
                 <div class="retro-player-brand">
@@ -1109,6 +1116,7 @@
               </div>
             </div>
           </div>
+        <div class="page-body">
         <div class="container">
         <div class="profile-text">
           <div class="profile-photo" title="Unexpected ocelot!<3"></div>
@@ -1375,13 +1383,12 @@
         if (card.hidden) return;
 
         const rect = card.getBoundingClientRect();
-        const zoom = parseFloat(document.body.style.zoom) || 1;
 
-        card.style.width = (rect.width / zoom) + "px";
-        card.style.maxWidth = (rect.width / zoom) + "px";
+        card.style.width = rect.width + "px";
+        card.style.maxWidth = rect.width + "px";
         card.style.position = "fixed";
-        card.style.left = (rect.left / zoom) + "px";
-        card.style.top = (rect.top / zoom) + "px";
+        card.style.left = rect.left + "px";
+        card.style.top = rect.top + "px";
         card.style.right = "auto";
         card.style.bottom = "auto";
         card.style.margin = "0";
@@ -1403,15 +1410,14 @@
       function moveWindow(event) {
         if (!card || !dragState) return;
 
-        const zoom = parseFloat(document.body.style.zoom) || 1;
         const rect = card.getBoundingClientRect();
         const maxLeft = Math.max(0, window.innerWidth - rect.width);
         const maxTop = Math.max(0, window.innerHeight - rect.height);
         const nextLeft = clamp(event.clientX - dragState.offsetX, 0, maxLeft);
         const nextTop = clamp(event.clientY - dragState.offsetY, 0, maxTop);
 
-        card.style.left = (nextLeft / zoom) + "px";
-        card.style.top = (nextTop / zoom) + "px";
+        card.style.left = nextLeft + "px";
+        card.style.top = nextTop + "px";
       }
       function endWindowDrag(event) {
   if (!dragState || !card) return;
@@ -1431,29 +1437,6 @@ window.addEventListener("pointercancel", endWindowDrag);
 
 refreshPlayback();
 window.setInterval(refreshPlayback, 15000);
-</script>
-<script>
-  function positionPlayer() {
-    var player = document.getElementById("spotify-card");
-    if (!player || player.hidden) return;
-    if (player.style.position === "fixed") return;
-
-    var designWidth = 2560;
-    var containerLeft = (designWidth - 1000) / 2;
-    var playerLeft = (containerLeft - player.offsetWidth) / 2;
-
-    player.style.position = "absolute";
-    player.style.left = playerLeft + "px";
-    player.style.top = "60px";
-  }
-
-  function applyScale() {
-    document.body.style.zoom = Math.min(window.innerWidth / 2560, 1);
-    positionPlayer();
-  }
-
-  applyScale();
-  window.addEventListener("resize", applyScale);
 </script>
 <div id="bg-overlay"></div>
 <div id="bg-main"></div>
