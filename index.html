@@ -59,7 +59,7 @@
 
     .container {
         max-width: 62.5rem;
-        margin: 0 auto;
+        margin: 3.75rem auto 0;
         padding: 3.75rem 1.875rem;
         background-color: rgba(0, 0, 0, 0.5);
         border: 2px solid purple;
@@ -70,12 +70,12 @@
 
       #page-home {
         display: grid;
-        grid-template-columns: auto 1fr;
-        align-items: start;
-        justify-content: center;
-        gap: 2rem;
-        margin-top: 3.75rem;
-        padding: 0 1rem;
+        width: 100%;
+        min-height: 100vh;
+      }
+
+      #page-home > * {
+        grid-column: 1 / -1;
       }
 
       .page-body {
@@ -194,7 +194,10 @@
       }
 
       .retro-player {
-        width: min(38.75rem, 100%);
+        position: absolute;
+        top: 3.75rem;
+        left: 1rem;
+        width: min(38.75rem, calc(50vw - 33rem));
         box-sizing: border-box;
       }
 
@@ -998,9 +1001,12 @@
       }
 
       @media (max-width: 40em) {
-        #page-home {
-          grid-template-columns: 1fr;
-          justify-items: center;
+        .retro-player {
+          position: relative;
+          top: auto;
+          left: auto;
+          width: 100%;
+          margin-top: 3.75rem;
         }
 
         .retro-player-main {
