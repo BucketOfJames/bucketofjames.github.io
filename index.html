@@ -1390,12 +1390,13 @@
         if (card.hidden) return;
 
         const rect = card.getBoundingClientRect();
+        const zoom = parseFloat(document.body.style.zoom) || 1;
 
-        card.style.width = rect.width + "px";
-        card.style.maxWidth = rect.width + "px";
+        card.style.width = (rect.width / zoom) + "px";
+        card.style.maxWidth = (rect.width / zoom) + "px";
         card.style.position = "fixed";
-        card.style.left = rect.left + "px";
-        card.style.top = rect.top + "px";
+        card.style.left = (rect.left / zoom) + "px";
+        card.style.top = (rect.top / zoom) + "px";
         card.style.right = "auto";
         card.style.bottom = "auto";
         card.style.margin = "0";
@@ -1417,14 +1418,15 @@
       function moveWindow(event) {
         if (!card || !dragState) return;
 
+        const zoom = parseFloat(document.body.style.zoom) || 1;
         const rect = card.getBoundingClientRect();
         const maxLeft = Math.max(0, window.innerWidth - rect.width);
         const maxTop = Math.max(0, window.innerHeight - rect.height);
         const nextLeft = clamp(event.clientX - dragState.offsetX, 0, maxLeft);
         const nextTop = clamp(event.clientY - dragState.offsetY, 0, maxTop);
 
-        card.style.left = nextLeft + "px";
-        card.style.top = nextTop + "px";
+        card.style.left = (nextLeft / zoom) + "px";
+        card.style.top = (nextTop / zoom) + "px";
       }
       function endWindowDrag(event) {
   if (!dragState || !card) return;
@@ -1444,6 +1446,16 @@ window.addEventListener("pointercancel", endWindowDrag);
 
 refreshPlayback();
 window.setInterval(refreshPlayback, 15000);
+
+function applyScale() {
+  var zoom = Math.min(window.innerWidth / 2560, 1);
+  document.body.style.zoom = zoom;
+  var fontScale = Math.min(Math.pow(window.innerWidth / 2560, 0.6), 1);
+  document.documentElement.style.fontSize = (fontScale * 100) + '%';
+}
+
+applyScale();
+window.addEventListener("resize", applyScale);
 </script>
 <div id="bg-overlay"></div>
 <div id="bg-main"></div>
