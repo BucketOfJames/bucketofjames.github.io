@@ -1390,7 +1390,7 @@
         if (card.hidden) return;
 
         const rect = card.getBoundingClientRect();
-        ///const zoom = parseFloat(document.body.style.zoom) || 1;
+        const zoom = parseFloat(document.body.style.zoom) || 1;
 
         card.style.width = (rect.width / zoom) + "px";
         card.style.maxWidth = (rect.width / zoom) + "px";
@@ -1418,7 +1418,7 @@
       function moveWindow(event) {
         if (!card || !dragState) return;
 
-        ///const zoom = parseFloat(document.body.style.zoom) || 1;
+        const zoom = parseFloat(document.body.style.zoom) || 1;
         const rect = card.getBoundingClientRect();
         const maxLeft = Math.max(0, window.innerWidth - rect.width);
         const maxTop = Math.max(0, window.innerHeight - rect.height);
@@ -1447,15 +1447,16 @@ window.addEventListener("pointercancel", endWindowDrag);
 refreshPlayback();
 window.setInterval(refreshPlayback, 15000);
 
-///function applyScale() {
-  ///var zoom = Math.min(window.innerWidth / 2560, 1);
-  ///document.body.style.zoom = zoom;
-  ///var fontScale = Math.min(Math.pow(window.innerWidth / 2560, 0.6), 1);
-  ///document.documentElement.style.fontSize = (fontScale * 100) + '%';
-///}
+function applyScale() {
+  var ratio = Math.min(window.innerWidth / 2560, 1);
+  var zoom = Math.pow(ratio, 0.75);
+  document.body.style.zoom = zoom;
+  var fontScale = Math.pow(ratio, 0.6);
+  document.documentElement.style.fontSize = (fontScale * 100) + '%';
+}
 
-///applyScale();
-///window.addEventListener("resize", applyScale);
+applyScale();
+window.addEventListener("resize", applyScale);
 </script>
 <div id="bg-overlay"></div>
 <div id="bg-main"></div>
