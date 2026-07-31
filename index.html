@@ -1186,6 +1186,7 @@
       let playbackState = null;
       let tickInterval = null;
       let dragState = null;
+      let pausedCacheTimer = null;
 
       if (card) {
         card.hidden = false;
@@ -1276,6 +1277,9 @@
       }
 
       function renderClosedState() {
+        clearTimeout(pausedCacheTimer);
+        pausedCacheTimer = null;
+
         playbackState = {
           isPlaying: false,
           progressMs: 0,
@@ -1305,19 +1309,72 @@
         syncTicker();
       }
 
-      function renderPlayback(data) {
-        const cleanTitle = normalizeTrackTitle(data.title);
-        const cleanArtist = (data.artist || "").trim();
-        const isLocalTrack = !data.trackUrl && Boolean(cleanTitle);
-        const hasTrack = Boolean(cleanTitle || cleanArtist || data.durationMs || data.progressMs);
+      const PAUSED_CACHE_KEY = "spotify-paused-track";
+      const PAUSED_CACHE_TTL_MS = 5 * 60 * 60 * 1000;
 
-        if (!hasTrack) {
+      function readPausedCache() {
+        try {
+          const raw = localStorage.getItem(PAUSED_CACHE_KEY);
+          if (!raw) return null;
+          const entry = JSON.parse(raw);
+          if (!entry || typeof entry !== "object") return null;
+          if (!entry.data || !entry.data.title) return null;
+          const lastSeenAt = Number(entry.lastSeenAt);
+          if (!Number.isFinite(lastSeenAt)) return null;
+          const pausedSince = entry.pausedSince == null ? null : Number(entry.pausedSince);
+          if (Date.now() - lastSeenAt >= PAUSED_CACHE_TTL_MS) {
+            clearPausedCache();
+            return null;
+          }
+          if (pausedSince != null && Date.now() - pausedSince >= PAUSED_CACHE_TTL_MS) {
+            clearPausedCache();
+            return null;
+          }
+          return { data: entry.data, pausedSince };
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function writePausedCache(data, pausedSince) {
+        try {
+          localStorage.setItem(
+            PAUSED_CACHE_KEY,
+            JSON.stringify({ data, pausedSince, lastSeenAt: Date.now() })
+          );
+        } catch (error) {
+        }
+      }
+
+      function clearPausedCache() {
+        try {
+          localStorage.removeItem(PAUSED_CACHE_KEY);
+        } catch (error) {
+        }
+      }
+
+      function schedulePausedCacheExpiry(pausedSince) {
+        clearTimeout(pausedCacheTimer);
+        pausedCacheTimer = null;
+        const remaining = PAUSED_CACHE_TTL_MS - (Date.now() - pausedSince);
+        if (remaining <= 0) {
+          clearPausedCache();
           renderClosedState();
           return;
         }
+        pausedCacheTimer = window.setTimeout(() => {
+          clearPausedCache();
+          renderClosedState();
+        }, remaining);
+      }
+
+      function renderTrack(data, isPlaying) {
+        const cleanTitle = normalizeTrackTitle(data.title);
+        const cleanArtist = (data.artist || "").trim();
+        const isLocalTrack = !data.trackUrl && Boolean(cleanTitle);
 
         playbackState = {
-          isPlaying: Boolean(data.isPlaying),
+          isPlaying: Boolean(isPlaying),
           progressMs: Number(data.progressMs) || 0,
           durationMs: Number(data.durationMs) || 0,
         };
@@ -1369,6 +1426,47 @@
 
         updateProgressDisplay();
         syncTicker();
+      }
+
+      function renderPlayback(data) {
+        const cleanTitle = normalizeTrackTitle(data.title);
+        const cleanArtist = (data.artist || "").trim();
+        const hasTrack = Boolean(cleanTitle || cleanArtist || data.durationMs || data.progressMs);
+
+        if (!hasTrack) {
+          const cached = readPausedCache();
+          if (cached) {
+            const pausedSince = cached.pausedSince || Date.now();
+            if (pausedSince !== cached.pausedSince) {
+              writePausedCache(cached.data, pausedSince);
+            }
+            renderTrack(cached.data, false);
+            schedulePausedCacheExpiry(pausedSince);
+            return;
+          }
+          clearPausedCache();
+          renderClosedState();
+          return;
+        }
+
+        clearTimeout(pausedCacheTimer);
+        pausedCacheTimer = null;
+
+        if (data.isPlaying) {
+          writePausedCache({ ...data, title: cleanTitle, artist: cleanArtist }, null);
+        } else {
+          const cached = readPausedCache();
+          const sameTrack = Boolean(
+            cached &&
+            cached.data &&
+            cached.data.title === cleanTitle &&
+            cached.data.trackUrl === (data.trackUrl || "")
+          );
+          const pausedSince = sameTrack && cached.pausedSince ? cached.pausedSince : Date.now();
+          writePausedCache({ ...data, title: cleanTitle, artist: cleanArtist }, pausedSince);
+        }
+
+        renderTrack(data, Boolean(data.isPlaying));
       }
 
       async function refreshPlayback() {
