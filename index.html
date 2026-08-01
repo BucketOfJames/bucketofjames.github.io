@@ -321,6 +321,8 @@
         justify-content: center;
         background: linear-gradient(180deg, #587493 0%, #2d435d 100%);
         padding: 0;
+        min-width: 0;
+        min-height: 0;
       }
 
       .retro-window-controls button span {
@@ -652,9 +654,23 @@
 
       .retro-volume-controls {
         justify-self: end;
+        margin-right: 2.02vw;
       }
 
-      .retro-mini-button,
+      .retro-mini-button {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        cursor: default;
+        user-select: none;
+        background: transparent;
+        min-width: 0;
+        min-height: 0;
+        box-shadow: none;
+      }
+
       .transport-wing,
       .transport-core,
       .volume-button {
@@ -666,13 +682,19 @@
         cursor: default;
         user-select: none;
         background: transparent;
+        min-width: 0;
+        min-height: 0;
+        box-shadow: none;
       }
 
       .retro-mini-button {
         position: relative;
-        width: 0.85938vw;
-        height: 0.85938vw;
+        width: 1.40625vw;
+        height: 1.40625vw;
         border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .retro-mini-button::before {
@@ -794,8 +816,15 @@
 
       .volume-button {
         position: relative;
-        width: 0.93750vw;
+        width: 0.70313vw;
         height: 0.70313vw;
+      }
+
+      .volume-button .control-icon {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
       }
 
       .retro-volume-slider {
@@ -995,21 +1024,22 @@
 
       .icon-speaker::before {
         left: 0.03906vw;
-        top: 0.23438vw;
+        top: 50%;
         width: 0.15625vw;
         height: 0.23438vw;
+        transform: translateY(-50%);
         background: #f6fbff;
         border-radius: 0.03906vw;
       }
 
       .icon-speaker::after {
         left: 0.19531vw;
-        top: 0.15625vw;
-        width: 0;
-        height: 0;
-        border-top: 0.19531vw solid transparent;
-        border-bottom: 0.19531vw solid transparent;
-        border-left: 0.23438vw solid #f6fbff;
+        top: 50%;
+        width: 0.23438vw;
+        height: 0.39063vw;
+        transform: translateY(-50%);
+        background: #f6fbff;
+        clip-path: polygon(0 20%, 0 80%, 100% 100%, 100% 0);
       }
 
       .icon-speaker span {
@@ -1074,6 +1104,7 @@
         .retro-volume-controls,
         .retro-transport-dock {
           justify-self: center;
+          margin-right: 0;
         }
       }
     </style>
