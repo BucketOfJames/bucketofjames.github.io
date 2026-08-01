@@ -310,19 +310,17 @@
         font-family: 'Roboto', sans-serif;
         cursor: default;
         user-select: none;
-        box-shadow:
-          inset 0 0.03906vw 0 rgba(255, 255, 255, 0.13),
-          0 0.03906vw 0 rgba(0, 0, 0, 0.28);
-        width: 0.7vw;
-        height: 0.62vw;
+        box-shadow: none;
+        width: 2.92969vw;
+        height: 0.89844vw;
+        min-width: 2.92969vw;
+        min-height: 0.89844vw;
         border-radius: 0.17969vw;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         background: linear-gradient(180deg, #587493 0%, #2d435d 100%);
         padding: 0;
-        min-width: 0;
-        min-height: 0;
       }
 
       .retro-window-controls button span {
@@ -650,6 +648,10 @@
 
       .retro-aux-controls {
         justify-self: start;
+        justify-content: space-evenly;
+        gap: 0;
+        position: relative;
+        z-index: 1;
       }
 
       .retro-volume-controls {
@@ -687,7 +689,8 @@
         box-shadow: none;
       }
 
-      .retro-mini-button {
+      .retro-mini-button,
+      .volume-button {
         position: relative;
         width: 1.40625vw;
         height: 1.40625vw;
@@ -697,7 +700,8 @@
         justify-content: center;
       }
 
-      .retro-mini-button::before {
+      .retro-mini-button::before,
+      .volume-button::before {
         content: '';
         position: absolute;
         inset: 0.11719vw;
@@ -812,19 +816,6 @@
         border-radius: 39.02344vw;
         background: linear-gradient(180deg, rgba(154, 226, 255, 0), rgba(154, 226, 255, 0.28));
         pointer-events: none;
-      }
-
-      .volume-button {
-        position: relative;
-        width: 0.70313vw;
-        height: 0.70313vw;
-      }
-
-      .volume-button .control-icon {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
       }
 
       .retro-volume-slider {
@@ -1516,6 +1507,41 @@ window.addEventListener("pointercancel", endWindowDrag);
 
 refreshPlayback();
 window.setInterval(refreshPlayback, 15000);
+
+const auxControls = document.querySelector(".retro-aux-controls");
+const volumeControls = document.querySelector(".retro-volume-controls");
+const controlsTray = document.querySelector(".retro-controls-tray");
+const compactLayout = window.matchMedia("(max-width: 40em)");
+
+function positionControlGroups() {
+  if (compactLayout.matches) {
+    if (auxControls) auxControls.style.width = "";
+    if (volumeControls) volumeControls.style.marginRight = "";
+    return;
+  }
+  if (!auxControls || !volumeControls || !controlsTray) return;
+
+  const wingPrev = document.querySelector(".transport-wing.prev");
+  const wingNext = document.querySelector(".transport-wing.next");
+  if (!wingPrev || !wingNext) return;
+
+  const trayRect = controlsTray.getBoundingClientRect();
+  const vw = (px) => (px / window.innerWidth * 100) + "vw";
+
+  const prevRect = wingPrev.getBoundingClientRect();
+  auxControls.style.width = vw(prevRect.left - auxControls.getBoundingClientRect().left);
+
+  const nextRect = wingNext.getBoundingClientRect();
+  const volumeRect = volumeControls.getBoundingClientRect();
+  const targetCenter = (nextRect.right + trayRect.right) / 2;
+  const currentCenter = (volumeRect.left + volumeRect.right) / 2;
+  const currentMargin = parseFloat(getComputedStyle(volumeControls).marginRight) || 0;
+  volumeControls.style.marginRight = vw(Math.max(0, currentMargin + currentCenter - targetCenter));
+}
+
+window.addEventListener("load", positionControlGroups);
+window.addEventListener("resize", positionControlGroups);
+compactLayout.addEventListener("change", positionControlGroups);
 
 </script>
 <div id="bg-overlay"></div>
