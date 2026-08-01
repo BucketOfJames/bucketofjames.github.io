@@ -64,6 +64,7 @@
             z-index: -1;
         }
 
+      /* xp.css sets body { font-size: 0.46875vw } (lower bound; not overridden here) */
       body {
         margin: 0;
         font-family: 'Roboto Slab', serif;
@@ -131,6 +132,7 @@
         background-size: 100%;
       }
 
+      /* xp.css sets h1 { font-size: 5rem }; this rule overrides with vw-based sizing */
       .profile-text h1 {
         font-size: 3vw;
         font-weight: 400;
@@ -302,6 +304,8 @@
         flex-shrink: 0;
       }
 
+      /* xp.css sets button { min-width: 2.92969vw; min-height: 0.89844vw; font-size: 0.42969vw; box-sizing: border-box }
+         The min-width/min-height here match XP.css defaults (also resets box-sizing implicitly via width/height) */
       .retro-window-controls button {
         appearance: none;
         -webkit-appearance: none;
@@ -311,10 +315,10 @@
         cursor: default;
         user-select: none;
         box-shadow: none;
-        width: 2.92969vw;
-        height: 0.89844vw;
-        min-width: 2.92969vw;
-        min-height: 0.89844vw;
+        width: 2.92969vw;    /* matches xp.css default button width floor */
+        height: 0.89844vw;   /* matches xp.css default button height floor */
+        min-width: 2.92969vw;  /* xp.css default: button { min-width: 2.92969vw } */
+        min-height: 0.89844vw; /* xp.css default: button { min-height: 0.89844vw } */
         border-radius: 0.17969vw;
         display: inline-flex;
         align-items: center;
@@ -387,6 +391,9 @@
         pointer-events: none;
       }
 
+      /* xp.css sets button { min-width: 2.92969vw; min-height: 0.89844vw; font-size: 0.42969vw; box-sizing: border-box }
+         min-width/height here are larger than XP.css defaults, so XP.css floor is effectively shadowed;
+         font-size below explicitly overrides XP.css default (0.42969vw) */
       .retro-player-tabs button {
         appearance: none;
         -webkit-appearance: none;
@@ -394,8 +401,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 3.75000vw;
-        height: 1.40625vw;
+        min-width: 3.75000vw; /* > xp.css default 2.92969vw */
+        height: 1.40625vw; /* > xp.css default 0.89844vw */
         margin-right: -0.31250vw;
         padding: 0 0.70313vw;
         border-radius: 0.39063vw 0.39063vw 0 0;
@@ -405,7 +412,7 @@
           linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.16) 24%, rgba(255, 255, 255, 0.02) 25%),
           linear-gradient(180deg, #76acea 0%, #4a79b7 45%, #20375c 100%);
         color: #f7fbff;
-        font-size: 0.51250vw;
+        font-size: 0.51250vw; /* > xp.css button default font-size: 0.42969vw */
         font-weight: 700;
         letter-spacing: 0.01em;
         text-shadow: 0 0.03906vw 0 rgba(0, 0, 0, 0.55);
@@ -447,9 +454,10 @@
         pointer-events: none;
       }
 
+      /* xp.css button { min-width: 2.92969vw }; this min-width is larger so XP.css floor is shadowed */
       .retro-player-tabs button.is-active {
         z-index: 2;
-        min-width: 4.21875vw;
+        min-width: 4.21875vw; /* > xp.css default button min-width: 2.92969vw */
         border-color: #b5d4f4;
         background:
           linear-gradient(180deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.22) 24%, rgba(255, 255, 255, 0.03) 25%),
@@ -659,6 +667,8 @@
         margin-right: 2.02vw;
       }
 
+      /* xp.css sets button { min-width: 2.92969vw; min-height: 0.89844vw; font-size: 0.42969vw; box-sizing: border-box }
+         These resets below are required to clear XP.css floor when sizing below ~2.93vw */
       .retro-mini-button {
         appearance: none;
         -webkit-appearance: none;
@@ -668,11 +678,13 @@
         cursor: default;
         user-select: none;
         background: transparent;
-        min-width: 0;
-        min-height: 0;
+        min-width: 0;   /* required: clears xp.css button { min-width: 2.92969vw } */
+        min-height: 0;  /* required: clears xp.css button { min-height: 0.89844vw } */
         box-shadow: none;
       }
 
+      /* xp.css sets button { min-width: 2.92969vw; min-height: 0.89844vw; font-size: 0.42969vw; box-sizing: border-box }
+         Same reset: required to clear XP.css floor before applying transport/volume size below */
       .transport-wing,
       .transport-core,
       .volume-button {
@@ -684,8 +696,8 @@
         cursor: default;
         user-select: none;
         background: transparent;
-        min-width: 0;
-        min-height: 0;
+        min-width: 0;   /* required: clears xp.css button { min-width: 2.92969vw } */
+        min-height: 0;  /* required: clears xp.css button { min-height: 0.89844vw } */
         box-shadow: none;
       }
 
