@@ -3,6 +3,9 @@ const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SPOTIFY_NOW_PLAYING_URL =
   "https://api.spotify.com/v1/me/player/currently-playing";
 
+const CACHE_TTL_MS = 5 * 60 * 60 * 1000;
+const CACHE_KEY = "last-track";
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -28,6 +31,10 @@ export default {
       <p>Use <code>/login</code> once to connect Spotify.</p>
       <p>Then use <code>/now-playing</code> from your website.</p>
     `);
+  },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(refreshLastTrackCache(env));
   },
 };
 
@@ -242,63 +249,113 @@ async function handleNowPlaying(env) {
   }
 
   try {
-    const accessToken = await getAccessToken(env);
+    const result = await fetchCurrentTrack(env);
 
-    const spotifyRes = await fetch(SPOTIFY_NOW_PLAYING_URL, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (spotifyRes.status === 204) {
-      return jsonResponse({ isPlaying: false }, env, 200);
+    if (result.type === "track") {
+      await cacheTrack(env, result.data);
+      return jsonResponse(result.data, env, 200);
     }
 
-    if (!spotifyRes.ok) {
-      const text = await spotifyRes.text();
-      return jsonResponse(
-        { error: "Spotify API error", detail: text },
-        env,
-        500
-      );
-    }
-
-    const data = await spotifyRes.json();
-
-    if (!data || !data.item) {
-      return jsonResponse({ isPlaying: false }, env, 200);
-    }
-
-    const item = data.item;
-    const isTrack = item.type === "track" || !item.type;
-
-    const title = item.name || "";
-    const artist = isTrack
-      ? (item.artists || []).map((a) => a.name).join(", ")
-      : "";
-    const albumArtUrl = isTrack
-      ? item.album?.images?.[0]?.url || ""
-      : item.images?.[0]?.url || "";
-    const trackUrl = item.external_urls?.spotify || "";
-
-    return jsonResponse(
-      {
-        isPlaying: Boolean(data.is_playing),
-        title,
-        artist,
-        albumArtUrl,
-        trackUrl,
-        progressMs: data.progress_ms || 0,
-        durationMs: item.duration_ms || 0,
-      },
-      env,
-      200
-    );
+    const cached = await readCachedTrack(env);
+    if (cached) return jsonResponse(cached, env, 200);
+    return jsonResponse({ isPlaying: false }, env, 200);
   } catch (err) {
     return jsonResponse(
       { error: "Worker exception", detail: String(err) },
       env,
       500
     );
+  }
+}
+
+async function fetchCurrentTrack(env) {
+  const accessToken = await getAccessToken(env);
+
+  const spotifyRes = await fetch(SPOTIFY_NOW_PLAYING_URL, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (spotifyRes.status === 204) {
+    return { type: "none" };
+  }
+
+  if (!spotifyRes.ok) {
+    const text = await spotifyRes.text();
+    throw new Error(`Spotify API error: ${text}`);
+  }
+
+  const data = await spotifyRes.json();
+
+  if (!data || !data.item) {
+    return { type: "none" };
+  }
+
+  const item = data.item;
+  const isTrack = item.type === "track" || !item.type;
+
+  return {
+    type: "track",
+    data: {
+      isPlaying: Boolean(data.is_playing),
+      title: item.name || "",
+      artist: isTrack
+        ? (item.artists || []).map((a) => a.name).join(", ")
+        : "",
+      albumArtUrl: isTrack
+        ? item.album?.images?.[0]?.url || ""
+        : item.images?.[0]?.url || "",
+      trackUrl: item.external_urls?.spotify || "",
+      progressMs: data.progress_ms || 0,
+      durationMs: item.duration_ms || 0,
+    },
+  };
+}
+
+async function refreshLastTrackCache(env) {
+  try {
+    const result = await fetchCurrentTrack(env);
+    if (result.type === "track") {
+      await cacheTrack(env, result.data);
+    }
+  } catch (err) {
+  }
+}
+
+async function readCachedTrack(env) {
+  if (!env.NOW_PLAYING) return null;
+  try {
+    const raw = await env.NOW_PLAYING.get(CACHE_KEY);
+    if (!raw) return null;
+    const entry = JSON.parse(raw);
+    if (!entry || !entry.title) return null;
+    const cachedAt = Number(entry.cachedAt);
+    if (!Number.isFinite(cachedAt) || Date.now() - cachedAt >= CACHE_TTL_MS) {
+      await env.NOW_PLAYING.delete(CACHE_KEY);
+      return null;
+    }
+    return {
+      isPlaying: false,
+      title: entry.title,
+      artist: entry.artist || "",
+      albumArtUrl: entry.albumArtUrl || "",
+      trackUrl: entry.trackUrl || "",
+      progressMs: Number(entry.progressMs) || 0,
+      durationMs: Number(entry.durationMs) || 0,
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+async function cacheTrack(env, data) {
+  if (!env.NOW_PLAYING) return;
+  try {
+    await env.NOW_PLAYING.put(
+      CACHE_KEY,
+      JSON.stringify({ ...data, cachedAt: Date.now() })
+    );
+  } catch (err) {
   }
 }

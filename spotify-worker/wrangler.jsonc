@@ -3,7 +3,16 @@
   "name": "bucket-spotify-now-playing",
   "main": "src/index.js",
   "compatibility_date": "2026-03-18",
+  "kv_namespaces": [
+    {
+      "binding": "NOW_PLAYING",
+      "id": "f3d8fbccd43e4faea422f5f3c9986ea3"
+    }
+  ],
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
   "vars": {
-    "ALLOWED_ORIGIN": "https://bucketofjames.github.io/"
+    "ALLOWED_ORIGIN": "https://bucketofjames.github.io"
   }
 }
