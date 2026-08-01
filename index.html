@@ -1126,33 +1126,25 @@
 
               <div class="retro-player-main">
                 <div class="spotify-meta">
-                  <div id="spotify-label" class="spotify-label">Listening on Spotify</div>
-                  <div id="spotify-title" class="spotify-title">Nothing playing</div>
-                  <div id="spotify-artist" class="spotify-artist"></div>
+                  <div id="spotify-label" class="spotify-label">Spotify is closed</div>
+                  <div id="spotify-title" class="spotify-title">[no song found]</div>
+                  <div id="spotify-artist" class="spotify-artist">[no artist either]</div>
 
                   <div class="spotify-time-row">
-                    <span id="spotify-current">0:00</span>
-                    <span id="spotify-duration">0:00</span>
+                    <span id="spotify-current">-:--</span>
+                    <span id="spotify-duration">-:--</span>
                   </div>
 
                   <div class="spotify-progress">
-                    <div id="spotify-progress-bar" class="spotify-progress-bar"></div>
+                    <div id="spotify-progress-bar" class="spotify-progress-bar" style="width: 0%"></div>
                   </div>
 
-                  <a
-                    id="spotify-link"
-                    class="spotify-link"
-                    href="#"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Play on Spotify
-                  </a>
+                  <a id="spotify-link" class="spotify-link is-disabled">Spotify unavailable</a>
                 </div>
 
                 <div class="retro-cover-column">
                   <div class="retro-cover-frame">
-                    <img id="spotify-cover" class="spotify-cover" src="" alt="Album cover" />
+                    <img id="spotify-cover" class="spotify-cover offline" src="assets/spotify.svg" alt="Spotify icon" />
                   </div>
                 </div>
               </div>
@@ -1376,7 +1368,7 @@
             ? "Listening on Spotify"
             : "Spotify is paused at";
         }
-        if (titleEl) titleEl.textContent = cleanTitle || "Nothing playing";
+        if (titleEl) titleEl.textContent = cleanTitle || "";
         if (artistEl) artistEl.textContent = cleanArtist || "";
 
         if (cover) {
