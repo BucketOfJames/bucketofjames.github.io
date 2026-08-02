@@ -4,6 +4,7 @@ const SPOTIFY_NOW_PLAYING_URL =
   "https://api.spotify.com/v1/me/player/currently-playing";
 
 const CACHE_TTL_MS = 5 * 60 * 60 * 1000;
+const CACHE_REFRESH_MS = 30 * 60 * 1000;
 const CACHE_KEY = "last-track";
 
 export default {
@@ -252,7 +253,6 @@ async function handleNowPlaying(env) {
     const result = await fetchCurrentTrack(env);
 
     if (result.type === "track") {
-      await cacheTrack(env, result.data);
       return jsonResponse(result.data, env, 200);
     }
 
@@ -352,6 +352,22 @@ async function readCachedTrack(env) {
 async function cacheTrack(env, data) {
   if (!env.NOW_PLAYING) return;
   try {
+    const raw = await env.NOW_PLAYING.get(CACHE_KEY);
+    if (raw) {
+      const existing = JSON.parse(raw);
+      const isSameTrack =
+        existing.title === data.title &&
+        (existing.artist || "") === (data.artist || "") &&
+        (existing.trackUrl || "") === (data.trackUrl || "");
+      const cachedAt = Number(existing.cachedAt);
+      if (
+        isSameTrack &&
+        Number.isFinite(cachedAt) &&
+        Date.now() - cachedAt < CACHE_REFRESH_MS
+      ) {
+        return;
+      }
+    }
     await env.NOW_PLAYING.put(
       CACHE_KEY,
       JSON.stringify({ ...data, cachedAt: Date.now() })
