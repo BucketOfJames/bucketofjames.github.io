@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>BucketOfJames</title>
     <link rel="stylesheet" href="xp.css" />
+    <link rel="preload" href="assets/fonts/roboto-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/robotoslab-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/veraserif-latin.woff2" as="font" type="font/woff2" crossorigin />
     <style>
         @font-face {
           font-family: 'Roboto';
@@ -1248,7 +1251,14 @@
       let dragState = null;
 
       if (card) {
-        card.hidden = false;
+        const revealCard = () => {
+          if (card.hidden) {
+            card.hidden = false;
+            positionControlGroups();
+          }
+        };
+        const fontsReady = (document.fonts && document.fonts.ready) || Promise.resolve();
+        Promise.race([fontsReady, new Promise((resolve) => setTimeout(resolve, 1500))]).then(revealCard);
       }
 
       function clamp(value, min, max) {
@@ -1545,8 +1555,6 @@ function positionControlGroups() {
 window.addEventListener("load", positionControlGroups);
 window.addEventListener("resize", positionControlGroups);
 compactLayout.addEventListener("change", positionControlGroups);
-
-positionControlGroups();
 
 </script>
 <div id="bg-overlay"></div>
