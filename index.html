@@ -5,11 +5,35 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>BucketOfJames</title>
-    <link rel="stylesheet" href="xp.css" />
     <link rel="preload" href="assets/fonts/roboto-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="assets/fonts/robotoslab-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="assets/fonts/veraserif-latin.woff2" as="font" type="font/woff2" crossorigin />
     <style>
+        /* xp.css fonts: previously registered via xp.css in <head>; xp.css now
+           loads only inside the widget shadow root, where Chromium does not
+           register @font-face, so declare them here to keep them global. */
+        @font-face {
+          font-family: "Pixelated MS Sans Serif";
+          src: url(https://unpkg.com/xp.css@0.2.6/dist/ms_sans_serif.woff) format("woff");
+          src: url(https://unpkg.com/xp.css@0.2.6/dist/ms_sans_serif.woff2) format("woff2");
+          font-weight: 400;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: "Pixelated MS Sans Serif";
+          src: url(https://unpkg.com/xp.css@0.2.6/dist/ms_sans_serif_bold.woff) format("woff");
+          src: url(https://unpkg.com/xp.css@0.2.6/dist/ms_sans_serif_bold.woff2) format("woff2");
+          font-weight: 700;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: "Perfect DOS VGA 437 Win";
+          src: url(https://unpkg.com/xp.css@0.2.6/dist/PerfectDOSVGA437Win.woff2) format("woff2"),
+               url(https://unpkg.com/xp.css@0.2.6/dist/PerfectDOSVGA437Win.woff) format("woff");
+          font-weight: 400;
+          font-style: normal;
+        }
+
         @font-face {
           font-family: 'Roboto';
           font-style: normal;
@@ -67,9 +91,10 @@
             z-index: -1;
         }
 
-      /* xp.css sets body { font-size: 0.46875vw } (lower bound; not overridden here) */
+      /* base font-size previously came from xp.css; now set here (0.46875vw) */
       body {
         margin: 0;
+        font-size: 0.46875vw;
         font-family: 'Roboto Slab', serif;
         font-weight: 300;
         color: #e8edf2;
@@ -96,6 +121,83 @@
         font-family: Georgia, serif;
       }
 
+      .page-layout {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 0.78125vw;
+        margin-top: 2.34375vw;
+      }
+
+      .page-stack {
+        width: 39vw;
+        max-width: 39vw;
+        flex: 0 0 39vw;
+      }
+
+      .page {
+        width: 100%;
+        margin: 0;
+      }
+
+      .page-wip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .page-wip .wip-text {
+        font-size: 1.56250vw;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.55);
+      }
+
+      .page-nav {
+        position: absolute;
+        top: 0;
+        left: calc(50% + 20.28125vw);
+        display: flex;
+        flex-direction: column;
+        gap: 0.46875vw;
+      }
+
+      .page-nav-btn {
+        appearance: none;
+        -webkit-appearance: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3.51563vw;
+        height: 3.51563vw;
+        min-width: 3.51563vw;
+        min-height: 3.51563vw;
+        padding: 0.58594vw;
+        border: 0.07813vw solid purple;
+        background-color: rgba(0, 0, 0, 0.5);
+        box-shadow: none;
+        color: inherit;
+        font-family: inherit;
+        cursor: pointer;
+        box-sizing: border-box;
+      }
+
+      .page-nav-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      .page-nav-btn:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+      }
+
+      .page-nav-btn.is-active {
+        background-color: rgba(128, 0, 128, 0.4);
+        box-shadow: 0 0 0.46875vw rgba(128, 0, 128, 0.65);
+      }
+
       #page-home {
         display: grid;
         width: 100%;
@@ -104,6 +206,12 @@
 
       #page-home > * {
         grid-column: 1 / -1;
+      }
+
+      #spotify-widget {
+        position: absolute;
+        top: 0;
+        left: 0;
       }
 
       .page-body {
@@ -228,6 +336,21 @@
         margin-bottom: 0.39063vw;
         background-color: transparent;
       }
+
+    </style>
+  </head>
+  <body>
+    <div id="page-home">
+            <div id="spotify-widget"></div>
+
+      <template id="spotify-widget-template">
+        <link rel="stylesheet" href="xp.css" />
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
 
       .retro-player {
         position: absolute;
@@ -1113,11 +1236,9 @@
           margin-right: 0;
         }
       }
-    </style>
-  </head>
-  <body>
-    <div id="page-home">
-      <div id="spotify-card" class="retro-player" hidden>
+        </style>
+
+<div class="retro-player" hidden>
             <div class="retro-player-shell">
               <div class="retro-player-topbar">
                 <div class="retro-player-brand">
@@ -1186,65 +1307,96 @@
               </div>
             </div>
           </div>
-        <div class="page-body">
-        <div class="container">
-        <div class="profile-text">
-          <div class="profile-photo" title="Unexpected ocelot!<3"></div>
-          <h1>BucketOfJames</h1>
-        </div>
+              </template>
 
-        
-        <div class="about-row">
-          <div class="about">
-            I am the guy you love to hate.<br><br>
-            I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.<br><br>
-            I use arch btw <sub>(cachyos)</sub>
+<div class="page-body">
+          <div class="page-layout">
+            <div class="page-stack">
+              <div class="container page" id="page-1">
+                <div class="profile-text">
+                  <div class="profile-photo" title="Unexpected ocelot!<3"></div>
+                  <h1>BucketOfJames</h1>
+                </div>
+
+                <div class="about-row">
+                  <div class="about">
+                    I am the guy you love to hate.<br><br>
+                    I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.<br><br>
+                    I use arch btw <sub>(cachyos)</sub>
+                  </div>
+                </div>
+
+                <div class="linkage">
+                  <a href="https://open.spotify.com/user/0ksfj8yes49dkju5w48dr3x3u?si=2205d68da45e48fa" class="link-item spotify">
+                    <div class="icon" style="background-image:url('assets/spotify.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="label">Spotify</div>
+                  </a>
+                  <a href="https://steamcommunity.com/id/bucketofjames/" class="link-item steam">
+                    <div class="icon" style="background-image:url('assets/steam.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="label">Steam</div>
+                  </a>
+                  <a href="https://fluxer.gg/NFR4JYst" class="link-item fluxer">
+                    <div class="custom-tooltip">My Fluxer server. FluxerTag is just BucketOfJames.</div>
+                    <div class="icon" style="background-image:url('assets/fluxer.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="label">Fluxer</div>
+                  </a>
+                  <a href="https://medal.tv/u/BucketOfJames/?invite=ur-MSxzVVgsMTczOTM5ODA5" class="link-item medal">
+                    <div class="icon" style="background-image:url('assets/medal.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="label">Medal.tv</div>
+                  </a>
+                  <a href="https://youtube.com/@bucketofjames?si=9ODTwmbXb2_LDSkW" class="link-item youtube">
+                    <div class="icon" style="background-image:url('assets/youtube.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="label">YouTube</div>
+                  </a>
+                </div>
+              </div>
+
+              <div class="container page page-wip" id="page-2" hidden>
+                <p class="wip-text">WIP</p>
+              </div>
+
+              <div class="container page page-wip" id="page-3" hidden>
+                <p class="wip-text">WIP</p>
+              </div>
+
+              <div class="container page page-wip" id="page-4" hidden>
+                <p class="wip-text">WIP</p>
+              </div>
+
+              <div class="container page page-wip" id="page-5" hidden>
+                <p class="wip-text">WIP</p>
+              </div>
+            </div>
+
+            <nav class="page-nav" aria-label="Page navigation">
+              <button type="button" class="page-nav-btn is-active" data-page="page-1" title="Home" aria-label="Home"><img src="assets/bucket.svg" alt="" /></button>
+              <button type="button" class="page-nav-btn" data-page="page-2" title="Page 2" aria-label="Page 2"><img src="assets/bucket.svg" alt="" /></button>
+              <button type="button" class="page-nav-btn" data-page="page-3" title="Page 3" aria-label="Page 3"><img src="assets/bucket.svg" alt="" /></button>
+              <button type="button" class="page-nav-btn" data-page="page-4" title="Page 4" aria-label="Page 4"><img src="assets/bucket.svg" alt="" /></button>
+              <button type="button" class="page-nav-btn" data-page="page-5" title="Page 5" aria-label="Page 5"><img src="assets/bucket.svg" alt="" /></button>
+            </nav>
           </div>
-        
-  
-        </div>
-
-        <div class="linkage">
-          <a href="https://open.spotify.com/user/0ksfj8yes49dkju5w48dr3x3u?si=2205d68da45e48fa" class="link-item spotify">
-            <div class="icon" style="background-image:url('assets/spotify.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
-            <div class="label">Spotify</div>
-          </a>
-          <a href="https://steamcommunity.com/id/bucketofjames/" class="link-item steam">
-            <div class="icon" style="background-image:url('assets/steam.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
-            <div class="label">Steam</div>
-          </a>
-          <a href="https://fluxer.gg/NFR4JYst" class="link-item fluxer">
-            <div class="custom-tooltip">My Fluxer server. FluxerTag is just BucketOfJames.</div>
-            <div class="icon" style="background-image:url('assets/fluxer.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
-            <div class="label">Fluxer</div>
-          </a>
-          <a href="https://medal.tv/u/BucketOfJames/?invite=ur-MSxzVVgsMTczOTM5ODA5" class="link-item medal">
-            <div class="icon" style="background-image:url('assets/medal.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
-            <div class="label">Medal.tv</div>
-          </a>
-          <a href="https://youtube.com/@bucketofjames?si=9ODTwmbXb2_LDSkW" class="link-item youtube">
-            <div class="icon" style="background-image:url('assets/youtube.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
-            <div class="label">YouTube</div>
-          </a>
-        </div>
-          
         </div>
       </div>
-    </div>
 
     <script>
       const SPOTIFY_API_URL = "https://bucket-spotify-now-playing.bucketofjames.workers.dev/now-playing";
 
-      const card = document.getElementById("spotify-card");
-      const cover = document.getElementById("spotify-cover");
-      const labelEl = document.getElementById("spotify-label");
-      const titleEl = document.getElementById("spotify-title");
-      const artistEl = document.getElementById("spotify-artist");
-      const currentEl = document.getElementById("spotify-current");
-      const durationEl = document.getElementById("spotify-duration");
-      const progressBar = document.getElementById("spotify-progress-bar");
-      const linkEl = document.getElementById("spotify-link");
-      const dragHandle = document.querySelector(".retro-player-topbar");
+      const widgetHost = document.getElementById("spotify-widget");
+      const widgetTemplate = document.getElementById("spotify-widget-template");
+      const widgetRoot = widgetHost.attachShadow({ mode: "open" });
+      widgetRoot.appendChild(widgetTemplate.content.cloneNode(true));
+
+      const card = widgetRoot.querySelector(".retro-player");
+      const cover = widgetRoot.getElementById("spotify-cover");
+      const labelEl = widgetRoot.getElementById("spotify-label");
+      const titleEl = widgetRoot.getElementById("spotify-title");
+      const artistEl = widgetRoot.getElementById("spotify-artist");
+      const currentEl = widgetRoot.getElementById("spotify-current");
+      const durationEl = widgetRoot.getElementById("spotify-duration");
+      const progressBar = widgetRoot.getElementById("spotify-progress-bar");
+      const linkEl = widgetRoot.getElementById("spotify-link");
+      const dragHandle = widgetRoot.querySelector(".retro-player-topbar");
 
       let playbackState = null;
       let tickInterval = null;
@@ -1521,9 +1673,9 @@ window.addEventListener("pointercancel", endWindowDrag);
 refreshPlayback();
 window.setInterval(refreshPlayback, 15000);
 
-const auxControls = document.querySelector(".retro-aux-controls");
-const volumeControls = document.querySelector(".retro-volume-controls");
-const controlsTray = document.querySelector(".retro-controls-tray");
+const auxControls = widgetRoot.querySelector(".retro-aux-controls");
+const volumeControls = widgetRoot.querySelector(".retro-volume-controls");
+const controlsTray = widgetRoot.querySelector(".retro-controls-tray");
 const compactLayout = window.matchMedia("(max-width: 40em)");
 
 function positionControlGroups() {
@@ -1534,8 +1686,8 @@ function positionControlGroups() {
   }
   if (!auxControls || !volumeControls || !controlsTray) return;
 
-  const wingPrev = document.querySelector(".transport-wing.prev");
-  const wingNext = document.querySelector(".transport-wing.next");
+  const wingPrev = widgetRoot.querySelector(".transport-wing.prev");
+  const wingNext = widgetRoot.querySelector(".transport-wing.next");
   if (!wingPrev || !wingNext) return;
 
   const trayRect = controlsTray.getBoundingClientRect();
@@ -1555,6 +1707,42 @@ function positionControlGroups() {
 window.addEventListener("load", positionControlGroups);
 window.addEventListener("resize", positionControlGroups);
 compactLayout.addEventListener("change", positionControlGroups);
+
+const pageNavButtons = document.querySelectorAll(".page-nav-btn");
+const sitePages = document.querySelectorAll(".page");
+
+function syncPageHeights() {
+  const home = document.getElementById("page-1");
+  if (!home) return;
+  const height = home.offsetHeight;
+  if (height <= 0) return;
+  sitePages.forEach((page) => {
+    if (page !== home) page.style.minHeight = height + "px";
+  });
+}
+
+function showPage(id) {
+  sitePages.forEach((page) => {
+    page.hidden = page.id !== id;
+  });
+  pageNavButtons.forEach((btn) => {
+    const active = btn.dataset.page === id;
+    btn.classList.toggle("is-active", active);
+    if (active) {
+      btn.setAttribute("aria-current", "page");
+    } else {
+      btn.removeAttribute("aria-current");
+    }
+  });
+  syncPageHeights();
+}
+
+pageNavButtons.forEach((btn) => {
+  btn.addEventListener("click", () => showPage(btn.dataset.page));
+});
+
+window.addEventListener("load", syncPageHeights);
+window.addEventListener("resize", syncPageHeights);
 
 </script>
 <div id="bg-overlay"></div>
