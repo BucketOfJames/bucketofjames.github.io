@@ -605,19 +605,22 @@
 
       .retro-player-main {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 5.15625vw;
+        grid-template-columns: minmax(0, 1fr) auto;
         gap: 0.70313vw;
-        align-items: start;
+        align-items: stretch;
         padding: 0.70313vw 0.62500vw 0.54688vw;
       }
 
       .retro-cover-column {
         display: flex;
         justify-content: flex-end;
+        align-items: flex-end;
       }
 
       .retro-cover-frame {
+        position: relative;
         width: 5.15625vw;
+        aspect-ratio: 1 / 1;
         padding: 0.31250vw;
         border-radius: 0.54688vw;
         background: linear-gradient(180deg, #182536 0%, #0d131d 100%);
@@ -628,9 +631,11 @@
       }
 
       .spotify-cover {
-        display: block;
-        width: 4.53125vw;
-        height: 4.53125vw;
+        position: absolute;
+        left: 0.31250vw;
+        top: 0.31250vw;
+        width: calc(100% - 0.62500vw);
+        height: calc(100% - 0.62500vw);
         border-radius: 0.39063vw;
         object-fit: cover;
         background: #04070c;
@@ -1223,11 +1228,6 @@
           width: 4.21875vw;
         }
 
-        .spotify-cover {
-          width: 3.59375vw;
-          height: 3.59375vw;
-        }
-
         .retro-controls-tray {
           grid-template-columns: 1fr;
           justify-items: center;
@@ -1273,6 +1273,8 @@
                   <div id="spotify-title" class="spotify-title">[no song found]</div>
                   <div id="spotify-artist" class="spotify-artist">[no artist either]</div>
 
+                  <a id="spotify-link" class="spotify-link is-disabled">Spotify unavailable</a>
+
                   <div class="spotify-time-row">
                     <span id="spotify-current">-:--</span>
                     <span id="spotify-duration">-:--</span>
@@ -1281,8 +1283,6 @@
                   <div class="spotify-progress">
                     <div id="spotify-progress-bar" class="spotify-progress-bar" style="width: 0%"></div>
                   </div>
-
-                  <a id="spotify-link" class="spotify-link is-disabled">Spotify unavailable</a>
                 </div>
 
                 <div class="retro-cover-column">
@@ -1419,6 +1419,7 @@
           if (card.hidden) {
             card.hidden = false;
             positionControlGroups();
+            syncCoverSize();
           }
         };
         const fontsReady = (document.fonts && document.fonts.ready) || Promise.resolve();
@@ -1621,6 +1622,7 @@
           console.error("Spotify widget refresh failed:", error);
           renderClosedState();
         }
+        syncCoverSize();
       }
 
       function beginWindowDrag(event) {
@@ -1719,6 +1721,33 @@ function positionControlGroups() {
 window.addEventListener("load", positionControlGroups);
 window.addEventListener("resize", positionControlGroups);
 compactLayout.addEventListener("change", positionControlGroups);
+
+const coverFrame = widgetRoot.querySelector(".retro-cover-frame");
+
+function syncCoverSize() {
+  if (compactLayout.matches || !coverFrame) return;
+  const mainEl = widgetRoot.querySelector(".retro-player-main");
+  if (!mainEl) return;
+  const cs = getComputedStyle(mainEl);
+  const avail = mainEl.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  if (avail <= 0) return;
+  const gap = parseFloat(cs.columnGap) || 0;
+  const progress = widgetRoot.querySelector(".spotify-progress");
+  const leftW = progress ? progress.getBoundingClientRect().width : 0;
+  const maxCover = mainEl.clientWidth - gap - leftW;
+  const size = Math.min(avail, maxCover);
+  if (size <= 0) return;
+  const vw = (px) => (px / window.innerWidth * 100) + "vw";
+  coverFrame.style.width = vw(size);
+  coverFrame.style.height = vw(size);
+}
+
+window.addEventListener("resize", syncCoverSize);
+compactLayout.addEventListener("change", syncCoverSize);
+if (typeof ResizeObserver !== "undefined") {
+  const mainEl = widgetRoot.querySelector(".retro-player-main");
+  if (mainEl) new ResizeObserver(syncCoverSize).observe(mainEl);
+}
 
 const pageNavButtons = document.querySelectorAll(".page-nav-btn");
 const sitePages = document.querySelectorAll(".page");
