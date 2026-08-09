@@ -175,10 +175,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 4.42546vw;
-        height: 4.42546vw;
-        min-width: 4.42546vw;
-        min-height: 4.42546vw;
+        width: 4.41992vw;
+        height: 4.41992vw;
+        min-width: 4.41992vw;
+        min-height: 4.41992vw;
         padding: 0.58594vw;
         border: 0.07813vw solid purple;
         background-color: rgba(0, 0, 0, 0.5);
@@ -344,6 +344,287 @@
         background-color: transparent;
       }
 
+    </style>
+
+    <style id="specs-style">
+      /* ===== PC specs & software page: retro "System Properties" window ===== */
+      #page-2.specs-page {
+        font-family: 'Roboto Slab', serif;
+        text-align: left;
+      }
+
+      .specs-window {
+        width: 100%;
+        overflow: hidden;
+        border: 0.03906vw solid #304052;
+        border-radius: 0.62500vw;
+        background:
+          radial-gradient(circle at top right, rgba(89, 140, 210, 0.12), transparent 34%),
+          linear-gradient(180deg, #111824 0%, #0c1017 48%, #090c11 100%);
+        box-shadow:
+          inset 0 0.03906vw 0 rgba(255, 255, 255, 0.08),
+          0 0.70313vw 1.48438vw rgba(0, 0, 0, 0.45);
+      }
+
+      .specs-titlebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.46875vw;
+        padding: 0.39063vw 0.46875vw 0.35156vw;
+        background: linear-gradient(180deg, #476686 0%, #273a52 42%, #172435 100%);
+        border-bottom: 0.03906vw solid #4a647e;
+        cursor: default;
+        user-select: none;
+        touch-action: none;
+      }
+
+      .specs-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.39063vw;
+        min-width: 0;
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.60000vw;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: #f5fbff;
+        text-shadow: 0 0.03906vw 0 rgba(0, 0, 0, 0.45);
+      }
+
+      .specs-appdot {
+        width: 0.54688vw;
+        height: 0.54688vw;
+        flex: 0 0 0.54688vw;
+        border-radius: 0.15625vw;
+        background: linear-gradient(180deg, #79d7ff 0%, #3b7ddd 100%);
+        box-shadow:
+          inset 0 0.03906vw 0 rgba(255, 255, 255, 0.65),
+          0 0 0 0.03906vw rgba(10, 18, 28, 0.7);
+      }
+
+      .specs-winctrl {
+        display: flex;
+        gap: 0.1vw;
+        flex-shrink: 0;
+      }
+
+      .specs-winctrl button {
+        appearance: none;
+        -webkit-appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.95313vw;
+        height: 0.89844vw;
+        padding: 0;
+        border: 0.03906vw solid #4d6178;
+        border-radius: 0.17969vw;
+        background: linear-gradient(180deg, #587493 0%, #2d435d 100%);
+        color: #eef6ff;
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.52vw;
+        font-weight: 700;
+        line-height: 1;
+        cursor: default;
+        box-shadow: none;
+      }
+
+      .specs-winctrl button:last-child {
+        background: linear-gradient(180deg, #7f5367 0%, #4c2537 100%);
+        border-color: #8f6172;
+      }
+
+      .specs-winctrl button:hover { filter: brightness(1.12); }
+
+      .specs-winctrl button:active {
+        transform: translateY(0.03906vw);
+        filter: brightness(0.9);
+      }
+
+      .specs-tabs {
+        position: relative;
+        display: flex;
+        gap: 0.07813vw;
+        padding: 0.46875vw 0.46875vw 0;
+      }
+
+      .specs-tabs::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 0.03906vw;
+        background: #0d141c;
+        pointer-events: none;
+      }
+
+      .specs-tab {
+        appearance: none;
+        -webkit-appearance: none;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 1.40625vw;
+        padding: 0 0.93750vw;
+        border: 0.03906vw solid #4a647e;
+        border-bottom: 0;
+        border-radius: 0.31250vw 0.31250vw 0 0;
+        background: linear-gradient(180deg, #1e3043 0%, #15212f 100%);
+        color: #9fb8d1;
+        font-family: 'Pixelated MS Sans Serif', sans-serif;
+        font-size: 0.58594vw;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        box-shadow: inset 0 0.03906vw 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .specs-tab:hover {
+        color: #d7e6f5;
+        background: linear-gradient(180deg, #273d54 0%, #1b2a3c 100%);
+      }
+
+      .specs-tab.is-active {
+        z-index: 2;
+        background: linear-gradient(180deg, #3d5d80 0%, #2a415e 100%);
+        color: #ffffff;
+        text-shadow: 0 0.03906vw 0 rgba(0, 0, 0, 0.45);
+      }
+
+      .specs-body {
+        position: relative;
+        border-top: 0.03906vw solid #0d141c;
+        padding: 0.70313vw 0.70313vw 0.78125vw;
+      }
+
+      .specs-pane { display: none; }
+      .specs-pane.is-active { display: block; }
+
+      .specs-intro {
+        display: flex;
+        align-items: center;
+        gap: 0.70313vw;
+        padding-bottom: 0.62500vw;
+        margin-bottom: 0.46875vw;
+        border-bottom: 0.03906vw solid rgba(255, 255, 255, 0.07);
+      }
+
+      .specs-tower {
+        width: 2.81250vw;
+        height: 2.81250vw;
+        flex: 0 0 2.81250vw;
+        color: #8fa8c2;
+      }
+
+      .specs-intro h3 {
+        font-family: 'Roboto Slab', serif;
+        font-weight: 600;
+        font-size: 0.85000vw;
+        color: #f5fbff;
+        margin-bottom: 0.15625vw;
+        text-align: left;
+      }
+
+      .specs-intro p {
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.60000vw;
+        color: #9fb8d1;
+        line-height: 1.4;
+      }
+
+      .spec-row {
+        display: grid;
+        grid-template-columns: 9.37500vw 1fr;
+        gap: 0.62500vw;
+        align-items: baseline;
+        padding: 0.42969vw 0;
+        border-bottom: 0.03906vw solid rgba(255, 255, 255, 0.045);
+      }
+
+      .spec-row:last-child { border-bottom: 0; }
+
+      .spec-label {
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.58594vw;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #8fa8c2;
+      }
+
+      .spec-value {
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.62500vw;
+        font-weight: 400;
+        line-height: 1.35;
+        color: #f2f7fb;
+        overflow-wrap: anywhere;
+      }
+
+      .spec-value em { font-style: normal; color: #76ffae; }
+      .spec-value strong { font-weight: 700; color: #ffffff; }
+
+      .specs-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.46875vw;
+        padding: 0.54688vw 0.62500vw;
+        border-top: 0.03906vw solid rgba(94, 121, 152, 0.3);
+        background: linear-gradient(180deg, rgba(17, 24, 36, 0.15), rgba(4, 7, 11, 0.96));
+      }
+
+      .specs-status {
+        font-family: 'Pixelated MS Sans Serif', sans-serif;
+        font-size: 0.58594vw;
+        color: #a97dff;
+        text-shadow: 0 0 0.39063vw rgba(128, 0, 128, 0.8);
+      }
+
+      .specs-footer .specs-buttons {
+        display: flex;
+        gap: 0.46875vw;
+      }
+
+      .specs-footer button {
+        appearance: none;
+        -webkit-appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 4.10156vw;
+        height: 1.32813vw;
+        padding: 0 0.62500vw;
+        border: 0.03906vw solid #4d6178;
+        border-radius: 0.23438vw;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0.02) 31%),
+          linear-gradient(180deg, #7a8797 0%, #454e5c 24%, #151b24 52%, #05070b 76%, #1a2230 100%);
+        color: #eef6ff;
+        font-family: 'Pixelated MS Sans Serif', sans-serif;
+        font-size: 0.58594vw;
+        cursor: default;
+        box-shadow:
+          inset 0 0.03906vw 0 rgba(255, 255, 255, 0.22),
+          inset 0 -0.03906vw 0 rgba(0, 0, 0, 0.58),
+          0 0.03906vw 0 rgba(0, 0, 0, 0.24);
+      }
+
+      .specs-footer button.is-accent {
+        border-color: #6a4e96;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0.02) 31%),
+          linear-gradient(180deg, #7f6aa7 0%, #4a3474 24%, #20103a 52%, #0a0416 76%, #2a1a44 100%);
+      }
+
+      .specs-footer button:hover { filter: brightness(1.12); }
+
+      .specs-footer button:active {
+        transform: translateY(0.03906vw);
+        filter: brightness(0.9);
+      }
     </style>
   </head>
   <body>
@@ -1358,8 +1639,88 @@
                 </div>
               </div>
 
-              <div class="container page page-wip" id="page-2" hidden>
-                <p class="wip-text">WIP</p>
+              <div class="container page specs-page" id="page-2" hidden>
+                <div class="specs-window">
+                  <div class="specs-titlebar">
+                    <div class="specs-brand">
+                      <span class="specs-appdot" aria-hidden="true"></span>
+                      <span>System Properties</span>
+                    </div>
+                    <div class="specs-winctrl">
+                      <button type="button" title="Minimize" aria-label="Minimize"><span>−</span></button>
+                      <button type="button" title="Maximize" aria-label="Maximize"><span>□</span></button>
+                      <button type="button" data-specs-close title="Close" aria-label="Close"><span>×</span></button>
+                    </div>
+                  </div>
+
+                  <div class="specs-tabs" role="tablist">
+                    <button type="button" class="specs-tab is-active" data-specs-tab="specs-system" role="tab">System</button>
+                    <button type="button" class="specs-tab" data-specs-tab="specs-peripherals" role="tab">Peripherals</button>
+                    <button type="button" class="specs-tab" data-specs-tab="specs-software" role="tab">Software</button>
+                  </div>
+
+                  <div class="specs-body">
+                    <div class="specs-pane is-active" id="specs-system" role="tabpanel">
+                      <div class="specs-intro">
+                        <svg class="specs-tower" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <rect x="3.5" y="2.5" width="17" height="19" rx="1.5"/>
+                          <path d="M8 5.5h8M8 8.5h5M8 11.5h8"/>
+                          <path d="M3.5 15h4"/>
+                          <circle cx="14.5" cy="16.5" r="1.6" fill="currentColor" stroke="none"/>
+                        </svg>
+                        <div>
+                          <h3>BucketOfJames's rig</h3>
+                          <p>CachyOS · AMD Ryzen 5 5600X · RTX 3060 · 32 GB</p>
+                        </div>
+                      </div>
+
+                      <div class="spec-row"><div class="spec-label">Motherboard</div><div class="spec-value">ASUS TUF GAMING <strong>B550-PLUS</strong> · AMD B550 chipset</div></div>
+                      <div class="spec-row"><div class="spec-label">BIOS</div><div class="spec-value">AMI v3611 · 2024-09-30</div></div>
+                      <div class="spec-row"><div class="spec-label">CPU</div><div class="spec-value">AMD <strong>Ryzen 5 5600X</strong> · 6C/12T · 3.7–4.65 GHz · AM4</div></div>
+                      <div class="spec-row"><div class="spec-label">RAM</div><div class="spec-value"><strong>32 GB</strong> DDR4-3200 dual-channel · 2×16 GB G.Skill F4-3200C16</div></div>
+                      <div class="spec-row"><div class="spec-label">GPU</div><div class="spec-value">NVIDIA <strong>RTX 3060</strong> · 12 GB VRAM · GA104</div></div>
+                      <div class="spec-row"><div class="spec-label">GPU driver</div><div class="spec-value">580.159.04 production branch · nvidia-580xx-open-dkms</div></div>
+                      <div class="spec-row"><div class="spec-label">Case</div><div class="spec-value">AeroCool Prime</div></div>
+                      <div class="spec-row"><div class="spec-label">PSU</div><div class="spec-value">Chieftec A135 · 650 W</div></div>
+                      <div class="spec-row"><div class="spec-label">Storage</div><div class="spec-value">970 EVO 1 TB NVMe (boot, btrfs) · 850 EVO M.2 500 GB (data, btrfs) · WD10EADS 1 TB (NTFS, BitLocker)</div></div>
+                      <div class="spec-row"><div class="spec-label">OS</div><div class="spec-value">CachyOS (Arch-based) · kernel 7.0.12-1-cachyos</div></div>
+                    </div>
+
+                    <div class="specs-pane" id="specs-peripherals" role="tabpanel" hidden>
+                      <div class="spec-row"><div class="spec-label">Monitor L</div><div class="spec-value">LG 27BK550Y-I · 27" · 1080p · 75 Hz · HDMI</div></div>
+                      <div class="spec-row"><div class="spec-label">Monitor C</div><div class="spec-value"><strong>LG 27GS75Q-B</strong> · 27" · 1440p · 180 Hz · DisplayPort — primary</div></div>
+                      <div class="spec-row"><div class="spec-label">Monitor R</div><div class="spec-value">Dell U2412M · 24" · 1920×1200 · 60 Hz · DVI</div></div>
+                      <div class="spec-row"><div class="spec-label">Mouse</div><div class="spec-value">Logitech <strong>G502 X LIGHTSPEED</strong> · Solaar / libratbag</div></div>
+                      <div class="spec-row"><div class="spec-label">Keyboard</div><div class="spec-value">Razer <strong>Ornata V3 X</strong></div></div>
+                      <div class="spec-row"><div class="spec-label">Headphones</div><div class="spec-value">Beyerdynamic <strong>DT 700 PRO X</strong> · closed-back · wired</div></div>
+                      <div class="spec-row"><div class="spec-label">Microphone</div><div class="spec-value">Antlion Audio ModMic USB 2</div></div>
+                      <div class="spec-row"><div class="spec-label">Controller</div><div class="spec-value"><strong>Steam Controller</strong> (main) · Xbox Wireless Controller (spare)</div></div>
+                    </div>
+
+                    <div class="specs-pane" id="specs-software" role="tabpanel" hidden>
+                      <div class="spec-row"><div class="spec-label">OS</div><div class="spec-value">CachyOS (Arch-based) · kernel 7.0.12-1-cachyos</div></div>
+                      <div class="spec-row"><div class="spec-label">Desktop</div><div class="spec-value">KDE Plasma 6 · Wayland (Hyprland installed as spare)</div></div>
+                      <div class="spec-row"><div class="spec-label">GPU driver</div><div class="spec-value">NVIDIA 580.159.04 · open kernel module</div></div>
+                      <div class="spec-row"><div class="spec-label">Terminal</div><div class="spec-value">kitty</div></div>
+                      <div class="spec-row"><div class="spec-label">Browser</div><div class="spec-value">LibreWolf (Privacy focused FireFox fork) · Tor Browser</div></div>
+                      <div class="spec-row"><div class="spec-label">Search engine</div><div class="spec-value">DuckDuckGo</div></div>
+                      <div class="spec-row"><div class="spec-label">Notes</div><div class="spec-value">Obsidian</div></div>
+                      <div class="spec-row"><div class="spec-label">Media</div><div class="spec-value">Stremio Enhanced (TorBox · Debridio)</div></div>
+                      <div class="spec-row"><div class="spec-label">Discord alternative</div><div class="spec-value">Fluxer</div></div>
+                      <div class="spec-row"><div class="spec-label">Gaming</div><div class="spec-value">Steam · proton-cachyos</div></div>
+                      <div class="spec-row"><div class="spec-label">Cloud</div><div class="spec-value">rclone — OneDrive mount</div></div>
+                    </div>
+                  </div>
+
+                  <div class="specs-footer">
+                    <span class="specs-status" id="specs-status" hidden>I use arch btw</span>
+                    <div class="specs-buttons">
+                      <button type="button" data-specs-close>OK</button>
+                      <button type="button">Cancel</button>
+                      <button type="button" class="is-accent" data-specs-apply>Apply</button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="container page page-wip" id="page-3" hidden>
@@ -1755,10 +2116,23 @@ const sitePages = document.querySelectorAll(".page");
 function syncPageHeights() {
   const home = document.getElementById("page-1");
   if (!home) return;
-  const height = home.offsetHeight;
+  const height = home.getBoundingClientRect().height;
   if (height <= 0) return;
   sitePages.forEach((page) => {
     if (page !== home) page.style.minHeight = height + "px";
+  });
+
+  const nav = document.querySelector(".page-nav");
+  const navButtons = document.querySelectorAll(".page-nav-btn");
+  if (!nav || navButtons.length === 0) return;
+  const gap = parseFloat(getComputedStyle(nav).gap) || 0;
+  const btn = (height - gap * (navButtons.length - 1)) / navButtons.length;
+  if (btn <= 0) return;
+  navButtons.forEach((b) => {
+    b.style.width = btn + "px";
+    b.style.height = btn + "px";
+    b.style.minWidth = btn + "px";
+    b.style.minHeight = btn + "px";
   });
 }
 
@@ -1784,6 +2158,40 @@ pageNavButtons.forEach((btn) => {
 
 window.addEventListener("load", syncPageHeights);
 window.addEventListener("resize", syncPageHeights);
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(syncPageHeights);
+}
+
+const specTabButtons = document.querySelectorAll(".specs-tab");
+const specPanes = document.querySelectorAll(".specs-pane");
+
+function showSpecTab(id) {
+  specTabButtons.forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.specsTab === id);
+  });
+  specPanes.forEach((pane) => {
+    pane.hidden = pane.id !== id;
+    pane.classList.toggle("is-active", pane.id === id);
+  });
+}
+
+specTabButtons.forEach((btn) => {
+  btn.addEventListener("click", () => showSpecTab(btn.dataset.specsTab));
+});
+
+document.querySelectorAll("[data-specs-close]").forEach((el) => {
+  el.addEventListener("click", () => showPage("page-1"));
+});
+
+const specsStatus = document.getElementById("specs-status");
+document.querySelectorAll("[data-specs-apply]").forEach((el) => {
+  el.addEventListener("click", () => {
+    if (!specsStatus) return;
+    specsStatus.hidden = false;
+    clearTimeout(specsStatus._t);
+    specsStatus._t = setTimeout(() => { specsStatus.hidden = true; }, 2600);
+  });
+});
 
 </script>
 <div id="bg-overlay"></div>
