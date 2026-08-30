@@ -1573,7 +1573,7 @@
             <div class="retro-player-shell">
               <div class="retro-player-topbar">
                 <div class="retro-player-brand">
-                  <span>Windows Media Player</span>
+                  <span>Media Player</span>
                 </div>
                 <div class="retro-window-controls">
                   <button type="button" aria-label="Minimize"><span>−</span></button>
@@ -1860,6 +1860,20 @@
         };
         const fontsReady = (document.fonts && document.fonts.ready) || Promise.resolve();
         Promise.race([fontsReady, new Promise((resolve) => setTimeout(resolve, 1500))]).then(revealCard);
+      }
+
+      const maximizeButton = widgetRoot.querySelector('.retro-window-controls button[aria-label="Maximize"]');
+      if (maximizeButton) {
+        maximizeButton.addEventListener("click", () => {
+          window.location.href = "https://stats.fm/bucketofjames";
+        });
+      }
+
+      const closeButton = widgetRoot.querySelector('.retro-window-controls button[aria-label="Close"]');
+      if (closeButton) {
+        closeButton.addEventListener("click", () => {
+          widgetHost.style.display = "none";
+        });
       }
 
       function clamp(value, min, max) {
