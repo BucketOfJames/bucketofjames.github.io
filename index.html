@@ -615,6 +615,70 @@
         filter: brightness(0.9);
       }
     </style>
+
+    <style id="manifestos-style">
+      /* ===== Manifestos page: simple container, no XP/retro window chrome ===== */
+      #page-3.manifestos-page {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding-top: 0.78125vw;
+        padding-bottom: 0.78125vw;
+      }
+
+      #page-3 .manifestos-title {
+        font-family: 'Bitstream Vera Serif', serif;
+        font-size: 1.40625vw;
+        font-weight: 400;
+        color: #fff;
+        text-shadow: 0.07813vw 0.07813vw 0.19531vw darkviolet;
+        margin-bottom: 1.17188vw;
+        text-align: center;
+        flex: 0 0 auto;
+      }
+
+      .manifestos-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding-bottom: 1.17188vw;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(128, 0, 128, 0.55) rgba(0, 0, 0, 0.35);
+      }
+
+      .manifestos-item + .manifestos-item {
+        margin-top: 1.56250vw;
+        padding-top: 1.56250vw;
+        border-top: 0.07813vw solid rgba(255, 255, 255, 0.18);
+      }
+
+      .manifestos-item p {
+        font-size: 0.85000vw;
+        line-height: 1.5;
+        color: #e8edf2;
+        overflow-wrap: anywhere;
+        text-align: left;
+      }
+
+      .manifestos-scroll::-webkit-scrollbar {
+        width: 0.58594vw;
+      }
+
+      .manifestos-scroll::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 39.02344vw;
+      }
+
+      .manifestos-scroll::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #9b4d9b 0%, #6a1f6a 100%);
+        border-radius: 39.02344vw;
+        border: 0.03906vw solid #4d0f4d;
+      }
+
+      .manifestos-scroll::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #b05cb0 0%, #7a2a7a 100%);
+      }
+    </style>
   </head>
   <body>
     <div id="page-home">
@@ -1694,8 +1758,47 @@
                 </div>
               </div>
 
-              <div class="container page page-wip" id="page-3" hidden>
-                <p class="wip-text">WIP</p>
+              <div class="container page manifestos-page" id="page-3" hidden>
+                <h2 class="manifestos-title">Manifestos</h2>
+                <div class="manifestos-scroll">
+                  <article class="manifestos-item">
+                      <p>The people who hate me are proof that I'm doing the right thing.</p>
+                  </article>
+
+                    <article class="manifestos-item">
+                      <p>Do you know why just about all the powerful people and almost any figure of authority are so stupid? It's because people hate those who are smarter and more competent than they are. And the masses are generally fairly stupid; the average person is not very smart. This is supported by the Pratfall Effect - a phenomenon where highly competent individuals become more likeable after making a mistake.</p>
+                    </article>
+
+                    <article class="manifestos-item">
+                      <p>Life is actually very simple. If I want something I can always just ask for it. 9 times out of 10 I'm the one overcomplicating shit. So are you, probably.</p>
+                      <p>&nbsp;</p>
+                      <p>Who cares what the answer is?</p>
+                    </article>
+
+                    <article class="manifestos-item">
+                      <p>If the good die young, most of you might live forever.</p>
+                    </article>
+
+                    <article class="manifestos-item">
+                      <p>I'm a conceptualist, so I like to think about the future we could have and the potential of humanity, but the hard truth is that the human nature will not let us prevail. We are self-destructive and destined to doom. I'm not being pessimistic, I try my best and I hope for the best. But... c'mon. People fucking suck.</p>
+                    </article>
+
+                    <article class="manifestos-item">
+                      <p>Y'know how they say &quot;You need to love yourself before you can love someone else&quot;? I confidently disagree - I love so deeply that I actually forget to hate myself.</p>
+                    </article>
+
+                    <article class="manifestos-item">
+                      <p>Aren't being bored and being crazy essentially the same? Both have different levels to them, and I am quite certain they overlap more than we might think.</p>
+                    </article>
+
+                    <article class="manifestos-item">
+                      <p>&quot;If they wanted to, they would.&quot; is genuinely one of the worst mentalities you can have in almost any relationship. Everyone has things they want to do but won't. I have so many things I (really) want to do but I just don't, I don't for no fucking reason. We are humans, for cryin' out loud - if you want something just ask. And if they keep ignoring that, then you can start considering apathy.</p>
+                    </article>
+
+                    <article class="manifestos-item">
+                      <p>The day we started seeing nudity as something sexual and perverse, instead of the truest form of purity, was the day society was doomed.</p>
+                    </article>
+                </div>
               </div>
 
               <div class="container page page-wip" id="page-4" hidden>
@@ -1714,7 +1817,7 @@
             <nav class="page-nav" aria-label="Page navigation">
               <button type="button" class="page-nav-btn is-active" data-page="page-1" title="Home" aria-label="Home"><img src="assets/bucket.svg" alt="" /></button>
               <button type="button" class="page-nav-btn" data-page="page-2" title="Specs" aria-label="Specs"><img src="assets/specs.svg" alt="" /></button>
-              <button type="button" class="page-nav-btn" data-page="page-3" title="Page 3" aria-label="Page 3"><img src="assets/bucket.svg" alt="" /></button>
+              <button type="button" class="page-nav-btn" data-page="page-3" title="Manifestos" aria-label="Manifestos"><img src="assets/manifesto.svg" alt="" /></button>
               <button type="button" class="page-nav-btn" data-page="page-4" title="Page 4" aria-label="Page 4"><img src="assets/bucket.svg" alt="" /></button>
               <button type="button" class="page-nav-btn" data-page="page-5" title="Page 5" aria-label="Page 5"><img src="assets/bucket.svg" alt="" /></button>
               <button type="button" class="page-nav-btn" data-page="page-6" title="Page 6" aria-label="Page 6"><img src="assets/bucket.svg" alt="" /></button>
@@ -2084,13 +2187,29 @@ if (typeof ResizeObserver !== "undefined") {
 const pageNavButtons = document.querySelectorAll(".page-nav-btn");
 const sitePages = document.querySelectorAll(".page");
 
+const manifestosScroll = document.querySelector(".manifestos-scroll");
+if (manifestosScroll) {
+  const items = Array.prototype.slice.call(manifestosScroll.children);
+  if (items.length > 1) {
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    items.forEach((el) => manifestosScroll.appendChild(el));
+  }
+}
+
 function syncPageHeights() {
   const home = document.getElementById("page-1");
   if (!home) return;
   const height = home.getBoundingClientRect().height;
   if (height <= 0) return;
   sitePages.forEach((page) => {
-    if (page !== home) page.style.minHeight = height + "px";
+    if (page === home) return;
+    page.style.minHeight = height + "px";
+    if (page.id === "page-3") {
+      page.style.height = height + "px";
+    }
   });
 
   const nav = document.querySelector(".page-nav");
