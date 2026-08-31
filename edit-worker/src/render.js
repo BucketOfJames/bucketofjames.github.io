@@ -2,9 +2,11 @@
 //
 // Behavior (matches the /edit editor preview and the site render):
 //   - Standalone "---" lines are dropped.
-//   - A blank line emits an empty <p></p> (which CSS pads to a full line height).
 //   - A non-empty line emits <p>…</p>.
-//   - Two adjacent non-empty lines get a <br> placed between their <p>s.
+//   - A single completely empty line (no spaces) emits an empty <p></p>
+//     (the site CSS pads it to a full line of height).
+//   - Two non-empty lines that are directly adjacent (no blank line between
+//     them) get a <br> placed between their <p>s.
 //   - "# "…"###### " heading lines render as <h1>…<h6>.
 //   - Inline: `code`, **bold**, _italic_, ~~strikethrough~~, [links](url),
 //     ![images](url).
