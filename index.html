@@ -277,6 +277,15 @@
         line-height: 1.45;
       }
 
+      .about p {
+        margin: 0;
+      }
+      /* Empty <p></p> (a blank line) must still occupy a full line of height. */
+      .about p:empty::before {
+        content: "\00a0";
+      }
+      .about a { color: #b27bd6; }
+
       .linkage {
         font-family: 'Roboto', sans-serif;
         margin-top: 1.56250vw;
@@ -654,12 +663,32 @@
       }
 
       .manifestos-item p {
+        margin: 0;
         font-size: 0.85000vw;
         line-height: 1.5;
         color: #e8edf2;
         overflow-wrap: anywhere;
         text-align: left;
       }
+      /* Empty <p></p> (a blank line) must still occupy a full line of height. */
+      .manifestos-item p:empty::before {
+        content: "\00a0";
+      }
+      .manifestos-item a { color: #b27bd6; }
+      .manifestos-item h1,
+      .manifestos-item h2,
+      .manifestos-item h3,
+      .manifestos-item h4,
+      .manifestos-item h5,
+      .manifestos-item h6 {
+        margin: 0;
+        color: #d7b0f0;
+        font-weight: 600;
+      }
+      .manifestos-item h1 { font-size: 1.2rem; }
+      .manifestos-item h2 { font-size: 1.08rem; }
+      .manifestos-item h3 { font-size: 0.97rem; }
+      .manifestos-item h4, .manifestos-item h5, .manifestos-item h6 { font-size: 0.88rem; }
 
       .manifestos-scroll::-webkit-scrollbar {
         width: 0.58594vw;
@@ -1650,9 +1679,13 @@
 
                 <div class="about-row">
                   <div class="about">
-                    I am the guy you love to hate.<br><br>
-                    I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.<br><br>
-                    I use arch btw <sub>(cachyos)</sub>
+                    <!--about-content-->
+<p>I am the guy you love to hate.</p>
+<p></p>
+<p>I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.</p>
+<p></p>
+<p>I use arch btw <sub>(cachyos)</sub></p>
+                    <!--/about-content-->
                   </div>
                 </div>
 
@@ -1762,51 +1795,44 @@
               <div class="container page manifestos-page" id="page-3" hidden>
                 <h2 class="manifestos-title">Manifestos</h2>
                 <div class="manifestos-scroll">
-                  <article class="manifestos-item">
-                      <p>The people who hate me are proof that I'm doing the right thing.</p>
-                  </article>
-
-                    <article class="manifestos-item">
-                      <p>Do you know why just about all the powerful people and almost any figure of authority are so stupid? It's because people hate those who are smarter and more competent than they are. And the masses are generally fairly stupid; the average person is not very smart. This is supported by the Pratfall Effect - a phenomenon where highly competent individuals become more likeable after making a mistake.</p>
-                    </article>
-
-                    <article class="manifestos-item">
-                      <p>Life is actually very simple. If I want something I can always just ask for it. 9 times out of 10 I'm the one overcomplicating shit. So are you, probably.</p>
-                      <p>&nbsp;</p>
-                      <p>Who cares what the answer is?</p>
-                    </article>
-
-                    <article class="manifestos-item">
-                      <p>If the good die young, most of you might live forever.</p>
-                    </article>
-
-                    <article class="manifestos-item">
-                      <p>I'm a conceptualist, so I like to think about the future we could have and the potential of humanity, but the hard truth is that the human nature will not let us prevail. We are self-destructive and destined to doom. I'm not being pessimistic, I try my best and I hope for the best. But... c'mon. People fucking suck.</p>
-                    </article>
-
-                    <article class="manifestos-item">
-                      <p>Y'know how they say &quot;You need to love yourself before you can love someone else&quot;? I confidently disagree - I love so deeply that I actually forget to hate myself.</p>
-                    </article>
-
-                    <article class="manifestos-item">
-                      <p>Aren't being bored and being crazy essentially the same? Both have different levels to them, and I am quite certain they overlap more than we might think.</p>
-                    </article>
-
+                  <!--manifestos-content-->
 <article class="manifestos-item">
-                      <p>"If they wanted to, they would." is genuinely one of the worst mentalities you can have in almost any relationship. Everyone has things they want to do but won't. I have so many things I (really) want to do but I just don't, I don't for no fucking reason. We are humans, for cryin' out loud - if you want something just ask. And if they keep ignoring that, then you can start considering apathy.</p>
-                    </article>
-
-                    <article class="manifestos-item">
-                      <p>What, you think you're fucking better than me?</p>
-
-                      <p>&nbsp;</p>
-
-                      <p>Well... you probably are. Not that I care though.</p>
-                    </article>
-
-                    <article class="manifestos-item">
-                      <p>The day we started seeing nudity as something sexual and perverse, instead of the truest form of purity, was the day society was doomed.</p>
-                    </article>
+<p>The people who hate me are proof that I'm doing the right thing.</p>
+</article>
+<article class="manifestos-item">
+<p>Do you know why just about all the powerful people and almost any figure of authority are so stupid? It's because people hate those who are smarter and more competent than they are. And the masses are generally fairly stupid; the average person is not very smart. This is supported by the Pratfall Effect - a phenomenon where highly competent individuals become more likeable after making a mistake.</p>
+</article>
+<article class="manifestos-item">
+<p>Life is actually very simple. If I want something I can always just ask for it. 9 times out of 10 I'm the one overcomplicating shit. So are you, probably.</p>
+<p></p>
+<p></p>
+<p>Who cares what the answer is?</p>
+</article>
+<article class="manifestos-item">
+<p>If the good die young, most of you might live forever.</p>
+</article>
+<article class="manifestos-item">
+<p>I'm a conceptualist, so I like to think about the future we could have and the potential of humanity, but the hard truth is that the human nature will not let us prevail. We are self-destructive and destined to doom. I'm not being pessimistic, I try my best and I hope for the best. But... c'mon. People fucking suck.</p>
+</article>
+<article class="manifestos-item">
+<p>Y'know how they say &quot;You need to love yourself before you can love someone else&quot;? I confidently disagree - I love so deeply that I actually forget to hate myself.</p>
+</article>
+<article class="manifestos-item">
+<p>Aren't being bored and being crazy essentially the same? Both have different levels to them, and I am quite certain they overlap more than we might think.</p>
+</article>
+<article class="manifestos-item">
+<p>&quot;If they wanted to, they would.&quot; is genuinely one of the worst mentalities you can have in almost any relationship. Everyone has things they want to do but won't. I have so many things I (really) want to do but I just don't, I don't for no fucking reason. We are humans, for cryin' out loud - if you want something just ask. And if they keep ignoring that, then you can start considering apathy.</p>
+</article>
+<article class="manifestos-item">
+<p>What, you think you're fucking better than me?</p>
+<p></p>
+<p></p>
+<p>Well... you probably are. Not that I care though.</p>
+</article>
+<article class="manifestos-item">
+<p>The day we started seeing nudity as something sexual and perverse, instead of the truest form of purity, was the day society was doomed.</p>
+</article>
+                  <!--/manifestos-content-->
                 </div>
               </div>
 

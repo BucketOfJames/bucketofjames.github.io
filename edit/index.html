@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="referrer" content="no-referrer">
+    <title>BucketOfJames · Editor</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: #0d0f11;
+        color: #e8edf2;
+        font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+      }
+      body { display: flex; flex-direction: column; min-height: 100vh; }
+
+      a { color: #b27bd6; }
+
+      .wrap {
+        width: min(60rem, 94vw);
+        margin: 0 auto;
+        padding: 1.5rem 0 3rem;
+        flex: 1 1 auto;
+      }
+
+      /* ---------- Login ---------- */
+      #login {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 1rem;
+      }
+      .login-card {
+        width: min(24rem, 100%);
+        background: rgba(0,0,0,0.55);
+        border: 1px solid rgba(128,0,128,0.6);
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 0 0.75rem rgba(128,0,128,0.25);
+      }
+      .login-card h1 { margin: 0 0 0.25rem; font-size: 1.5rem; font-weight: 600; text-shadow: 0 0 0.4rem darkviolet; }
+      .login-card p.sub { color: #9aa4ad; margin: 0 0 1.5rem; font-size: 0.9rem; }
+      .field { margin-bottom: 1rem; text-align: left; }
+      .field label { display: block; font-size: 0.8rem; color: #9aa4ad; margin-bottom: 0.35rem; }
+      .field input {
+        width: 100%; padding: 0.6rem 0.7rem; font-size: 1rem; color: #e8edf2;
+        background: #161b20; border: 1px solid #2c3238; border-radius: 0.35rem; outline: none;
+      }
+      .field input:focus { border-color: rgba(128,0,128,0.8); }
+      .field input:disabled { opacity: 0.6; }
+      .btn {
+        display: inline-block; padding: 0.55rem 1.1rem; font-size: 0.95rem; font-weight: 600;
+        color: #e8edf2; background: linear-gradient(180deg,#9b4d9b,#6a1f6a);
+        border: 1px solid #4d0f4d; border-radius: 0.35rem; cursor: pointer; text-decoration: none;
+      }
+      .btn:hover { filter: brightness(1.1); }
+      .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+      .btn.ghost { background: transparent; border-color: #3a4148; color: #b7c0c8; }
+      .btn.full { width: 100%; }
+      .err { display: none; color: #ff7b7b; font-size: 0.85rem; margin-top: 0.8rem; }
+      .hint { font-size: 0.75rem; color: #6c767e; margin-top: 1rem; }
+
+      /* ---------- Header ---------- */
+      header.ed {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+      header.ed h1 { margin: 0; font-size: 1.3rem; font-weight: 600; text-shadow: 0 0 0.4rem darkviolet; }
+      header.ed .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+      .status { font-size: 0.85rem; color: #7dce8a; opacity: 0; transition: opacity 0.25s; }
+      .status.show { opacity: 1; }
+
+      /* ---------- Tabs ---------- */
+      .tabs { display: flex; gap: 0.35rem; margin-bottom: 1rem; }
+      .tabs .tab {
+        padding: 0.5rem 1rem; font-size: 0.9rem; color: #b7c0c8;
+        background: rgba(0,0,0,0.35); border: 1px solid #2c3238;
+        border-radius: 0.4rem 0.4rem 0 0; cursor: pointer;
+      }
+      .tabs .tab.active {
+        color: #fff; background: rgba(128,0,128,0.25);
+        border-color: rgba(128,0,128,0.7); border-bottom-color: rgba(128,0,128,0.25);
+      }
+      .pane { display: none; }
+      .pane.active { display: block; }
+
+      .field-label { font-size: 0.8rem; color: #9aa4ad; margin-bottom: 0.4rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+      .field-label a { font-size: 0.78rem; }
+
+      /* ---------- Cheat sheet (list, one item per line, each with preview) ---------- */
+      .cheatsheet { display: none; margin: 0 0 1rem; padding: 0.8rem 1rem; background: #101318; border: 1px dashed #3a4148; border-radius: 0.4rem; }
+      .cheatsheet-title { font-size: 0.8rem; color: #9aa4ad; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; }
+      .cs-list { list-style: none; margin: 0; padding: 0; }
+      .cs-item { display: flex; align-items: baseline; gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .cs-item:last-child { border-bottom: none; }
+      .cs-md { flex: 0 0 34%; min-width: 10rem; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.85rem; color: #d7b0f0; }
+      .cs-out { flex: 1 1 auto; font-size: 0.9rem; color: #e8edf2; line-height: 1.4; }
+      .cs-out code { background: #1a1f24; padding: 0.05em 0.3em; border-radius: 0.25em; font-size: 0.88em; color: #d7b0f0; }
+      .cs-out a { color: #b27bd6; }
+      @media (max-width: 40rem) { .cs-item { flex-direction: column; gap: 0.25rem; } .cs-md { flex: none; } }
+
+      /* ---------- Editor split ---------- */
+      .editor-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+      .editor-split textarea {
+        width: 100%; min-height: 22rem; resize: vertical; padding: 0.7rem;
+        font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.9rem; line-height: 1.5;
+        color: #e8edf2; background: #101318; border: 1px solid #2c3238; border-radius: 0.35rem; outline: none;
+      }
+      .editor-split textarea:focus { border-color: rgba(128,0,128,0.8); }
+      .editor-split .preview {
+        min-height: 22rem; padding: 0.7rem; font-size: 0.95rem; line-height: 1.5;
+        color: #e8edf2; background: rgba(0,0,0,0.35); border: 1px solid #2c3238;
+        border-radius: 0.35rem; overflow-wrap: anywhere;
+      }
+      .preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview h6 { color:#d7b0f0; font-weight:600; margin:0; }
+      .preview h1 { font-size:1.3rem; } .preview h2 { font-size:1.15rem; } .preview h3 { font-size:1.02rem; }
+      .preview h4,.preview h5,.preview h6 { font-size:0.95rem; }
+      /* Empty <p></p> from a blank line must still take up a full line of height. */
+      .preview p:empty::before { content: "\00a0"; }
+      .preview p { margin:0; }
+      .preview ul,.preview ol { padding-left:1.3rem; margin:0; }
+      .preview blockquote { margin:0; padding:0.1em 0.9em; border-left:0.25em solid #9b4d9b; color:#c6cdd3; background:#13161a; }
+      .preview code { background:#1a1f24; padding:0.1em 0.35em; border-radius:0.25em; font-size:0.88em; color:#d7b0f0; }
+      .preview a { color:#b27bd6; }
+      .preview img { max-width:100%; border-radius:0.3rem; }
+      .col-label { font-size:0.78rem; color:#9aa4ad; margin-bottom:0.35rem; }
+
+      /* ---------- Manifesto list ---------- */
+      .man-item { border: 1px solid #2c3238; border-radius: 0.45rem; background: rgba(0,0,0,0.3); margin-bottom: 1rem; overflow: hidden; }
+      .man-item .grip {
+        display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+        padding: 0.55rem 0.8rem; background: rgba(128,0,128,0.12); border-bottom: 1px solid #2c3238; cursor: pointer; user-select: none;
+      }
+      .man-item .grip:hover { background: rgba(128,0,128,0.22); }
+      .man-item .grip .meta { font-size: 0.85rem; color: #b7c0c8; display:flex; align-items:center; gap:0.6rem; }
+      .man-item .grip .badge { font-size:0.7rem; color:#9aa4ad; }
+      .man-item .meta-actions { display:flex; gap:0.35rem; align-items:center; }
+      .man-item .meta-actions button { background:transparent; border:none; cursor:pointer; color:#9aa4ad; font-size:0.85rem; padding:0.2rem 0.4rem; border-radius:0.25rem; }
+      .man-item .meta-actions button:hover { background: rgba(255,255,255,0.08); color:#fff; }
+      .man-item .meta-actions button.del { color:#ff7b7b; }
+      .man-item .meta-actions button.del:hover { background:rgba(255,80,80,0.15); }
+      .man-body { padding: 0.8rem; }
+      .man-body textarea {
+        width: 100%; min-height: 7rem; resize: vertical; padding: 0.6rem;
+        font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.9rem; line-height: 1.5;
+        color: #e8edf2; background: #101318; border: 1px solid #2c3238; border-radius: 0.35rem; outline: none;
+      }
+      .man-body textarea:focus { border-color: rgba(128,0,128,0.8); }
+      .ui-btns { display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap; }
+      .restore-note { font-size:0.75rem; color:#6c767e; margin-top:0.6rem; }
+
+      .empty { color:#7d8590; font-size:0.9rem; padding:1rem; border:1px dashed #2c3238; border-radius:0.4rem; text-align:center; }
+
+      @media (max-width: 46rem) { .editor-split { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <!-- ============ LOGIN ============ -->
+    <div id="login">
+      <div class="login-card">
+        <h1>BucketOfJames</h1>
+        <p class="sub">Site editor</p>
+        <form id="login-form">
+          <div class="field">
+            <label for="login-user">Username</label>
+            <input id="login-user" name="user" autocomplete="username" autocapitalize="none" spellcheck="false" value="boj">
+          </div>
+          <div class="field">
+            <label for="login-pass">Password</label>
+            <input id="login-pass" name="pass" type="password" autocomplete="current-password">
+          </div>
+          <button class="btn full" type="submit" id="login-btn">Log in</button>
+          <div class="err" id="login-err">Login failed.</div>
+        </form>
+        <p class="hint">Login persists across browser restarts on this device.</p>
+      </div>
+    </div>
+
+    <!-- ============ EDITOR ============ -->
+    <div id="editor" class="wrap" hidden>
+      <header class="ed">
+        <h1>Site Editor</h1>
+        <div class="actions">
+          <span class="status" id="save-status">Draft saved</span>
+          <a class="btn ghost" href="/" target="_blank" rel="noopener">View site</a>
+          <button class="btn ghost" id="btn-logout">Log out</button>
+          <button class="btn" id="btn-save">Publish</button>
+        </div>
+      </header>
+      <p class="restore-note" style="margin-top:0;">Publishing writes the rendered content straight into the repo (globally visible after GitHub Pages rebuilds). Your unsaved draft is kept in this browser.</p>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="about">About me</button>
+        <button class="tab" data-tab="man">Manifestos</button>
+      </div>
+
+      <!-- About pane -->
+      <div class="pane active" id="pane-about">
+        <div class="field-label">
+          <span>About me</span>
+          <span id="about-wordcount"></span>
+        </div>
+        <div class="editor-split">
+          <div>
+            <div class="col-label">Write</div>
+            <textarea id="about-input" spellcheck="false" placeholder="Write about yourself..."></textarea>
+          </div>
+          <div>
+            <div class="col-label">Preview</div>
+            <div class="preview" id="about-preview"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manifestos pane -->
+      <div class="pane" id="pane-man">
+        <div class="field-label">
+          <span>Manifestos</span>
+          <a href="#" id="cheatsheet-toggle">Formatting cheat sheet</a>
+        </div>
+        <div class="cheatsheet" id="cheatsheet">
+          <div class="cheatsheet-title">Line formatting</div>
+          <ul class="cs-list" id="cs-list"></ul>
+        </div>
+        <div id="man-list"></div>
+        <button class="btn" id="btn-add-man">+ Add manifesto</button>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        // ---------------------------------------------------------------
+        // Config
+        // ---------------------------------------------------------------
+        // Absolute URL of the deployed Cloudflare Worker /api endpoints.
+        // Change after: npx wrangler deploy
+        var API_BASE = "https://bucket-site-editor.bucketofjames.workers.dev";
+        var USER_NAME = "boj";
+        var TOKEN_KEY = "bucketEditorToken";
+        var DRAFT_KEY = "bucketEditorDraft";
+        var AUTH_KEY = "bucketEditorAuthed";
+
+        // The default content, preloaded into the editor on first use.
+        var DEFAULT_ABOUT =
+          "I am the guy you love to hate.\n\n" +
+          "I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.\n\n" +
+          "I use arch btw  <sub>(cachyos)</sub>";
+        var DEFAULT_MANIFESTOS = [
+          "The people who hate me are proof that I'm doing the right thing.",
+          "Do you know why just about all the powerful people and almost any figure of authority are so stupid? It's because people hate those who are smarter and more competent than they are. And the masses are generally fairly stupid; the average person is not very smart. This is supported by the Pratfall Effect - a phenomenon where highly competent individuals become more likeable after making a mistake.",
+          "Life is actually very simple. If I want something I can always just ask for it. 9 times out of 10 I'm the one overcomplicating shit. So are you, probably.\n\n\nWho cares what the answer is?",
+          "If the good die young, most of you might live forever.",
+          "I'm a conceptualist, so I like to think about the future we could have and the potential of humanity, but the hard truth is that the human nature will not let us prevail. We are self-destructive and destined to doom. I'm not being pessimistic, I try my best and I hope for the best. But... c'mon. People fucking suck.",
+          "Y'know how they say \"You need to love yourself before you can love someone else\"? I confidently disagree - I love so deeply that I actually forget to hate myself.",
+          "Aren't being bored and being crazy essentially the same? Both have different levels to them, and I am quite certain they overlap more than we might think.",
+          "\"If they wanted to, they would.\" is genuinely one of the worst mentalities you can have in almost any relationship. Everyone has things they want to do but won't. I have so many things I (really) want to do but I just don't, I don't for no fucking reason. We are humans, for cryin' out loud - if you want something just ask. And if they keep ignoring that, then you can start considering apathy.",
+          "What, you think you're fucking better than me?\n\n\nWell... you probably are. Not that I care though.",
+          "The day we started seeing nudity as something sexual and perverse, instead of the truest form of purity, was the day society was doomed."
+        ];
+
+        // ---------------------------------------------------------------
+        // Storage (draft autosave + auth token)
+        // ---------------------------------------------------------------
+        function loadState() {
+          try {
+            var raw = localStorage.getItem(DRAFT_KEY);
+            if (raw) {
+              var d = JSON.parse(raw);
+              if (d && typeof d === "object") {
+                return {
+                  about: typeof d.about === "string" ? d.about : DEFAULT_ABOUT,
+                  manifestos: Array.isArray(d.manifestos) ? d.manifestos.map(String) : DEFAULT_MANIFESTOS.slice()
+                };
+              }
+            }
+          } catch (e) {}
+          return { about: DEFAULT_ABOUT, manifestos: DEFAULT_MANIFESTOS.slice() };
+        }
+        function saveDraft(state) {
+          try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); } catch (e) {}
+        }
+
+        // ---------------------------------------------------------------
+        // Auth: worker validates PBKDF2 password, returns a signed token.
+        // ---------------------------------------------------------------
+        var loginEl = document.getElementById("login");
+        var editorEl = document.getElementById("editor");
+        function showEditor() { loginEl.style.display = "none"; editorEl.hidden = false; }
+
+        function logout() {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(AUTH_KEY);
+          location.reload();
+        }
+        document.getElementById("btn-logout").addEventListener("click", function () {
+          if (confirm("Log out? Your draft stays saved on this device.")) logout();
+        });
+
+        // If we have a stored token, trust it (it validates server-side on publish).
+        if (localStorage.getItem(AUTH_KEY) === "1" && localStorage.getItem(TOKEN_KEY)) {
+          showEditor();
+        }
+
+        function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
+        function setAuth(token) {
+          localStorage.setItem(TOKEN_KEY, token);
+          localStorage.setItem(AUTH_KEY, "1");
+        }
+
+        document.getElementById("login-form").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var err = document.getElementById("login-err");
+          var btn = document.getElementById("login-btn");
+          var user = document.getElementById("login-user").value.trim();
+          var pass = document.getElementById("login-pass").value;
+          if (user !== USER_NAME) { err.textContent = "Incorrect username or password."; err.style.display = "block"; return; }
+          btn.disabled = true; btn.textContent = "Logging in…";
+          err.style.display = "none";
+          fetch(API_BASE + "/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user: user, password: pass })
+          }).then(function (res) {
+            if (!res.ok) throw new Error("bad");
+            return res.json();
+          }).then(function (data) {
+            if (!data.ok) throw new Error("bad");
+            setAuth(data.token);
+            showEditor();
+          }).catch(function () {
+            err.textContent = "Login failed — wrong credentials, or the publish worker isn't deployed / configured.";
+            err.style.display = "block";
+          }).finally(function () {
+            btn.disabled = false; btn.textContent = "Log in";
+            document.getElementById("login-pass").value = "";
+          });
+        });
+
+        // ---------------------------------------------------------------
+        // Custom renderer (identical to edit-worker/src/render.js output)
+        // ---------------------------------------------------------------
+        function renderMarkdown(raw) {
+          if (typeof raw !== "string") raw = String(raw || "");
+          var lines = raw.split(/\r?\n/);
+          var clean = [];
+          for (var i = 0; i < lines.length; i++) {
+            if (/^---+$/.test(lines[i].trim())) continue;
+            clean.push(lines[i]);
+          }
+          lines = clean;
+          var out = [];
+          var prevNonEmpty = false;
+          for (var k = 0; k < lines.length; k++) {
+            if (lines[k].trim() === "") { out.push("<p></p>"); prevNonEmpty = false; continue; }
+            if (prevNonEmpty) out.push("<br>");
+            out.push(renderLine(lines[k]));
+            prevNonEmpty = true;
+          }
+          return out.join("\n");
+        }
+        function renderLine(ln) {
+          var trimmed = ln.trim();
+          var h = /^(#{1,6})\s+/.exec(trimmed);
+          if (h) {
+            var level = h[1].length;
+            return "<h" + level + ">" + inline(trimmed.slice(h[0].length)) + "</h" + level + ">";
+          }
+          return "<p>" + inline(ln) + "</p>";
+        }
+        var INLINE_RULES = [
+          { type: "code", re: /^(`+)(.+?)\1/ },
+          { type: "strong", re: /^(\*\*|__)(.+?)\1/ },
+          { type: "em", re: /^(\*|_)(.+?)\1/ },
+          { type: "del", re: /^(~~)(.+?)\1/ },
+          { type: "img", re: /^!\[([^\]]*)\]\(([^)]+)\)/ },
+          { type: "link", re: /^\[([^\]]+)\]\(([^)]+)\)/ },
+        ];
+        function inline(text) {
+          var i = 0, out = "";
+          var stopRe = /[*_~`[!\\]/;
+          while (i < text.length) {
+            var rest = text.slice(i), matched = false;
+            for (var r = 0; r < INLINE_RULES.length; r++) {
+              var m = INLINE_RULES[r].re.exec(rest);
+              if (m) {
+                matched = true;
+                if (INLINE_RULES[r].type === "code") out += "<code>" + escapeHtml(m[2]) + "</code>";
+                else if (INLINE_RULES[r].type === "strong") out += "<strong>" + inline(m[2]) + "</strong>";
+                else if (INLINE_RULES[r].type === "em") out += "<em>" + inline(m[2]) + "</em>";
+                else if (INLINE_RULES[r].type === "del") out += "<del>" + inline(m[2]) + "</del>";
+                else if (INLINE_RULES[r].type === "img") out += "<img src=\"" + escapeAttr(m[2]) + "\" alt=\"" + escapeAttr(m[1]) + "\">";
+                else if (INLINE_RULES[r].type === "link") out += "<a href=\"" + escapeAttr(m[2]) + "\">" + inline(m[1]) + "</a>";
+                i += m[0].length;
+                break;
+              }
+            }
+            if (!matched) {
+              var restSlice = text.slice(i);
+              var next = restSlice.search(stopRe);
+              var chunkEnd = next === -1 ? restSlice.length : next;
+              var chunk = restSlice.slice(0, chunkEnd);
+              if (chunk.length === 0) chunk = restSlice[0];
+              out += escapeHtml(chunk);
+              i += chunk.length;
+            }
+          }
+          return out;
+        }
+        function escapeHtml(s) {
+          var keep = [];
+          var protected_ = s.replace(/(<\/(?:sub|sup|br|kbd|i|b)>|<(?:sub|sup|br|kbd|i|b)(?:\s[^>]*)?>)/g, function (m) {
+            keep.push(m);
+            return "\u0000" + (keep.length - 1) + "\u0000";
+          });
+          var escaped = protected_.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          return escaped.replace(/\u0000(\d+)\u0000/g, function (m, i) { return keep[Number(i)]; });
+        }
+        function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+        // ---------------------------------------------------------------
+        // State & rendering
+        // ---------------------------------------------------------------
+        var state = loadState();
+        var aboutInput = document.getElementById("about-input");
+        var aboutPreview = document.getElementById("about-preview");
+        var aboutWordcount = document.getElementById("about-wordcount");
+
+        function updateAboutPreview() {
+          aboutPreview.innerHTML = renderMarkdown(aboutInput.value);
+          var words = aboutInput.value.trim() ? aboutInput.value.trim().split(/\s+/).length : 0;
+          aboutWordcount.textContent = words + " words";
+        }
+
+        function thumbOf(md) { return md.replace(/\s+/g, " ").slice(0, 60) || "(empty)"; }
+
+        function renderManifestoList() {
+          var list = document.getElementById("man-list");
+          list.innerHTML = "";
+          if (state.manifestos.length === 0) {
+            var empty = document.createElement("div");
+            empty.className = "empty";
+            empty.textContent = "No manifestos yet. Add one below.";
+            list.appendChild(empty);
+            return;
+          }
+          state.manifestos.forEach(function (md, idx) {
+            var item = document.createElement("div");
+            item.className = "man-item";
+            var grip = document.createElement("div"); grip.className = "grip";
+            var meta = document.createElement("div"); meta.className = "meta";
+            var badge = document.createElement("span"); badge.className = "badge"; badge.textContent = "#" + (idx + 1);
+            var thumb = document.createElement("span"); thumb.textContent = thumbOf(md);
+            meta.appendChild(badge); meta.appendChild(thumb);
+            var actions = document.createElement("div"); actions.className = "meta-actions";
+            var up = document.createElement("button"); up.type="button"; up.textContent="↑"; up.title="Move up";
+            var down = document.createElement("button"); down.type="button"; down.textContent="↓"; down.title="Move down";
+            var del = document.createElement("button"); del.type="button"; del.textContent="✕"; del.title="Delete"; del.className="del";
+            actions.appendChild(up); actions.appendChild(down); actions.appendChild(del);
+            grip.appendChild(meta); grip.appendChild(actions);
+
+            var body = document.createElement("div"); body.className = "man-body"; body.hidden = true;
+            var ta = document.createElement("textarea"); ta.value = md; ta.spellcheck = false; ta.placeholder = "Write this manifesto...";
+            var uiBtns = document.createElement("div"); uiBtns.className = "ui-btns";
+            var ok = document.createElement("button"); ok.type="button"; ok.className="btn"; ok.textContent="Set";
+            var cancel = document.createElement("button"); cancel.type="button"; cancel.className="btn ghost"; cancel.textContent="Cancel";
+            uiBtns.appendChild(ok); uiBtns.appendChild(cancel);
+            var live = document.createElement("div"); live.className = "preview"; live.style.marginTop = "0.5rem"; live.style.minHeight = "0";
+            live.innerHTML = renderMarkdown(md);
+
+            ta.addEventListener("input", function () { live.innerHTML = renderMarkdown(ta.value); });
+            function collapse() {
+              body.hidden = true;
+              if (ta.value !== md) { md = ta.value; updateState(); renderManifestoList(); markDirty(); }
+            }
+            grip.addEventListener("click", function () { body.hidden = !body.hidden; live.innerHTML = renderMarkdown(ta.value); });
+            ok.addEventListener("click", function () {
+              md = ta.value; body.hidden = true; updateState(); renderManifestoList(); markDirty();
+            });
+            cancel.addEventListener("click", collapse);
+            up.addEventListener("click", function (e) {
+              e.stopPropagation();
+              if (idx > 0) { var t = state.manifestos[idx-1]; state.manifestos[idx-1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
+            });
+            down.addEventListener("click", function (e) {
+              e.stopPropagation();
+              if (idx < state.manifestos.length - 1) { var t = state.manifestos[idx+1]; state.manifestos[idx+1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
+            });
+            del.addEventListener("click", function (e) {
+              e.stopPropagation();
+              if (confirm("Delete this manifesto?")) { state.manifestos.splice(idx, 1); renderManifestoList(); markDirty(); }
+            });
+            [up, down, del].forEach(function (b) { b.addEventListener("click", function (e) { e.stopPropagation(); }); });
+
+            body.appendChild(ta); body.appendChild(live); body.appendChild(uiBtns);
+            item.appendChild(grip); item.appendChild(body);
+            list.appendChild(item);
+          });
+        }
+
+        function updateState() { state.about = aboutInput.value; }
+        function markDirty() {
+          updateState();
+          saveDraft(state);
+          showStatus("Draft saved", true);
+        }
+
+        // ---------------------------------------------------------------
+        // Tabs
+        // ---------------------------------------------------------------
+        document.querySelectorAll(".tabs .tab").forEach(function (tab) {
+          tab.addEventListener("click", function () {
+            document.querySelectorAll(".tabs .tab").forEach(function (t) { t.classList.toggle("active", t === tab); });
+            ["about","man"].forEach(function (id) {
+              document.getElementById("pane-" + id).classList.toggle("active", tab.dataset.tab === id);
+            });
+          });
+        });
+
+        // ---------------------------------------------------------------
+        // Cheat sheet (list, each item has a preview)
+        // ---------------------------------------------------------------
+        var CHEATS = [
+          { md: "# Heading", html: "<h1>Heading</h1>", desc: "Big heading" },
+          { md: "Line one\nLine two", html: "<p>Line one</p><br><p>Line two</p>", desc: "Two adjacent lines = <br> between them" },
+          { md: "Para one\n\nPara two", html: "<p>Para one</p><p></p><p>Para two</p>", desc: "A blank line = empty <p></p> gap" },
+          { md: "**bold**", html: "<strong>bold</strong>", desc: "Bold" },
+          { md: "*italic*", html: "<em>italic</em>", desc: "Italic" },
+          { md: "~~struck~~", html: "<del>struck</del>", desc: "Strikethrough" },
+          { md: "`code`", html: "<code>code</code>", desc: "Inline code" },
+          { md: "[link](https://x.example)", html: "<a href=\"https://x.example\">link</a>", desc: "Hyperlink" },
+          { md: "![alt](img.png)", html: "<img src=\"img.png\" alt=\"alt\">", desc: "Image" },
+          { md: "---", html: "(removed)", desc: "A lone --- line is dropped entirely" },
+        ];
+        function csOut(raw) {
+          var div = document.createElement("div");
+          div.innerHTML = raw;
+          return div.innerHTML;
+        }
+        function buildCheatsheet() {
+          var ul = document.getElementById("cs-list");
+          ul.innerHTML = "";
+          CHEATS.forEach(function (c) {
+            var li = document.createElement("li"); li.className = "cs-item";
+            var mdEl = document.createElement("span"); mdEl.className = "cs-md"; mdEl.textContent = c.md;
+            var outEl = document.createElement("span"); outEl.className = "cs-out"; outEl.innerHTML = c.html + (c.desc ? " <span style='color:#6c767e;font-size:0.78rem;'>— " + c.desc + "</span>" : "");
+            li.appendChild(mdEl); li.appendChild(outEl);
+            ul.appendChild(li);
+          });
+        }
+        buildCheatsheet();
+        document.getElementById("cheatsheet-toggle").addEventListener("click", function (e) {
+          e.preventDefault();
+          var cs = document.getElementById("cheatsheet");
+          cs.style.display = cs.style.display === "block" ? "none" : "block";
+        });
+
+        document.getElementById("btn-add-man").addEventListener("click", function () {
+          state.manifestos.push("");
+          renderManifestoList();
+          var item = document.querySelector("#man-list .man-item:last-child");
+          if (item) { item.querySelector(".man-body").hidden = false; item.querySelector("textarea").focus(); }
+          markDirty();
+        });
+
+        // ---------------------------------------------------------------
+        // Publish (server renders + commits to repo)
+        // ---------------------------------------------------------------
+        var saveStatus = document.getElementById("save-status");
+        var saveTimer = null;
+        function showStatus(msg, isSaved) {
+          saveStatus.textContent = msg;
+          saveStatus.style.color = isSaved ? "#7dce8a" : "#ffd27b";
+          saveStatus.classList.add("show");
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(function () { saveStatus.classList.remove("show"); }, isSaved ? 2200 : 4000);
+        }
+        document.getElementById("btn-save").addEventListener("click", publish);
+        document.addEventListener("keydown", function (e) {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); publish(); }
+        });
+
+        function publish() {
+          updateState();
+          saveDraft(state);
+          var btn = document.getElementById("btn-save");
+          btn.disabled = true;
+          showStatus("Publishing…", false);
+          fetch(API_BASE + "/api/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: getToken(), about: state.about, manifestos: state.manifestos })
+          }).then(function (res) {
+            if (res.status === 401) throw new Error("auth");
+            return res.json();
+          }).then(function (data) {
+            if (!data.ok) throw new Error("server");
+            showStatus(data.changed === false ? "No changes to publish" : "Published!", true);
+          }).catch(function (err) {
+            var msg = err.message === "auth"
+              ? "Session expired — log in again."
+              : "Publish failed. Is the worker deployed and configured?";
+            showStatus(msg, false);
+          }).finally(function () { btn.disabled = false; });
+        }
+
+        aboutInput.addEventListener("input", function () { updateAboutPreview(); markDirty(); });
+
+        // ---------------------------------------------------------------
+        // Init
+        // ---------------------------------------------------------------
+        aboutInput.value = state.about;
+        updateAboutPreview();
+        renderManifestoList();
+      })();
+    </script>
+  </body>
+</html>
