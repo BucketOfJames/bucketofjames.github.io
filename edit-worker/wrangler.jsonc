@@ -4,6 +4,8 @@
   "main": "src/index.js",
   "compatibility_date": "2026-03-18",
   "vars": {
-    "ALLOWED_ORIGIN": "https://bucketofjames.github.io"
+    "ALLOWED_ORIGIN": "https://bucketofjames.github.io",
+    "GITHUB_REPO": "BucketOfJames/bucketofjames.github.io",
+    "GITHUB_BRANCH": "main"
   }
 }

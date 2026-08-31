@@ -17,7 +17,10 @@ import { promisify } from "node:util";
 import readline from "node:readline";
 
 const pbkdf2Async = promisify(pbkdf2);
-const ITERATIONS = 310000; // OWASP-recommended for PBKDF2-SHA256
+// Cloudflare Workers caps crypto.subtle PBKDF2 at 100000 iterations, so use
+// that maximum (still a strong KDF for a personal editor). Anything above
+// 100000 throws and is silently treated as a failed login.
+const ITERATIONS = 100000;
 
 function toB64(buf) {
   return buf.toString("base64");
