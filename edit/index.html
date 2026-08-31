@@ -536,8 +536,7 @@
           { md: "~~struck~~", html: "<del>struck</del>", desc: "Strikethrough" },
           { md: "`code`", html: "<code>code</code>", desc: "Inline code" },
           { md: "[link](https://x.example)", html: "<a href=\"https://x.example\">link</a>", desc: "Hyperlink" },
-          { md: "![alt](/assets/profile.jpeg)", html: "<img src=\"/assets/profile.jpeg\" alt=\"alt\">", desc: "Image" },
-          { md: "---", html: "(removed)", desc: "A lone --- line is dropped entirely" },
+          { md: "![alt](https://picsum.photos/200)", html: "<img src=\"https://picsum.photos/200\" alt=\"alt\">", desc: "Image" },
         ];
         function csOut(raw) {
           var div = document.createElement("div");
