@@ -360,12 +360,9 @@
           }
           lines = clean;
           var out = [];
-          var prevNonEmpty = false;
           for (var k = 0; k < lines.length; k++) {
-            if (lines[k].trim() === "") { out.push("<p></p>"); prevNonEmpty = false; continue; }
-            if (prevNonEmpty) out.push("<br>");
+            if (lines[k].trim() === "") { out.push("<p></p>"); continue; }
             out.push(renderLine(lines[k]));
-            prevNonEmpty = true;
           }
           return out.join("\n");
         }
@@ -419,7 +416,7 @@
         }
         function escapeHtml(s) {
           var keep = [];
-          var protected_ = s.replace(/(<\/(?:sub|sup|br|kbd|i|b)>|<(?:sub|sup|br|kbd|i|b)(?:\s[^>]*)?>)/g, function (m) {
+          var protected_ = s.replace(/(<\/(?:sub|sup|kbd|i|b)>|<(?:sub|sup|kbd|i|b)(?:\s[^>]*)?>)/g, function (m) {
             keep.push(m);
             return "\u0000" + (keep.length - 1) + "\u0000";
           });

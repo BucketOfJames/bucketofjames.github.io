@@ -5,8 +5,6 @@
 //   - A non-empty line emits <p>…</p>.
 //   - A single completely empty line (no spaces) emits an empty <p></p>
 //     (the site CSS pads it to a full line of height).
-//   - Two non-empty lines that are directly adjacent (no blank line between
-//     them) get a <br> placed between their <p>s.
 //   - "# "…"###### " heading lines render as <h1>…<h6>.
 //   - Inline: `code`, **bold**, _italic_, ~~strikethrough~~, [links](url),
 //     ![images](url).
@@ -22,16 +20,12 @@ export function renderMarkdown(raw) {
   lines = clean;
 
   const out = [];
-  let prevNonEmpty = false;
   for (const ln of lines) {
     if (isBlank(ln)) {
       out.push("<p></p>");
-      prevNonEmpty = false;
       continue;
     }
-    if (prevNonEmpty) out.push("<br>");
     out.push(renderLine(ln));
-    prevNonEmpty = true;
   }
   return out.join("\n");
 }
@@ -103,7 +97,7 @@ function inline(text) {
 }
 
 // Whitelisted inline HTML tags passed through untouched (not escaped).
-const SAFE_TAG_RE = /(<\/(?:sub|sup|br|kbd|i|b)>|<(?:sub|sup|br|kbd|i|b)(?:\s[^>]*)?>)/g;
+const SAFE_TAG_RE = /(<\/(?:sub|sup|kbd|i|b)>|<(?:sub|sup|kbd|i|b)(?:\s[^>]*)?>)/g;
 
 function escapeHtml(s) {
   // Protect whitelisted tags, escape everything else, restore tags.
