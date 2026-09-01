@@ -192,12 +192,13 @@
         <h1>Site Editor</h1>
         <div class="actions">
           <span class="status" id="save-status">Draft saved</span>
-          <a class="btn ghost" href="/" target="_blank" rel="noopener">View site</a>
           <button class="btn ghost" id="btn-logout">Log out</button>
-          <button class="btn" id="btn-save">Publish</button>
+          <a class="btn ghost" href="/" target="_blank" rel="noopener">View site</a>
+          <a class="btn ghost" href="https://github.com/BucketOfJames/bucketofjames.github.io/commits/main/" target="_blank" rel="noopener">View commits</a>
+          <button class="btn" id="btn-save">Save</button>
         </div>
       </header>
-      <p class="restore-note" style="margin-top:0;">Publishing writes the rendered content straight into the repo (globally visible after GitHub Pages rebuilds). Your unsaved draft is kept in this browser.</p>
+      <p class="restore-note" style="margin-top:0;">Saving writes the rendered content straight into the repo (globally visible after GitHub Pages rebuilds). Your unsaved draft is kept in this browser.</p>
 
       <div class="tabs">
         <button class="tab active" data-tab="about">About me</button>
@@ -339,7 +340,7 @@
             setAuth(data.token);
             showEditor();
           }).catch(function () {
-            err.textContent = "Login failed — wrong credentials, or the publish worker isn't deployed / configured.";
+            err.textContent = "Login failed — wrong credentials, or the save worker isn't deployed / configured.";
             err.style.display = "block";
           }).finally(function () {
             btn.disabled = false; btn.textContent = "Log in";
@@ -589,7 +590,7 @@
           saveDraft(state);
           var btn = document.getElementById("btn-save");
           btn.disabled = true;
-          showStatus("Publishing…", false);
+          showStatus("Saving…", false);
           fetch(API_BASE + "/api/publish", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -599,11 +600,11 @@
             return res.json();
           }).then(function (data) {
             if (!data.ok) throw new Error("server");
-            showStatus(data.changed === false ? "No changes to publish" : "Published!", true);
+            showStatus(data.changed === false ? "No changes to save" : "Saved!", true);
           }).catch(function (err) {
             var msg = err.message === "auth"
               ? "Session expired — log in again."
-              : "Publish failed. Is the worker deployed and configured?";
+              : "Save failed. Is the worker deployed and configured?";
             showStatus(msg, false);
           }).finally(function () { btn.disabled = false; });
         }
