@@ -94,6 +94,8 @@
 
       .field-label { font-size: 0.8rem; color: #9aa4ad; margin-bottom: 0.4rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
       .field-label a { font-size: 0.78rem; }
+      .label-side { display: inline-flex; align-items: baseline; gap: 0.75rem; }
+      .label-side .wordcount { font-size: 0.78rem; color: #9aa4ad; white-space: nowrap; }
 
       /* ---------- Cheat sheet (list, one item per line, each with preview) ---------- */
       .cheatsheet { display: none; margin: 0 0 1rem; padding: 0.8rem 1rem; background: #050507; border: 1px dashed #3a4148; border-radius: 0.4rem; }
@@ -173,6 +175,7 @@
       .man-item .grip:hover { background: rgba(128,0,128,0.22); }
       .man-item .grip .meta { font-size: 0.85rem; color: #b7c0c8; display:flex; align-items:center; gap:0.6rem; }
       .man-item .grip .badge { font-size:0.7rem; color:#9aa4ad; }
+      .man-item .grip .wc { font-size:0.7rem; color:#7d8590; white-space:nowrap; }
       .man-item .meta-actions { display:flex; gap:0.35rem; align-items:center; }
       .man-item .meta-actions button { background:transparent; border:none; cursor:pointer; color:#9aa4ad; font-size:0.85rem; padding:0.2rem 0.4rem; border-radius:0.25rem; }
       .man-item .meta-actions button:hover { background: rgba(255,255,255,0.08); color:#fff; }
@@ -243,7 +246,7 @@
       <div class="pane active" id="pane-about">
         <div class="field-label">
           <span>About me</span>
-          <span><a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a><span id="about-wordcount" style="margin-left:0.75rem;"></span></span>
+          <span class="label-side"><span class="wordcount" id="about-wordcount"></span><a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a></span>
         </div>
         <div class="editor-split">
           <div>
@@ -261,7 +264,7 @@
       <div class="pane" id="pane-man">
         <div class="field-label">
           <span>Manifestos</span>
-          <a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a>
+          <span class="label-side"><span class="wordcount" id="man-wordcount"></span><a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a></span>
         </div>
         <div id="man-list"></div>
         <button class="btn" id="btn-add-man">+ Add manifesto</button>
@@ -539,10 +542,19 @@
         var aboutPreview = document.getElementById("about-preview");
         var aboutWordcount = document.getElementById("about-wordcount");
 
+        function wordCount(s) {
+          s = (s || "").trim();
+          return s ? s.split(/\s+/).length : 0;
+        }
+        function updateManTotal() {
+          var total = 0;
+          state.manifestos.forEach(function (m) { total += wordCount(m); });
+          document.getElementById("man-wordcount").textContent = total + " words";
+        }
+
         function updateAboutPreview() {
           aboutPreview.innerHTML = renderMarkdown(aboutInput.value);
-          var words = aboutInput.value.trim() ? aboutInput.value.trim().split(/\s+/).length : 0;
-          aboutWordcount.textContent = words + " words";
+          aboutWordcount.textContent = wordCount(aboutInput.value) + " words";
         }
 
         function thumbOf(md) { return md.replace(/\s+/g, " ").slice(0, 60) || "(empty)"; }
@@ -555,6 +567,7 @@
             empty.className = "empty";
             empty.textContent = "No manifestos yet. Add one below.";
             list.appendChild(empty);
+            updateManTotal();
             return;
           }
           state.manifestos.forEach(function (md, idx) {
@@ -564,7 +577,8 @@
             var meta = document.createElement("div"); meta.className = "meta";
             var badge = document.createElement("span"); badge.className = "badge"; badge.textContent = "#" + (idx + 1);
             var thumb = document.createElement("span"); thumb.textContent = thumbOf(md);
-            meta.appendChild(badge); meta.appendChild(thumb);
+            var wc = document.createElement("span"); wc.className = "wc"; wc.textContent = wordCount(md) + " words";
+            meta.appendChild(badge); meta.appendChild(thumb); meta.appendChild(wc);
             var actions = document.createElement("div"); actions.className = "meta-actions";
             var up = document.createElement("button"); up.type="button"; up.textContent="↑"; up.title="Move up";
             var down = document.createElement("button"); down.type="button"; down.textContent="↓"; down.title="Move down";
@@ -581,7 +595,13 @@
             var live = document.createElement("div"); live.className = "preview"; live.style.marginTop = "0.5rem"; live.style.minHeight = "0";
             live.innerHTML = renderMarkdown(md);
 
-            ta.addEventListener("input", function () { live.innerHTML = renderMarkdown(ta.value); });
+            ta.addEventListener("input", function () {
+              live.innerHTML = renderMarkdown(ta.value);
+              md = ta.value;
+              state.manifestos[idx] = md;
+              wc.textContent = wordCount(md) + " words";
+              updateManTotal();
+            });
             function collapse() {
               body.hidden = true;
               if (ta.value !== md) { md = ta.value; state.manifestos[idx] = md; updateState(); renderManifestoList(); markDirty(); }
@@ -609,6 +629,7 @@
             item.appendChild(grip); item.appendChild(body);
             list.appendChild(item);
           });
+          updateManTotal();
         }
 
         function updateState() { state.about = aboutInput.value; }
