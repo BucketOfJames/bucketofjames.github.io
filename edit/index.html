@@ -97,7 +97,6 @@
 
       /* ---------- Cheat sheet (list, one item per line, each with preview) ---------- */
       .cheatsheet { display: none; margin: 0 0 1rem; padding: 0.8rem 1rem; background: #050507; border: 1px dashed #3a4148; border-radius: 0.4rem; }
-      .cheatsheet-title { font-size: 0.8rem; color: #9aa4ad; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; }
       .cs-list { list-style: none; margin: 0; padding: 0; }
       .cs-item { display: flex; align-items: flex-start; gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
       .cs-item:last-child { border-bottom: none; }
@@ -228,7 +227,6 @@
           <a href="#" id="cheatsheet-toggle">Formatting cheat sheet</a>
         </div>
         <div class="cheatsheet" id="cheatsheet">
-          <div class="cheatsheet-title">Line formatting</div>
           <ul class="cs-list" id="cs-list"></ul>
         </div>
         <div id="man-list"></div>
@@ -550,7 +548,7 @@
           CHEATS.forEach(function (c) {
             var li = document.createElement("li"); li.className = "cs-item";
             var mdEl = document.createElement("span"); mdEl.className = "cs-md"; mdEl.textContent = c.md;
-            var outEl = document.createElement("span"); outEl.className = "cs-out"; outEl.innerHTML = c.html + (c.desc ? " <span style='color:#6c767e;font-size:0.78rem;'>— " + c.desc + "</span>" : "");
+            var outEl = document.createElement("span"); outEl.className = "cs-out"; outEl.innerHTML = (c.desc ? " <span style='color:#6c767e;font-size:0.78rem;'>— " + c.desc + "</span> " : "") + c.html;
             li.appendChild(mdEl); li.appendChild(outEl);
             ul.appendChild(li);
           });
