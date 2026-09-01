@@ -100,7 +100,7 @@
       .cs-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: auto 1fr; }
       .cs-item { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: start; column-gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
       .cs-item:last-child { border-bottom: none; }
-      .cs-md { white-space: nowrap; min-width: 0; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.85rem; color: #d7b0f0; }
+      .cs-md { white-space: pre; min-width: 0; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.85rem; color: #d7b0f0; }
       .cs-out { font-size: 0.9rem; color: #e8edf2; line-height: 1.4; min-width: 0; }
       .cs-out h1, .cs-out h2, .cs-out h3, .cs-out h4, .cs-out h5, .cs-out h6 { display: inline; font-weight: 700; }
       .cs-out h1 { font-size: 1.4em; }
@@ -116,7 +116,7 @@
       .cs-out u { text-underline-offset: 0.15em; }
       .cs-out sub, .cs-out sup { line-height: 0; }
       .cs-out hr { border: none; border-top: 1px solid rgba(255,255,255,0.25); margin: 0.5em 0; }
-      @media (max-width: 40rem) { .cs-list { grid-template-columns: 1fr; } .cs-item { grid-template-columns: 1fr; column-gap: 0; } .cs-md { white-space: normal; } }
+      @media (max-width: 40rem) { .cs-list { grid-template-columns: 1fr; } .cs-item { grid-template-columns: 1fr; column-gap: 0; } .cs-md { white-space: pre-line; } }
 
       /* ---------- Editor split ---------- */
       .editor-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
@@ -643,11 +643,11 @@
           { md: "H~2~O", html: "H<sub>2</sub>O", desc: "Subscript" },
           { md: "x^2^", html: "x<sup>2</sup>", desc: "Superscript" },
           { md: "`code`", html: "<code>code</code>", desc: "Inline code" },
-          { md: "``` ⏎ code block ⏎ ```", html: "<pre><code>code block</code></pre>", desc: "Code block" },
+          { md: "```\ncode block\n```", html: "<pre><code>code block</code></pre>", desc: "Code block" },
           { md: "- bullet item", html: "<ul><li>bullet item</li></ul>", desc: "Bullet list" },
           { md: "1. numbered item", html: "<ol><li>numbered item</li></ol>", desc: "Numbered list" },
           { md: "> quoted text", html: "<blockquote><p>quoted text</p></blockquote>", desc: "Quote" },
-          { md: "> [!NOTE] ⏎ > worth noting", html: "<blockquote class=\"note note-note\"><p class=\"note-title\">Note</p><p>worth noting</p></blockquote>", desc: "Note box — also TIP, IMPORTANT, WARNING, CAUTION" },
+          { md: "> [!NOTE]\n> worth noting", html: "<blockquote class=\"note note-note\"><p class=\"note-title\">Note</p><p>worth noting</p></blockquote>", desc: "Note box — also TIP, IMPORTANT, WARNING, CAUTION" },
           { md: "***", html: "<hr>", desc: "Horizontal line" },
           { md: "[link](https://x.example)", html: "<a href=\"https://x.example\">link</a>", desc: "Hyperlink" },
           { md: "![alt](https://loremflickr.com/320/240)", html: "<img src=\"https://loremflickr.com/320/240\" alt=\"alt\">" },
