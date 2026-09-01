@@ -97,17 +97,17 @@
 
       /* ---------- Cheat sheet (list, one item per line, each with preview) ---------- */
       .cheatsheet { display: none; margin: 0 0 1rem; padding: 0.8rem 1rem; background: #050507; border: 1px dashed #3a4148; border-radius: 0.4rem; }
-      .cs-list { list-style: none; margin: 0; padding: 0; }
-      .cs-item { display: flex; align-items: flex-start; gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .cs-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: auto 1fr; }
+      .cs-item { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: start; column-gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
       .cs-item:last-child { border-bottom: none; }
-      .cs-md { flex: 0 1 auto; white-space: nowrap; min-width: 0; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.85rem; color: #d7b0f0; }
-      .cs-out { flex: 0 1 auto; font-size: 0.9rem; color: #e8edf2; line-height: 1.4; min-width: 0; }
+      .cs-md { white-space: nowrap; min-width: 0; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.85rem; color: #d7b0f0; }
+      .cs-out { font-size: 0.9rem; color: #e8edf2; line-height: 1.4; min-width: 0; }
       .cs-out h1, .cs-out h2, .cs-out h3, .cs-out h4, .cs-out h5, .cs-out h6 { display: inline; font-weight: 700; }
       .cs-out h1 { font-size: 1.4em; }
       .cs-out img { max-width: 100%; height: auto; display: block; margin-top: 0.25rem; border-radius: 0.3rem; }
       .cs-out code { background: #000; padding: 0.05em 0.3em; border-radius: 0.25em; font-size: 0.88em; color: #d7b0f0; }
       .cs-out a { color: #b27bd6; }
-      @media (max-width: 40rem) { .cs-item { flex-direction: column; gap: 0.25rem; } .cs-md { flex: none; } }
+      @media (max-width: 40rem) { .cs-list { grid-template-columns: 1fr; } .cs-item { grid-template-columns: 1fr; column-gap: 0; } .cs-md { white-space: normal; } }
 
       /* ---------- Editor split ---------- */
       .editor-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
