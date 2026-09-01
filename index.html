@@ -279,6 +279,7 @@
 
       .about p {
         margin: 0;
+        overflow-wrap: anywhere;
       }
       /* Empty <p></p> (a blank line) must still occupy a full line of height. */
       .about p:empty::before {
@@ -675,20 +676,109 @@
         content: "\00a0";
       }
       .manifestos-item a { color: #b27bd6; }
-      .manifestos-item h1,
-      .manifestos-item h2,
-      .manifestos-item h3,
-      .manifestos-item h4,
-      .manifestos-item h5,
-      .manifestos-item h6 {
+
+      /* ---- Content formatting shared by the About section and the manifestos ---- */
+      .about h1, .manifestos-item h1,
+      .about h2, .manifestos-item h2,
+      .about h3, .manifestos-item h3,
+      .about h4, .manifestos-item h4,
+      .about h5, .manifestos-item h5,
+      .about h6, .manifestos-item h6 {
         margin: 0;
         color: #d7b0f0;
         font-weight: 600;
       }
-      .manifestos-item h1 { font-size: 1.2rem; }
-      .manifestos-item h2 { font-size: 1.08rem; }
-      .manifestos-item h3 { font-size: 0.97rem; }
-      .manifestos-item h4, .manifestos-item h5, .manifestos-item h6 { font-size: 0.88rem; }
+      .about h1, .manifestos-item h1 { font-size: 1.2rem; }
+      .about h2, .manifestos-item h2 { font-size: 1.08rem; }
+      .about h3, .manifestos-item h3 { font-size: 0.97rem; }
+      .about h4, .manifestos-item h4,
+      .about h5, .manifestos-item h5,
+      .about h6, .manifestos-item h6 { font-size: 0.88rem; }
+
+      .about ul, .manifestos-item ul,
+      .about ol, .manifestos-item ol {
+        margin: 0;
+        padding-left: 1.4em;
+      }
+      .about li, .manifestos-item li {
+        margin: 0;
+        font-size: 0.85000vw;
+        line-height: 1.5;
+        color: #e8edf2;
+        overflow-wrap: anywhere;
+      }
+      .about blockquote, .manifestos-item blockquote {
+        margin: 0;
+        padding: 0.2em 0.9em;
+        border-left: 0.15625vw solid rgba(215, 176, 240, 0.55);
+        background: rgba(215, 176, 240, 0.06);
+        font-size: 0.85000vw;
+        color: #c6cdd3;
+      }
+      .about blockquote p, .manifestos-item blockquote p { margin: 0; }
+      .about code, .manifestos-item code {
+        font-family: ui-monospace, 'Roboto Mono', Consolas, monospace;
+        font-size: 0.88em;
+        color: #d7b0f0;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 0.05em 0.3em;
+        border-radius: 0.25em;
+      }
+      .about pre, .manifestos-item pre {
+        margin: 0;
+        padding: 0.5em 0.7em;
+        background: rgba(0, 0, 0, 0.55);
+        border: 0.07813vw solid rgba(255, 255, 255, 0.12);
+        border-radius: 0.3rem;
+        overflow-x: auto;
+      }
+      .about pre code, .manifestos-item pre code {
+        background: none;
+        padding: 0;
+      }
+      .about kbd, .manifestos-item kbd {
+        font-family: ui-monospace, 'Roboto Mono', Consolas, monospace;
+        font-size: 0.88em;
+        padding: 0.1em 0.35em;
+        border: 0.07813vw solid rgba(255, 255, 255, 0.25);
+        border-bottom-width: 0.15625vw;
+        border-radius: 0.25em;
+        background: rgba(0, 0, 0, 0.5);
+      }
+      .about mark, .manifestos-item mark {
+        background: rgba(215, 176, 240, 0.85);
+        color: #0d0f11;
+        padding: 0 0.15em;
+        border-radius: 0.2em;
+      }
+      .about u, .manifestos-item u { text-underline-offset: 0.15em; }
+      .about sub, .manifestos-item sub,
+      .about sup, .manifestos-item sup { line-height: 0; }
+      .about hr, .manifestos-item hr {
+        border: none;
+        border-top: 0.07813vw solid rgba(255, 255, 255, 0.25);
+        margin: 0.5em 0;
+      }
+      /* [!NOTE]-style callout boxes */
+      .about .note, .manifestos-item .note {
+        padding: 0.45em 0.7em;
+        border-left: 0.23438vw solid;
+        border-radius: 0 0.3rem 0.3rem 0;
+      }
+      .about .note-title, .manifestos-item .note-title {
+        margin: 0 0 0.15em;
+        font-weight: 700;
+      }
+      .about .note-note, .manifestos-item .note-note { border-left-color: #6ea8fe; background: rgba(110, 168, 254, 0.10); }
+      .about .note-note .note-title, .manifestos-item .note-note .note-title { color: #6ea8fe; }
+      .about .note-tip, .manifestos-item .note-tip { border-left-color: #56d364; background: rgba(86, 211, 100, 0.10); }
+      .about .note-tip .note-title, .manifestos-item .note-tip .note-title { color: #56d364; }
+      .about .note-important, .manifestos-item .note-important { border-left-color: #d7b0f0; background: rgba(215, 176, 240, 0.10); }
+      .about .note-important .note-title, .manifestos-item .note-important .note-title { color: #d7b0f0; }
+      .about .note-warning, .manifestos-item .note-warning { border-left-color: #ffd27b; background: rgba(255, 210, 123, 0.10); }
+      .about .note-warning .note-title, .manifestos-item .note-warning .note-title { color: #ffd27b; }
+      .about .note-caution, .manifestos-item .note-caution { border-left-color: #ff7b72; background: rgba(255, 123, 114, 0.10); }
+      .about .note-caution .note-title, .manifestos-item .note-caution .note-title { color: #ff7b72; }
 
       .manifestos-scroll::-webkit-scrollbar {
         width: 0.58594vw;

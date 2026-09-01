@@ -107,6 +107,15 @@
       .cs-out img { max-width: 100%; height: auto; display: block; margin-top: 0.25rem; border-radius: 0.3rem; }
       .cs-out code { background: #000; padding: 0.05em 0.3em; border-radius: 0.25em; font-size: 0.88em; color: #d7b0f0; }
       .cs-out a { color: #b27bd6; }
+      .cs-out p { margin: 0; }
+      .cs-out ul, .cs-out ol { margin: 0; padding-left: 1.3rem; }
+      .cs-out blockquote { margin: 0; padding: 0.1em 0.9em; border-left: 0.25em solid #9b4d9b; color: #c6cdd3; background: #050507; }
+      .cs-out pre { margin: 0; padding: 0.5em 0.7em; background: #050507; border: 1px solid #2c3238; border-radius: 0.3rem; overflow-x: auto; }
+      .cs-out pre code { background: none; padding: 0; }
+      .cs-out mark { background: rgba(215,176,240,0.85); color: #0d0f11; padding: 0 0.15em; border-radius: 0.2em; }
+      .cs-out u { text-underline-offset: 0.15em; }
+      .cs-out sub, .cs-out sup { line-height: 0; }
+      .cs-out hr { border: none; border-top: 1px solid rgba(255,255,255,0.25); margin: 0.5em 0; }
       @media (max-width: 40rem) { .cs-list { grid-template-columns: 1fr; } .cs-item { grid-template-columns: 1fr; column-gap: 0; } .cs-md { white-space: normal; } }
 
       /* ---------- Editor split ---------- */
@@ -131,8 +140,28 @@
       .preview ul,.preview ol { padding-left:1.3rem; margin:0; }
       .preview blockquote { margin:0; padding:0.1em 0.9em; border-left:0.25em solid #9b4d9b; color:#c6cdd3; background:#050507; }
       .preview code { background:#000; padding:0.1em 0.35em; border-radius:0.25em; font-size:0.88em; color:#d7b0f0; }
+      .preview pre { margin:0; padding:0.5em 0.7em; background:#050507; border:1px solid #2c3238; border-radius:0.3rem; overflow-x:auto; }
+      .preview pre code { background:none; padding:0; }
+      .preview mark { background:rgba(215,176,240,0.85); color:#0d0f11; padding:0 0.15em; border-radius:0.2em; }
+      .preview u { text-underline-offset:0.15em; }
+      .preview sub, .preview sup { line-height:0; }
+      .preview hr { border:none; border-top:1px solid rgba(255,255,255,0.25); margin:0.5em 0; }
+      .preview kbd, .cs-out kbd { font-family:ui-monospace,'Roboto Mono',Consolas,monospace; font-size:0.88em; padding:0.1em 0.35em; border:1px solid rgba(255,255,255,0.25); border-bottom-width:2px; border-radius:0.25em; background:#050507; }
       .preview a { color:#b27bd6; }
       .preview img { max-width:100%; border-radius:0.3rem; }
+      /* Note boxes ([!NOTE] etc.) — shared by the preview and the cheat sheet. */
+      .preview .note, .cs-out .note { margin:0; padding:0.45em 0.7em; border-left:0.2em solid; border-radius:0 0.3rem 0.3rem 0; }
+      .preview .note-title, .cs-out .note-title { margin:0 0 0.15em; font-weight:700; }
+      .preview .note-note, .cs-out .note-note { border-left-color:#6ea8fe; background:rgba(110,168,254,0.10); }
+      .preview .note-note .note-title, .cs-out .note-note .note-title { color:#6ea8fe; }
+      .preview .note-tip, .cs-out .note-tip { border-left-color:#56d364; background:rgba(86,211,100,0.10); }
+      .preview .note-tip .note-title, .cs-out .note-tip .note-title { color:#56d364; }
+      .preview .note-important, .cs-out .note-important { border-left-color:#d7b0f0; background:rgba(215,176,240,0.10); }
+      .preview .note-important .note-title, .cs-out .note-important .note-title { color:#d7b0f0; }
+      .preview .note-warning, .cs-out .note-warning { border-left-color:#ffd27b; background:rgba(255,210,123,0.10); }
+      .preview .note-warning .note-title, .cs-out .note-warning .note-title { color:#ffd27b; }
+      .preview .note-caution, .cs-out .note-caution { border-left-color:#ff7b72; background:rgba(255,123,114,0.10); }
+      .preview .note-caution .note-title, .cs-out .note-caution .note-title { color:#ff7b72; }
       .col-label { font-size:0.78rem; color:#9aa4ad; margin-bottom:0.35rem; }
 
       /* ---------- Manifesto list ---------- */
@@ -205,11 +234,16 @@
         <button class="tab" data-tab="man">Manifestos</button>
       </div>
 
+      <!-- Formatting cheat sheet (shared by both panes) -->
+      <div class="cheatsheet" id="cheatsheet">
+        <ul class="cs-list" id="cs-list"></ul>
+      </div>
+
       <!-- About pane -->
       <div class="pane active" id="pane-about">
         <div class="field-label">
           <span>About me</span>
-          <span id="about-wordcount"></span>
+          <span><a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a><span id="about-wordcount" style="margin-left:0.75rem;"></span></span>
         </div>
         <div class="editor-split">
           <div>
@@ -227,10 +261,7 @@
       <div class="pane" id="pane-man">
         <div class="field-label">
           <span>Manifestos</span>
-          <a href="#" id="cheatsheet-toggle">Formatting cheat sheet</a>
-        </div>
-        <div class="cheatsheet" id="cheatsheet">
-          <ul class="cs-list" id="cs-list"></ul>
+          <a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a>
         </div>
         <div id="man-list"></div>
         <button class="btn" id="btn-add-man">+ Add manifesto</button>
@@ -353,50 +384,124 @@
         // ---------------------------------------------------------------
         function renderMarkdown(raw) {
           if (typeof raw !== "string") raw = String(raw || "");
-          var lines = raw.split(/\r?\n/);
-          var clean = [];
-          for (var i = 0; i < lines.length; i++) {
-            if (/^---+$/.test(lines[i].trim())) continue;
-            clean.push(lines[i]);
-          }
-          lines = clean;
+          return renderBlocks(raw.split(/\r?\n/));
+        }
+        function renderBlocks(lines) {
           var out = [];
-          for (var k = 0; k < lines.length; k++) {
-            if (lines[k].trim() === "") { out.push("<p></p>"); continue; }
-            out.push(renderLine(lines[k]));
+          var i = 0;
+          while (i < lines.length) {
+            var ln = lines[i];
+            var t = ln.trim();
+
+            // Fenced code block: ``` (optional info string) ... ```
+            var fence = /^(`{3,})\s*([^`]*)$/.exec(t);
+            if (fence) {
+              var closeRe = new RegExp("^`{" + fence[1].length + ",}\\s*$");
+              var buf = [];
+              i++;
+              while (i < lines.length && !closeRe.test(lines[i].trim())) {
+                buf.push(lines[i]);
+                i++;
+              }
+              i++; // skip the closing fence (or EOF)
+              out.push("<pre><code>" + escapeHtml(buf.join("\n")) + "</code></pre>");
+              continue;
+            }
+
+            // Standalone --- lines are dropped.
+            if (/^-{3,}$/.test(t)) { i++; continue; }
+
+            // Blank line -> empty paragraph (site CSS pads it to a full line).
+            if (t === "") { out.push("<p></p>"); i++; continue; }
+
+            // Heading.
+            var h = /^(#{1,6})\s+/.exec(t);
+            if (h) {
+              var level = h[1].length;
+              out.push("<h" + level + ">" + inline(t.slice(h[0].length)) + "</h" + level + ">");
+              i++;
+              continue;
+            }
+
+            // Horizontal rule: standalone *** or ___ (3+).
+            if (/^(\*\*\*+|___+)$/.test(t)) { out.push("<hr>"); i++; continue; }
+
+            // Unordered list: consecutive "- "/"* "/" + " lines.
+            if (/^[-*+]\s+/.test(t)) {
+              var items = [];
+              while (i < lines.length && /^[-*+]\s+/.test(lines[i].trim())) {
+                items.push(lines[i].trim().replace(/^[-*+]\s+/, ""));
+                i++;
+              }
+              out.push("<ul>" + items.map(function (x) { return "<li>" + inline(x) + "</li>"; }).join("") + "</ul>");
+              continue;
+            }
+
+            // Ordered list: consecutive "1. "/"1) " lines.
+            if (/^\d{1,9}[.)]\s+/.test(t)) {
+              var oitems = [];
+              while (i < lines.length && /^\d{1,9}[.)]\s+/.test(lines[i].trim())) {
+                oitems.push(lines[i].trim().replace(/^\d{1,9}[.)]\s+/, ""));
+                i++;
+              }
+              out.push("<ol>" + oitems.map(function (x) { return "<li>" + inline(x) + "</li>"; }).join("") + "</ol>");
+              continue;
+            }
+
+            // Blockquote (also the base of [!NOTE]-style callouts).
+            if (/^>\s?/.test(t)) {
+              var q = [];
+              while (i < lines.length && /^>\s?/.test(lines[i].trim())) {
+                q.push(lines[i].trim().replace(/^>\s?/, ""));
+                i++;
+              }
+              var note = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.exec(q[0] || "");
+              if (note) {
+                var cls = note[1].toLowerCase();
+                var label = note[1].charAt(0).toUpperCase() + note[1].slice(1).toLowerCase();
+                out.push('<blockquote class="note note-' + cls + '"><p class="note-title">' + label + "</p>" + renderBlocks(q.slice(1)) + "</blockquote>");
+              } else {
+                out.push("<blockquote>" + renderBlocks(q) + "</blockquote>");
+              }
+              continue;
+            }
+
+            out.push("<p>" + inline(ln) + "</p>");
+            i++;
           }
           return out.join("\n");
         }
-        function renderLine(ln) {
-          var trimmed = ln.trim();
-          var h = /^(#{1,6})\s+/.exec(trimmed);
-          if (h) {
-            var level = h[1].length;
-            return "<h" + level + ">" + inline(trimmed.slice(h[0].length)) + "</h" + level + ">";
-          }
-          return "<p>" + inline(ln) + "</p>";
-        }
         var INLINE_RULES = [
+          { type: "escape", re: /^\\([!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~])/ },
           { type: "code", re: /^(`+)(.+?)\1/ },
           { type: "strong", re: /^(\*\*|__)(.+?)\1/ },
-          { type: "em", re: /^(\*|_)(.+?)\1/ },
           { type: "del", re: /^(~~)(.+?)\1/ },
+          { type: "underline", re: /^(\+\+)(.+?)\1/ },
+          { type: "mark", re: /^(==)(.+?)\1/ },
+          { type: "sub", re: /^(~)([^~\s](?:[^~]*[^~\s])?)\1/ },
+          { type: "sup", re: /^(\^)([^\^\s](?:[^\^]*[^\^\s])?)\1/ },
+          { type: "em", re: /^(\*|_)(.+?)\1/ },
           { type: "img", re: /^!\[([^\]]*)\]\(([^)]+)\)/ },
           { type: "link", re: /^\[([^\]]+)\]\(([^)]+)\)/ },
         ];
         function inline(text) {
           var i = 0, out = "";
-          var stopRe = /[*_~`[!\\]/;
+          var stopRe = /[*_~`[!\\^+=]/;
           while (i < text.length) {
             var rest = text.slice(i), matched = false;
             for (var r = 0; r < INLINE_RULES.length; r++) {
               var m = INLINE_RULES[r].re.exec(rest);
               if (m) {
                 matched = true;
-                if (INLINE_RULES[r].type === "code") out += "<code>" + escapeHtml(m[2]) + "</code>";
+                if (INLINE_RULES[r].type === "escape") out += escapeHtml(m[1]);
+                else if (INLINE_RULES[r].type === "code") out += "<code>" + escapeHtml(m[2]) + "</code>";
                 else if (INLINE_RULES[r].type === "strong") out += "<strong>" + inline(m[2]) + "</strong>";
-                else if (INLINE_RULES[r].type === "em") out += "<em>" + inline(m[2]) + "</em>";
                 else if (INLINE_RULES[r].type === "del") out += "<del>" + inline(m[2]) + "</del>";
+                else if (INLINE_RULES[r].type === "underline") out += "<u>" + inline(m[2]) + "</u>";
+                else if (INLINE_RULES[r].type === "mark") out += "<mark>" + inline(m[2]) + "</mark>";
+                else if (INLINE_RULES[r].type === "sub") out += "<sub>" + inline(m[2]) + "</sub>";
+                else if (INLINE_RULES[r].type === "sup") out += "<sup>" + inline(m[2]) + "</sup>";
+                else if (INLINE_RULES[r].type === "em") out += "<em>" + inline(m[2]) + "</em>";
                 else if (INLINE_RULES[r].type === "img") out += "<img src=\"" + escapeAttr(m[2]) + "\" alt=\"" + escapeAttr(m[1]) + "\">";
                 else if (INLINE_RULES[r].type === "link") out += "<a href=\"" + escapeAttr(m[2]) + "\">" + inline(m[1]) + "</a>";
                 i += m[0].length;
@@ -532,10 +637,22 @@
           { md: "# Heading", html: "<h1>Heading</h1>", desc: "Big heading" },
           { md: "**bold**", html: "<strong>bold</strong>", desc: "Bold" },
           { md: "*italic*", html: "<em>italic</em>", desc: "Italic" },
+          { md: "++underline++", html: "<u>underline</u>", desc: "Underline" },
           { md: "~~struck~~", html: "<del>struck</del>", desc: "Strikethrough" },
+          { md: "==highlight==", html: "<mark>highlight</mark>", desc: "Highlight" },
+          { md: "H~2~O", html: "H<sub>2</sub>O", desc: "Subscript" },
+          { md: "x^2^", html: "x<sup>2</sup>", desc: "Superscript" },
           { md: "`code`", html: "<code>code</code>", desc: "Inline code" },
+          { md: "``` ⏎ code block ⏎ ```", html: "<pre><code>code block</code></pre>", desc: "Code block" },
+          { md: "- bullet item", html: "<ul><li>bullet item</li></ul>", desc: "Bullet list" },
+          { md: "1. numbered item", html: "<ol><li>numbered item</li></ol>", desc: "Numbered list" },
+          { md: "> quoted text", html: "<blockquote><p>quoted text</p></blockquote>", desc: "Quote" },
+          { md: "> [!NOTE] ⏎ > worth noting", html: "<blockquote class=\"note note-note\"><p class=\"note-title\">Note</p><p>worth noting</p></blockquote>", desc: "Note box — also TIP, IMPORTANT, WARNING, CAUTION" },
+          { md: "***", html: "<hr>", desc: "Horizontal line" },
           { md: "[link](https://x.example)", html: "<a href=\"https://x.example\">link</a>", desc: "Hyperlink" },
           { md: "![alt](https://loremflickr.com/320/240)", html: "<img src=\"https://loremflickr.com/320/240\" alt=\"alt\">" },
+          { md: "\\*literal\\*", html: "*literal*", desc: "Backslash escapes any symbol" },
+          { md: "Ctrl", html: "<kbd>Ctrl</kbd>", desc: "Key — raw HTML also works: sub, sup, kbd, i, b" },
         ];
         function csOut(raw) {
           var div = document.createElement("div");
@@ -554,10 +671,12 @@
           });
         }
         buildCheatsheet();
-        document.getElementById("cheatsheet-toggle").addEventListener("click", function (e) {
-          e.preventDefault();
-          var cs = document.getElementById("cheatsheet");
-          cs.style.display = cs.style.display === "block" ? "none" : "block";
+        document.querySelectorAll(".cheatsheet-toggle").forEach(function (link) {
+          link.addEventListener("click", function (e) {
+            e.preventDefault();
+            var cs = document.getElementById("cheatsheet");
+            cs.style.display = cs.style.display === "block" ? "none" : "block";
+          });
         });
 
         document.getElementById("btn-add-man").addEventListener("click", function () {
