@@ -115,7 +115,7 @@
          column instead of sitting at each preview's edge. */
       .cs-preview { min-width: 0; overflow: hidden; width: 100%; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.9rem; line-height: 1.5; }
       .cs-desc { color: #6c767e; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 10rem; }
-      .cs-desc.wrap { white-space: normal; overflow: visible; text-overflow: clip; }
+      .cs-desc.wrap { white-space: normal; overflow: visible; text-overflow: clip; max-width: 13rem; }
       .cs-preview h1, .cs-preview h2, .cs-preview h3, .cs-preview h4, .cs-preview h5, .cs-preview h6 { display: inline; font-weight: 700; }
       .cs-preview h1 { font-size: 1.4em; }
       .cs-preview img { max-width: 100%; height: auto; display: block; margin-top: 0.25rem; border-radius: 0.3rem; }
@@ -200,7 +200,6 @@
         color: #e8edf2; background: #000; border: 1px solid #2c3238; border-radius: 0.35rem; outline: none;
       }
       .man-body textarea:focus { border-color: rgba(128,0,128,0.8); }
-      .ui-btns { display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap; }
       .restore-note { font-size:0.75rem; color:#6c767e; margin-top:0.6rem; }
 
       /* ---------- Reset buttons ---------- */
@@ -542,9 +541,10 @@ import { renderMarkdown } from "../shared/render.js";
           });
 
           const wc = el("span", { className: "wc", textContent: wordCount(md) + " words" });
+          const thumb = el("span", { textContent: thumbOf(md) });
           const meta = el("div", { className: "meta" }, [
             el("span", { className: "badge", textContent: "#" + (idx + 1) }),
-            el("span", { textContent: thumbOf(md) }),
+            thumb,
             wc
           ]);
           const up = el("button", { type: "button", textContent: "↑", title: "Move up" });
@@ -557,29 +557,19 @@ import { renderMarkdown } from "../shared/render.js";
           ta.value = md;
           const livePreview = el("div", { className: "preview", style: { marginTop: "0.5rem", minHeight: "0" } });
           livePreview.innerHTML = renderMarkdown(md);
-          const ok = el("button", { type: "button", className: "btn", textContent: "Set" });
-          const cancel = el("button", { type: "button", className: "btn ghost", textContent: "Cancel" });
-          const uiBtns = el("div", { className: "ui-btns" }, [ok, cancel]);
-          const body = el("div", { className: "man-body", hidden: true }, [ta, livePreview, uiBtns]);
+          const body = el("div", { className: "man-body", hidden: true }, [ta, livePreview]);
 
           ta.addEventListener("input", function () {
             livePreview.innerHTML = renderMarkdown(ta.value);
             md = ta.value;
             state.manifestos[idx] = md;
+            thumb.textContent = thumbOf(md);
             wc.textContent = wordCount(md) + " words";
             updateManTotal();
             updateResetButtons();
             markDirty();
           });
-          function collapse() {
-            body.hidden = true;
-            if (ta.value !== md) { md = ta.value; state.manifestos[idx] = md; updateState(); renderManifestoList(); markDirty(); }
-          }
           grip.addEventListener("click", function () { body.hidden = !body.hidden; livePreview.innerHTML = renderMarkdown(ta.value); });
-          ok.addEventListener("click", function () {
-            md = ta.value; state.manifestos[idx] = md; body.hidden = true; updateState(); renderManifestoList(); markDirty();
-          });
-          cancel.addEventListener("click", collapse);
           up.addEventListener("click", function (e) {
             e.stopPropagation();
             if (idx > 0) { const t = state.manifestos[idx - 1]; state.manifestos[idx - 1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
