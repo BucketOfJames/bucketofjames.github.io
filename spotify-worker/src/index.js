@@ -1,3 +1,5 @@
+import { json, corsHeaders, escapeHtml } from "../../shared/http.js";
+
 const SPOTIFY_AUTHORIZE_URL = "https://accounts.spotify.com/authorize";
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SPOTIFY_NOW_PLAYING_URL =
@@ -38,14 +40,6 @@ export default {
     ctx.waitUntil(refreshLastTrackCache(env));
   },
 };
-
-function corsHeaders(env) {
-  return {
-    "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-}
 
 function htmlResponse(body, status = 200, extraHeaders = {}) {
   return new Response(
@@ -94,17 +88,6 @@ ${body}
   );
 }
 
-function jsonResponse(data, env, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
-      ...corsHeaders(env),
-    },
-  });
-}
-
 function parseCookie(cookieHeader, name) {
   if (!cookieHeader) return null;
   const parts = cookieHeader.split(";").map((p) => p.trim());
@@ -115,11 +98,8 @@ function parseCookie(cookieHeader, name) {
   return null;
 }
 
-function escapeHtml(str) {
-  return str
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+function spotifyBasicAuth(env) {
+  return btoa(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`);
 }
 
 async function handleLogin(request, env) {
@@ -169,7 +149,7 @@ async function handleCallback(request, env) {
   }
 
   const redirectUri = `${url.origin}/callback`;
-  const basic = btoa(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`);
+  const basic = spotifyBasicAuth(env);
 
   const tokenRes = await fetch(SPOTIFY_TOKEN_URL, {
     method: "POST",
@@ -213,7 +193,7 @@ async function handleCallback(request, env) {
 }
 
 async function getAccessToken(env) {
-  const basic = btoa(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`);
+  const basic = spotifyBasicAuth(env);
 
   const tokenRes = await fetch(SPOTIFY_TOKEN_URL, {
     method: "POST",
@@ -242,30 +222,32 @@ async function handleNowPlaying(env) {
     !env.SPOTIFY_CLIENT_SECRET ||
     !env.SPOTIFY_REFRESH_TOKEN
   ) {
-    return jsonResponse(
+    return json(
       { error: "Missing one or more Spotify secrets in the Worker." },
-      env,
-      500
+      500,
+      env
     );
   }
 
   try {
     const result = await fetchCurrentTrack(env);
-
     if (result.type === "track") {
-      return jsonResponse(result.data, env, 200);
+      return json(result.data, 200, env);
     }
-
-    const cached = await readCachedTrack(env);
-    if (cached) return jsonResponse(cached, env, 200);
-    return jsonResponse({ isPlaying: false }, env, 200);
   } catch (err) {
-    return jsonResponse(
+    // Live fetch failed (expired token, API hiccup): serve the cache if any.
+    const cached = await readCachedTrack(env);
+    if (cached) return json(cached, 200, env);
+    return json(
       { error: "Worker exception", detail: String(err) },
-      env,
-      500
+      500,
+      env
     );
   }
+
+  const cached = await readCachedTrack(env);
+  if (cached) return json(cached, 200, env);
+  return json({ isPlaying: false }, 200, env);
 }
 
 async function fetchCurrentTrack(env) {
@@ -320,6 +302,7 @@ async function refreshLastTrackCache(env) {
       await cacheTrack(env, result.data);
     }
   } catch (err) {
+    console.error("Spotify cache refresh failed:", err);
   }
 }
 
@@ -345,6 +328,7 @@ async function readCachedTrack(env) {
       durationMs: Number(entry.durationMs) || 0,
     };
   } catch (err) {
+    console.error("Spotify cache read failed:", err);
     return null;
   }
 }
@@ -373,5 +357,6 @@ async function cacheTrack(env, data) {
       JSON.stringify({ ...data, cachedAt: Date.now() })
     );
   } catch (err) {
+    console.error("Spotify cache write failed:", err);
   }
 }

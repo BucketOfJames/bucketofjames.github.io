@@ -26,7 +26,7 @@ function toB64(buf) {
   return buf.toString("base64");
 }
 
-function ask(hide) {
+function ask() {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -35,21 +35,19 @@ function ask(hide) {
   return new Promise((resolve) => {
     rl.question("Password: ", (value) => {
       rl.close();
-      if (hide) {
-        process.stdout.write("\n");
-      }
+      process.stdout.write("\n");
       resolve(value);
     });
   });
 }
 
 async function main() {
-  const password = await ask(false);
+  const password = await ask();
   if (!password) {
     console.error("No password entered.");
     process.exit(1);
   }
-  const salt = toB64((await import("node:crypto")).randomBytes(16));
+  const salt = toB64(randomBytes(16));
   const hash = await pbkdf2Async(password, Buffer.from(salt, "base64"), ITERATIONS, 32, "sha256");
   const out = `PBKDF2$${ITERATIONS}$${salt}$${toB64(hash)}`;
   console.log("\nEDIT_PASS_HASH secret value:\n");

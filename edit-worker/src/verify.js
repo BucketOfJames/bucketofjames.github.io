@@ -1,12 +1,7 @@
 // PBKDF2 verification shared between the login handler and the debug route,
 // so debug reports the exact same code path used for real logins.
 
-export function b64ToBytes(b64) {
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return bytes;
-}
+import { b64ToBytes } from "../../shared/base64.js";
 
 export function constantTimeEqual(a, b) {
   if (a.length !== b.length) return false;

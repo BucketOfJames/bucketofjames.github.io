@@ -20,6 +20,8 @@
 //     [links](url), ![images](url).
 //   - A backslash escapes any ASCII punctuation: \* renders a literal *.
 
+import { escapeHtml } from "./http.js";
+
 export function renderMarkdown(raw) {
   if (typeof raw !== "string") raw = String(raw || "");
   return renderBlocks(String(raw).split(/\r?\n/));
@@ -177,9 +179,6 @@ function inline(text) {
   return out;
 }
 
-function escapeHtml(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
 function escapeAttr(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

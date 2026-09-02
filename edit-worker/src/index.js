@@ -32,7 +32,9 @@
 //   ALLOWED_ORIGIN   - restrict CORS to this origin (default *)
 
 import { renderMarkdown, htmlToMarkdown } from "../../shared/render.js";
-import { verifyPassword, b64ToBytes } from "./verify.js";
+import { verifyPassword } from "./verify.js";
+import { json, corsHeaders } from "../../shared/http.js";
+import { b64url, b64urlToBytes, encodeBase64, decodeBase64 } from "../../shared/base64.js";
 
 const TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
 const STAGING_BRANCH = "editor-staging";
@@ -55,29 +57,6 @@ export default {
     return json({ error: "Not found" }, 404, env);
   },
 };
-
-// ---------------------------------------------------------------
-// HTTP helpers
-// ---------------------------------------------------------------
-function corsHeaders(env) {
-  return {
-    "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400",
-  };
-}
-
-function json(data, status, env) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
-      ...corsHeaders(env),
-    },
-  });
-}
 
 // ---------------------------------------------------------------
 // Login (PBKDF2 password check + signed token)
@@ -125,12 +104,12 @@ async function handleLogin(request, env) {
 }
 
 // EDIT_PASS_HASH format: PBKDF2$<iterations>$<salt_b64>$<hash_b64>
-// (verifyPassword + b64ToBytes + constantTimeEqual live in ./verify.js)
+// (verifyPassword + constantTimeEqual live in ./verify.js)
 
-// Stateless signed token: base64url(header.payload) + "." + base64url(hmac)
-// Payload format: "user.role.expiry" (new) or "user.expiry" (legacy, treated as admin).
+// Stateless signed token: base64url(payload) + "." + base64url(hmac)
+// Payload: JSON { user, role, exp } (legacy "user.role.expiry" still accepted).
 async function signToken(user, role, env) {
-  const payload = `${user}.${role}.${Date.now() + TOKEN_TTL_MS}`;
+  const payload = JSON.stringify({ user, role, exp: Date.now() + TOKEN_TTL_MS });
   const msg = b64url(new TextEncoder().encode(payload));
   const hmac = await crypto.subtle.importKey(
     "raw",
@@ -155,13 +134,20 @@ async function verifyToken(token, env) {
   } catch (e) {
     return { ok: false };
   }
-  const parts = payload.split(".");
-  const user = parts[0];
-  // New format: user.role.expiry; legacy: user.expiry (admin by default).
-  const role = parts.length >= 3 ? parts[1] : "admin";
-  const expiryStr = parts[parts.length - 1];
-  const expiry = Number(expiryStr);
-  if (!Number.isFinite(expiry) || Date.now() > expiry) return { ok: false };
+  let user, role, expiry;
+  try {
+    const parsed = JSON.parse(payload);
+    user = parsed.user;
+    role = parsed.role || "admin";
+    expiry = Number(parsed.exp);
+  } catch (e) {
+    // Legacy format: user.role.expiry (user.expiry = admin by default).
+    const parts = payload.split(".");
+    user = parts[0];
+    role = parts.length >= 3 ? parts[1] : "admin";
+    expiry = Number(parts[parts.length - 1]);
+  }
+  if (!user || !Number.isFinite(expiry) || Date.now() > expiry) return { ok: false };
 
   const hmac = await crypto.subtle.importKey(
     "raw",
@@ -387,37 +373,4 @@ function replaceBetween(source, open, close, replacement) {
     trailingWs +
     source.slice(j)
   );
-}
-
-// ---------------------------------------------------------------
-// Base64 helpers (TextEncoder/TextDecoder safe for UTF-8)
-// ---------------------------------------------------------------
-function encodeBase64(str) {
-  const bytes = new TextEncoder().encode(str);
-  let bin = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(bin);
-}
-
-function decodeBase64(b64) {
-  const bin = atob(b64.replace(/\s+/g, ""));
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
-}
-
-function b64url(bytes) {
-  let bin = "";
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-function b64urlToBytes(s) {
-  const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-  const bin = atob(padded);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return bytes;
 }

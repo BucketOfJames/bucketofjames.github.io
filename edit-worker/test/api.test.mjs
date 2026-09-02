@@ -62,16 +62,24 @@ globalThis.fetch = async (url, opts = {}) => {
   return jsonRes({ message: "not stubbed: " + url }, 500);
 };
 
-async function signToken(payload, secret) {
+async function signToken(obj, secret) {
+  const payload = JSON.stringify(obj);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+  return Buffer.from(payload).toString("base64url") + "." + Buffer.from(sig).toString("base64url");
+}
+
+async function signLegacyToken(payload, secret) {
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
   return Buffer.from(payload).toString("base64url") + "." + Buffer.from(sig).toString("base64url");
 }
 
 const future = String(Date.now() + 3600_000);
-const adminTok = await signToken(`boj.admin.${future}`, env.EDIT_TOKEN_SECRET);
-const viewerTok = await signToken(`csy.viewer.${future}`, env.EDIT_TOKEN_SECRET);
-const badTok = await signToken(`boj.admin.${future}`, "wrong-secret");
+const adminTok = await signToken({ user: "boj", role: "admin", exp: Number(future) }, env.EDIT_TOKEN_SECRET);
+const viewerTok = await signToken({ user: "csy", role: "viewer", exp: Number(future) }, env.EDIT_TOKEN_SECRET);
+const badTok = await signToken({ user: "boj", role: "admin", exp: Number(future) }, "wrong-secret");
+const legacyTok = await signLegacyToken(`boj.admin.${future}`, env.EDIT_TOKEN_SECRET);
 
 // --- login ---
 {
@@ -109,6 +117,12 @@ const badTok = await signToken(`boj.admin.${future}`, "wrong-secret");
 {
   const res = await worker.fetch(new Request("http://x/api/content"), env);
   check(res.status === 401, "content no token -> 401");
+}
+
+{
+  const res = await worker.fetch(new Request("http://x/api/content", { headers: { Authorization: "Bearer " + legacyTok } }), env);
+  const data = await res.json();
+  check(res.status === 200 && data.ok, "content legacy dotted token -> ok");
 }
 
 // --- publish: unchanged content (exact live-content round-trip) ---
