@@ -69,13 +69,13 @@
 
       /* ---------- Header ---------- */
       header.ed {
-        display: grid; grid-template-columns: 1fr auto;
-        gap: 0 1rem; margin-bottom: 1.5rem; padding-bottom: 1rem;
+        display: flex; align-items: start; gap: 0.5rem;
+        margin-bottom: 1.5rem; padding-bottom: 1rem;
         border-bottom: 1px solid rgba(255,255,255,0.1);
       }
-      header.ed h1 { margin: 0; font-size: 1.3rem; font-weight: 600; text-shadow: 0 0 0.4rem darkviolet; align-self: center; }
-      header.ed .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-self: end; align-self: center; }
-      .status { grid-column: 1 / -1; font-size: 0.85rem; color: #7dce8a; opacity: 0; transition: opacity 0.25s; }
+      header.ed h1 { margin: 0; font-size: 1.3rem; font-weight: 600; text-shadow: 0 0 0.4rem darkviolet; white-space: nowrap; flex-shrink: 0; }
+      header.ed .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-left: auto; flex-shrink: 0; }
+      .status { font-size: 0.85rem; color: #7dce8a; opacity: 0; transition: opacity 0.25s; flex: 1 1 0; min-width: 0; }
       .status.show { opacity: 1; }
 
       /* ---------- Tabs ---------- */
