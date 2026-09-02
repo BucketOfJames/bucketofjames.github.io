@@ -69,13 +69,13 @@
 
       /* ---------- Header ---------- */
       header.ed {
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding-bottom: 1rem;
+        display: grid; grid-template-columns: 1fr auto;
+        gap: 0 1rem; margin-bottom: 1.5rem; padding-bottom: 1rem;
         border-bottom: 1px solid rgba(255,255,255,0.1);
       }
-      header.ed h1 { margin: 0; font-size: 1.3rem; font-weight: 600; text-shadow: 0 0 0.4rem darkviolet; }
-      header.ed .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-      .status { font-size: 0.85rem; color: #7dce8a; opacity: 0; transition: opacity 0.25s; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      header.ed h1 { margin: 0; font-size: 1.3rem; font-weight: 600; text-shadow: 0 0 0.4rem darkviolet; align-self: center; }
+      header.ed .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-self: end; align-self: center; }
+      .status { grid-column: 1 / -1; font-size: 0.85rem; color: #7dce8a; opacity: 0; transition: opacity 0.25s; }
       .status.show { opacity: 1; }
 
       /* ---------- Tabs ---------- */
@@ -255,8 +255,8 @@
     <div id="editor" class="wrap" hidden>
       <header class="ed">
         <h1>Site Editor</h1>
+        <span class="status" id="save-status">Draft saved</span>
         <div class="actions">
-          <span class="status" id="save-status">Draft saved</span>
           <button class="btn ghost" id="btn-logout">Log out</button>
           <a class="btn ghost" href="/" target="_blank" rel="noopener">View site</a>
           <a class="btn ghost" href="https://github.com/BucketOfJames/bucketofjames.github.io/commits/main/" target="_blank" rel="noopener">View commits</a>
