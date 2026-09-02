@@ -12,7 +12,7 @@
 // chosen per OWASP guidance, so brute-forcing the password is impractical even
 // if this secret leaked.
 
-import { pbkdf2 } from "node:crypto";
+import { pbkdf2, randomBytes } from "node:crypto";
 import { promisify } from "node:util";
 import readline from "node:readline";
 
