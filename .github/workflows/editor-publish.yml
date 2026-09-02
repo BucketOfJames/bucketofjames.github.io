@@ -4,6 +4,10 @@ on:
   repository_dispatch:
     types: [editor-publish]
 
+concurrency:
+  group: editor-publish
+  cancel-in-progress: true
+
 permissions:
   contents: write
   issues: write
@@ -12,10 +16,10 @@ jobs:
   commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.EDITOR_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.EDITOR_GPG_PASSPHRASE }}
@@ -39,4 +43,4 @@ jobs:
           gh issue create \
             --title "Editor publish failed" \
             --body "The editor publish workflow failed at $(date -u). Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --label editor-publish || true
+            || true
