@@ -307,6 +307,8 @@ function buildEditDefaultsReplacement(_html, aboutMd, manifestos) {
   const aboutParts = [];
   for (let i = 0; i < aboutLines.length; i++) {
     let line = aboutLines[i];
+    // Empty lines become "\n" so paragraph breaks survive the + concatenation.
+    if (line === "") line = "\n";
     if (i < aboutLines.length - 1) {
       aboutParts.push(indent + jsString(line) + " +");
     } else {
