@@ -23,43 +23,56 @@ jobs:
 
       - name: Apply editor changes and push
         env:
-          PAYLOAD: ${{ github.event.client_payload }}
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
         run: |
-          aboutHtml=$(echo "$PAYLOAD" | jq -r '.aboutHtml')
-          manHtml=$(echo "$PAYLOAD" | jq -r '.manHtml')
-          editHtml=$(echo "$PAYLOAD" | jq -r '.editHtml')
+          set -e
+
+          # Extract fields to temp files (avoids shell quoting issues with HTML)
+          echo "$PAYLOAD" | jq -r '.aboutHtml' > /tmp/about.html
+          echo "$PAYLOAD" | jq -r '.manHtml' > /tmp/man.html
+          echo "$PAYLOAD" | jq -r '.editHtml' > /tmp/edit-defaults.js
           msgIndex=$(echo "$PAYLOAD" | jq -r '.msgIndex')
           msgEdit=$(echo "$PAYLOAD" | jq -r '.msgEdit')
 
+          echo "=== Extracted payload fields ==="
+          echo "aboutHtml: $(wc -c < /tmp/about.html) bytes"
+          echo "manHtml: $(wc -c < /tmp/man.html) bytes"
+          echo "editHtml: $(wc -c < /tmp/edit-defaults.js) bytes"
+          echo "msgIndex: $msgIndex"
+          echo "msgEdit: $msgEdit"
+
           # --- index.html: replace between about/manifestos markers ---
-          python3 -c "
-          import sys, re
-          html = open('index.html').read()
-          aboutRepl = sys.argv[1]
-          manRepl = sys.argv[2]
+          python3 << 'PYEOF'
+          import re
+          html = open("index.html").read()
+          about = open("/tmp/about.html").read()
+          man = open("/tmp/man.html").read()
           html = re.sub(
-              r'<!--about-content-->.*?<!--/about-content-->',
-              '<!--about-content-->\n' + aboutRepl + '\n<!--/about-content-->',
+              r"<!--about-content-->.*?<!--/about-content-->",
+              "<!--about-content-->\n" + about + "\n<!--/about-content-->",
               html, count=1, flags=re.DOTALL)
           html = re.sub(
-              r'<!--manifestos-content-->.*?<!--/manifestos-content-->',
-              '<!--manifestos-content-->\n' + manRepl + '\n<!--/manifestos-content-->',
+              r"<!--manifestos-content-->.*?<!--/manifestos-content-->",
+              "<!--manifestos-content-->\n" + man + "\n<!--/manifestos-content-->",
               html, count=1, flags=re.DOTALL)
-          open('index.html', 'w').write(html)
-          " "$aboutHtml" "$manHtml"
+          open("index.html", "w").write(html)
+          print("index.html updated")
+          PYEOF
 
           # --- edit/index.html: replace between JS default markers ---
-          python3 -c "
-          import sys, re
-          html = open('edit/index.html').read()
-          repl = sys.argv[1]
+          python3 << 'PYEOF'
+          import re
+          html = open("edit/index.html").read()
+          repl = open("/tmp/edit-defaults.js").read()
           html = re.sub(
-              r'//__ABOUT_START__.*?//__MANIFESTOS_END__',
+              r"//__ABOUT_START__.*?//__MANIFESTOS_END__",
               repl,
               html, count=1, flags=re.DOTALL)
-          open('edit/index.html', 'w').write(html)
-          " "$editHtml"
+          open("edit/index.html", "w").write(html)
+          print("edit/index.html updated")
+          PYEOF
 
+          # Commit with GPG signing
           git config user.name "bucket-editor"
           git config user.email "mr.jaanv@gmail.com"
 
@@ -70,3 +83,4 @@ jobs:
           git commit -S -m "$msgEdit"
 
           git push
+          echo "=== Pushed successfully ==="
