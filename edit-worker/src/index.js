@@ -202,16 +202,15 @@ async function handlePublish(request, env) {
       return json({ ok: true, changed: false, message: "No changes" }, 200, env);
     }
 
-    // Generate edit/index.html defaults replacement.
+    // Generate edit/index.html defaults replacement (raw markdown).
     const editFile = await getFile(env, "edit/index.html");
-    const { aboutDefaults, manifestosDefaults } = buildEditDefaultsReplacement(editFile.content, about, manifestos);
+    const editDefaultsReplacement = buildEditDefaultsReplacement(about, manifestos);
 
     // Trigger GitHub Actions workflow to commit with GPG signing.
     await triggerWorkflow(env, {
       aboutHtml,
       manHtml,
-      editAboutDefaults: aboutDefaults,
-      editManifestosDefaults: manifestosDefaults,
+      editDefaults: editDefaultsReplacement,
       msgIndex: "Update site content from editor",
       msgEdit: "Update editor defaults from publish",
     });
@@ -299,29 +298,11 @@ function replaceBetween(source, open, close, replacement) {
 // Build the replacement content for edit/index.html defaults.
 // Returns the raw text to insert between the markers (excluding markers).
 // ---------------------------------------------------------------
-function buildEditDefaultsReplacement(_html, aboutMd, manifestos) {
-  const indent = "          ";
-
-  // --- About ---
-  const aboutLines = aboutMd.split("\n");
-  const aboutParts = [];
-  for (let i = 0; i < aboutLines.length; i++) {
-    let line = aboutLines[i];
-    // Empty lines become "\n" so paragraph breaks survive the + concatenation.
-    if (line === "") line = "\n";
-    if (i < aboutLines.length - 1) {
-      aboutParts.push(indent + jsString(line) + " +");
-    } else {
-      aboutParts.push(indent + jsString(line));
-    }
-  }
-  const aboutDefaults = aboutParts.join("\n");
-
-  // --- Manifestos ---
-  const manParts = manifestos.map((m) => indent + jsString(m) + ",");
-  const manifestosDefaults = manParts.join("\n");
-
-  return { aboutDefaults, manifestosDefaults };
+// Build raw markdown replacement for edit/index.html defaults.
+function buildEditDefaultsReplacement(aboutMd, manifestos) {
+  const aboutBlock = "//__ABOUT_START__\n" + aboutMd + "\n//__ABOUT_END__";
+  const manifestosBlock = "//__MANIFESTOS_START__\n" + manifestos.join("\n---\n") + "\n//__MANIFESTOS_END__";
+  return aboutBlock + "\n" + manifestosBlock;
 }
 
 // Escape a string for use as a JavaScript "..." literal (double quotes, \n, \\).

@@ -27,23 +27,19 @@ jobs:
         run: |
           set -e
 
-          # Extract fields to temp files (avoids shell quoting issues with HTML)
+          # Extract fields to temp files
           echo "$PAYLOAD" | jq -r '.aboutHtml' > /tmp/about.html
           echo "$PAYLOAD" | jq -r '.manHtml' > /tmp/man.html
-          echo "$PAYLOAD" | jq -r '.editAboutDefaults' > /tmp/edit-about.js
-          echo "$PAYLOAD" | jq -r '.editManifestosDefaults' > /tmp/edit-mans.js
+          echo "$PAYLOAD" | jq -r '.editDefaults' > /tmp/edit-defaults.md
           msgIndex=$(echo "$PAYLOAD" | jq -r '.msgIndex')
           msgEdit=$(echo "$PAYLOAD" | jq -r '.msgEdit')
 
-          echo "=== Extracted payload fields ==="
+          echo "=== Payload ==="
           echo "aboutHtml: $(wc -c < /tmp/about.html) bytes"
           echo "manHtml: $(wc -c < /tmp/man.html) bytes"
-          echo "editAboutDefaults: $(wc -c < /tmp/edit-about.js) bytes"
-          echo "editManifestosDefaults: $(wc -c < /tmp/edit-mans.js) bytes"
-          echo "msgIndex: $msgIndex"
-          echo "msgEdit: $msgEdit"
+          echo "editDefaults: $(wc -c < /tmp/edit-defaults.md) bytes"
 
-          # --- index.html: replace between about/manifestos markers ---
+          # --- index.html: replace between HTML markers ---
           python3 << 'PYEOF'
           import re
           html = open("index.html").read()
@@ -61,22 +57,19 @@ jobs:
           print("index.html updated")
           PYEOF
 
-          # --- edit/index.html: replace each section separately ---
+          # --- edit/index.html: replace between markdown markers ---
           python3 << 'PYEOF'
           import re
           html = open("edit/index.html").read()
-          aboutRepl = open("/tmp/edit-about.js").read()
-          mansRepl = open("/tmp/edit-mans.js").read()
-          # Replace about defaults (between ABOUT_START and ABOUT_END)
+          repl = open("/tmp/edit-defaults.md").read()
           html = re.sub(
-              r"//__ABOUT_START__.*?//__ABOUT_END__",
-              "//__ABOUT_START__\n" + aboutRepl + "\n          //__ABOUT_END__",
-              html, count=1, flags=re.DOTALL)
-          # Replace manifestos defaults (between MANIFESTOS_START and MANIFESTOS_END)
+              r"//__ABOUT_START__\n[\s\S]*?\n//__ABOUT_END__",
+              "//__ABOUT_START__\n" + repl.split("//__MANIFESTOS_START__")[0].rstrip() + "\n//__ABOUT_END__",
+              html, count=1)
           html = re.sub(
-              r"//__MANIFESTOS_START__.*?//__MANIFESTOS_END__",
-              "//__MANIFESTOS_START__\n" + mansRepl + "\n          //__MANIFESTOS_END__",
-              html, count=1, flags=re.DOTALL)
+              r"//__MANIFESTOS_START__\n[\s\S]*?\n//__MANIFESTOS_END__",
+              "//__MANIFESTOS_START__\n" + repl.split("//__MANIFESTOS_START__")[1].split("//__MANIFESTOS_END__")[0].rstrip() + "\n//__MANIFESTOS_END__",
+              html, count=1)
           open("edit/index.html", "w").write(html)
           print("edit/index.html updated")
           PYEOF
@@ -92,4 +85,4 @@ jobs:
           git commit -S -m "$msgEdit"
 
           git push
-          echo "=== Pushed successfully ==="
+          echo "=== Pushed ==="
