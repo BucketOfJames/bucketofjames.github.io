@@ -684,7 +684,7 @@
               wc.textContent = wordCount(md) + " words";
               updateManTotal();
               updateResetButtons();
-              saveDraft(state);
+              markDirty();
             });
             function collapse() {
               body.hidden = true;
