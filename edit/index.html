@@ -96,6 +96,10 @@
       .field-label a { font-size: 0.78rem; }
       .label-side { display: inline-flex; align-items: baseline; gap: 0.75rem; }
       .label-side .wordcount { font-size: 0.78rem; color: #9aa4ad; white-space: nowrap; }
+      /* Per-pane field labels sit ABOVE the shared cheat sheet, so the toggle
+         stays at the top of the panel when the cheat sheet is open. */
+      .pane-label { display: none; }
+      .pane-label.active { display: flex; }
 
       /* ---------- Cheat sheet (list, one item per line, each with preview) ---------- */
       .cheatsheet { display: none; margin: 0 0 1rem; padding: 0.8rem 1rem; background: #050507; border: 1px dashed #3a4148; border-radius: 0.4rem; }
@@ -103,7 +107,12 @@
       .cs-item { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: start; column-gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
       .cs-item:last-child { border-bottom: none; }
       .cs-md { white-space: pre; min-width: 0; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.85rem; color: #d7b0f0; }
-      .cs-out { font-size: 0.9rem; color: #e8edf2; line-height: 1.4; min-width: 0; }
+      /* Preview and description share one line: the preview shrink-wraps its
+         content (and clips if too wide), the description sits after it and
+         truncates with an ellipsis instead of wrapping underneath. */
+      .cs-out { display: flex; align-items: center; gap: 0.5rem; min-width: 0; font-size: 0.9rem; color: #e8edf2; line-height: 1.4; overflow: hidden; }
+      .cs-out .cs-preview { min-width: 0; overflow: hidden; }
+      .cs-out .cs-desc { flex: 0 1 auto; min-width: 0; color: #6c767e; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .cs-out h1, .cs-out h2, .cs-out h3, .cs-out h4, .cs-out h5, .cs-out h6 { display: inline; font-weight: 700; }
       .cs-out h1 { font-size: 1.4em; }
       .cs-out img { max-width: 100%; height: auto; display: block; margin-top: 0.25rem; border-radius: 0.3rem; }
@@ -117,7 +126,7 @@
       .cs-out mark { background: rgba(215,176,240,0.85); color: #0d0f11; padding: 0 0.15em; border-radius: 0.2em; }
       .cs-out u { text-underline-offset: 0.15em; }
       .cs-out sub, .cs-out sup { line-height: 0; }
-      .cs-out hr { border: none; border-top: 1px solid rgba(255,255,255,0.25); margin: 0.5em 0; }
+      .cs-out hr { min-width: 3em; border: none; border-top: 1px solid rgba(255,255,255,0.25); margin: 0.5em 0; }
       @media (max-width: 40rem) { .cs-list { grid-template-columns: 1fr; } .cs-item { grid-template-columns: 1fr; column-gap: 0; } .cs-md { white-space: pre-line; } }
 
       /* ---------- Editor split ---------- */
@@ -274,6 +283,19 @@
         <button class="tab" data-tab="man">Manifestos</button>
       </div>
 
+      <!-- Per-pane field labels, ABOVE the shared cheat sheet so the
+           "Formatting cheat sheet" toggle stays at the top of the panel
+           when the list is open. -->
+      <div class="field-label pane-label active" id="label-about">
+        <span>About me <span class="reset-wrap"><button class="reset-symbol hidden" id="btn-reset-about">&#x21BA;</button><div class="confirm-popup" id="confirm-reset-about">Reset about me?<button class="cp-yes" id="confirm-reset-about-yes">Yes</button><button class="cp-no" id="confirm-reset-about-no">No</button></div></span></span>
+        <span class="label-side"><span class="wordcount" id="about-wordcount"></span><a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a></span>
+      </div>
+
+      <div class="field-label pane-label" id="label-man">
+        <span>Manifestos <span class="reset-wrap"><button class="reset-symbol hidden" id="btn-reset-mans">&#x21BA;</button><div class="confirm-popup" id="confirm-reset-mans">Reset manifestos?<button class="cp-yes" id="confirm-reset-mans-yes">Yes</button><button class="cp-no" id="confirm-reset-mans-no">No</button></div></span></span>
+        <span class="label-side"><span class="wordcount" id="man-wordcount"></span><a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a></span>
+      </div>
+
       <!-- Formatting cheat sheet (shared by both panes) -->
       <div class="cheatsheet" id="cheatsheet">
         <ul class="cs-list" id="cs-list"></ul>
@@ -281,10 +303,6 @@
 
       <!-- About pane -->
       <div class="pane active" id="pane-about">
-        <div class="field-label">
-          <span>About me <span class="reset-wrap"><button class="reset-symbol hidden" id="btn-reset-about">&#x21BA;</button><div class="confirm-popup" id="confirm-reset-about">Reset about me?<button class="cp-yes" id="confirm-reset-about-yes">Yes</button><button class="cp-no" id="confirm-reset-about-no">No</button></div></span></span>
-          <span class="label-side"><span class="wordcount" id="about-wordcount"></span><a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a></span>
-        </div>
         <div class="editor-split">
           <div>
             <div class="col-label">Write</div>
@@ -299,10 +317,6 @@
 
       <!-- Manifestos pane -->
       <div class="pane" id="pane-man">
-        <div class="field-label">
-          <span>Manifestos <span class="reset-wrap"><button class="reset-symbol hidden" id="btn-reset-mans">&#x21BA;</button><div class="confirm-popup" id="confirm-reset-mans">Reset manifestos?<button class="cp-yes" id="confirm-reset-mans-yes">Yes</button><button class="cp-no" id="confirm-reset-mans-no">No</button></div></span></span>
-          <span class="label-side"><span class="wordcount" id="man-wordcount"></span><a href="#" class="cheatsheet-toggle">Formatting cheat sheet</a></span>
-        </div>
         <div id="man-list"></div>
         <button class="btn" id="btn-add-man">+ Add manifesto</button>
       </div>
@@ -598,6 +612,7 @@
             document.querySelectorAll(".tabs .tab").forEach(function (t) { t.classList.toggle("active", t === tab); });
             ["about", "man"].forEach(function (id) {
               document.getElementById("pane-" + id).classList.toggle("active", tab.dataset.tab === id);
+              document.getElementById("label-" + id).classList.toggle("active", tab.dataset.tab === id);
             });
           });
         });
@@ -631,8 +646,10 @@
           CHEATS.forEach(function (c) {
             var li = el("li", { className: "cs-item" });
             li.appendChild(el("span", { className: "cs-md", textContent: c.md }));
-            var outEl = el("span", { className: "cs-out" });
-            outEl.innerHTML = renderMarkdown(c.md) + (c.desc ? " <span style='display:inline;color:#6c767e;font-size:0.78rem;'>— " + c.desc + "</span>" : "");
+            var previewEl = el("span", { className: "cs-preview" });
+            previewEl.innerHTML = renderMarkdown(c.md);
+            var outEl = el("span", { className: "cs-out" }, [previewEl]);
+            if (c.desc) outEl.appendChild(el("span", { className: "cs-desc", textContent: "— " + c.desc }));
             li.appendChild(outEl);
             ul.appendChild(li);
           });
