@@ -113,7 +113,6 @@
       .cs-preview { min-width: 0; overflow: hidden; width: 100%; }
       .cs-desc { color: #6c767e; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 10rem; }
       .cs-desc.wrap { white-space: normal; overflow: visible; text-overflow: clip; }
-      .cs-desc.under { display: block; margin-top: 0.3em; }
       .cs-preview h1, .cs-preview h2, .cs-preview h3, .cs-preview h4, .cs-preview h5, .cs-preview h6 { display: inline; font-weight: 700; }
       .cs-preview h1 { font-size: 1.4em; }
       .cs-preview img { max-width: 100%; height: auto; display: block; margin-top: 0.25rem; border-radius: 0.3rem; }
@@ -636,7 +635,7 @@
           { md: "1. numbered item", desc: "Numbered list" },
           { md: "> quoted text", desc: "Quote" },
           { md: "> [!NOTE]\n> worth noting", desc: "Note box — also TIP, IMPORTANT, WARNING, CAUTION", wrap: true },
-          { md: "***", desc: "Horizontal line", under: true },
+          { md: "***", desc: "Horizontal line" },
           { md: "[link](https://x.example)", desc: "Hyperlink" },
           { md: "![alt](https://loremflickr.com/320/240)" },
           { md: "\\*literal\\*", desc: "Backslash escapes any symbol", wrap: true },
@@ -651,9 +650,7 @@
             previewEl.innerHTML = renderMarkdown(c.md);
             li.appendChild(previewEl);
             if (c.desc) {
-              var cls = "cs-desc" + (c.under ? " under" : "") + (c.wrap ? " wrap" : "");
-              var descEl = el("span", { className: cls, textContent: "— " + c.desc });
-              if (c.under) previewEl.appendChild(descEl); else li.appendChild(descEl);
+              li.appendChild(el("span", { className: "cs-desc" + (c.wrap ? " wrap" : ""), textContent: "— " + c.desc }));
             }
             ul.appendChild(li);
           });
