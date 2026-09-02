@@ -78,11 +78,8 @@ jobs:
           git config user.name "bucket-editor"
           git config user.email "mr.jaanv@gmail.com"
 
-          git add index.html
+          git add index.html edit/index.html
           git commit -S -m "$msgIndex"
-
-          git add edit/index.html
-          git commit -S -m "$msgEdit"
 
           git push
           echo "=== Pushed ==="
