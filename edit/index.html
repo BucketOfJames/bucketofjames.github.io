@@ -281,10 +281,10 @@
         // Absolute URL of the deployed Cloudflare Worker /api endpoints.
         // Change after: npx wrangler deploy
         var API_BASE = "https://bucket-site-editor.bucketofjames.workers.dev";
-        var USER_NAME = "boj";
         var TOKEN_KEY = "bucketEditorToken";
         var DRAFT_KEY = "bucketEditorDraft";
         var AUTH_KEY = "bucketEditorAuthed";
+        var ROLE_KEY = "bucketEditorRole";
 
         // The default content, preloaded into the editor on first use.
         var DEFAULT_ABOUT =
@@ -336,21 +336,39 @@
         function logout() {
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(AUTH_KEY);
+          localStorage.removeItem(ROLE_KEY);
           location.reload();
         }
         document.getElementById("btn-logout").addEventListener("click", function () {
           if (confirm("Log out? Your draft stays saved on this device.")) logout();
         });
 
+        // ---------------------------------------------------------------
+        // Role-based restrictions (viewer cannot save/publish)
+        // ---------------------------------------------------------------
+        function applyRoleRestrictions() {
+          var role = getRole();
+          var btn = document.getElementById("btn-save");
+          if (role !== "admin") {
+            btn.disabled = true;
+            btn.title = "Read-only — this account cannot publish";
+            btn.style.opacity = "0.45";
+            btn.style.cursor = "not-allowed";
+          }
+        }
+
         // If we have a stored token, trust it (it validates server-side on publish).
         if (localStorage.getItem(AUTH_KEY) === "1" && localStorage.getItem(TOKEN_KEY)) {
           showEditor();
+          applyRoleRestrictions();
         }
 
         function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
-        function setAuth(token) {
+        function getRole() { return localStorage.getItem(ROLE_KEY) || "admin"; }
+        function setAuth(token, role) {
           localStorage.setItem(TOKEN_KEY, token);
           localStorage.setItem(AUTH_KEY, "1");
+          localStorage.setItem(ROLE_KEY, role || "admin");
         }
 
         document.getElementById("login-form").addEventListener("submit", function (e) {
@@ -359,7 +377,6 @@
           var btn = document.getElementById("login-btn");
           var user = document.getElementById("login-user").value.trim();
           var pass = document.getElementById("login-pass").value;
-          if (user !== USER_NAME) { err.textContent = "Incorrect username or password."; err.style.display = "block"; return; }
           btn.disabled = true; btn.textContent = "Logging in…";
           err.style.display = "none";
           fetch(API_BASE + "/api/login", {
@@ -371,8 +388,9 @@
             return res.json();
           }).then(function (data) {
             if (!data.ok) throw new Error("bad");
-            setAuth(data.token);
+            setAuth(data.token, data.role);
             showEditor();
+            applyRoleRestrictions();
           }).catch(function () {
             err.textContent = "Login failed — wrong credentials, or the save worker isn't deployed / configured.";
             err.style.display = "block";
@@ -722,10 +740,14 @@
         }
         document.getElementById("btn-save").addEventListener("click", publish);
         document.addEventListener("keydown", function (e) {
-          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); publish(); }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+            e.preventDefault();
+            if (getRole() === "admin") publish();
+          }
         });
 
         function publish() {
+          if (getRole() !== "admin") return;
           updateState();
           saveDraft(state);
           var btn = document.getElementById("btn-save");
@@ -737,6 +759,7 @@
             body: JSON.stringify({ token: getToken(), about: state.about, manifestos: state.manifestos })
           }).then(function (res) {
             if (res.status === 401) throw new Error("auth");
+            if (res.status === 403) throw new Error("forbidden");
             return res.json();
           }).then(function (data) {
             if (!data.ok) throw new Error("server");
@@ -744,6 +767,8 @@
           }).catch(function (err) {
             var msg = err.message === "auth"
               ? "Session expired — log in again."
+              : err.message === "forbidden"
+              ? "Read-only — this account cannot publish."
               : "Save failed. Is the worker deployed and configured?";
             showStatus(msg, false);
           }).finally(function () { btn.disabled = false; });

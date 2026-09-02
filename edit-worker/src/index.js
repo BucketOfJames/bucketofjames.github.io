@@ -1,12 +1,14 @@
 // Cloudflare Worker: BucketOfJames site editor backend.
 //
 // Routes:
-//   POST /api/login   { user, password } -> { ok:true, token }  (sets nothing)
+//   POST /api/login   { user, password } -> { ok:true, token, role }
 //   POST /api/publish { token, about, manifestos[] } -> commits rendered HTML to repo
 //
 // Secrets (set via `wrangler secret put <NAME>`):
-//   EDIT_USER        - the accepted username (e.g. "boj")
-//   EDIT_PASS_HASH   - PBKDF2 hash string produced by generate-hash.mjs
+//   EDIT_USERS       - JSON object mapping usernames to { hash, role }
+//                      e.g. { "boj": { "hash": "PBKDF2$...", "role": "admin" },
+//                             "csy": { "hash": "PBKDF2$...", "role": "viewer" } }
+//   EDIT_PASS_HASH   - (legacy fallback) PBKDF2 hash string for single admin user
 //   EDIT_TOKEN_SECRET- long random secret used to sign/verify login tokens
 //   GITHUB_TOKEN     - fine-grained PAT with Contents read+write on the repo
 //   GITHUB_REPO      - "owner/repo" (e.g. "bucketofjames/bucketofjames.github.io")
@@ -72,24 +74,45 @@ async function handleLogin(request, env) {
   const user = typeof body.user === "string" ? body.user : "";
   const password = typeof body.password === "string" ? body.password : "";
 
-  if (!env.EDIT_USER || !env.EDIT_PASS_HASH || !env.EDIT_TOKEN_SECRET) {
+  if (!env.EDIT_TOKEN_SECRET) {
     return json({ error: "Worker not configured (missing secrets)" }, 500, env);
   }
 
-  if (user !== env.EDIT_USER || !(await verifyPassword(password, env.EDIT_PASS_HASH))) {
+  // Check multi-user secret first, fall back to legacy single-user secret.
+  let passHash = null;
+  let role = "admin";
+  if (env.EDIT_USERS) {
+    try {
+      const users = JSON.parse(env.EDIT_USERS);
+      if (users[user]) {
+        passHash = users[user].hash;
+        role = users[user].role || "admin";
+      }
+    } catch (e) { /* ignore malformed JSON */ }
+  }
+  if (!passHash && env.EDIT_USER && env.EDIT_PASS_HASH) {
+    // Legacy single-user mode (backward compat for boj).
+    if (user === env.EDIT_USER) {
+      passHash = env.EDIT_PASS_HASH;
+      role = "admin";
+    }
+  }
+
+  if (!passHash || !(await verifyPassword(password, passHash))) {
     return json({ error: "Invalid username or password" }, 401, env);
   }
 
-  const token = await signToken(user, env);
-  return json({ ok: true, token }, 200, env);
+  const token = await signToken(user, role, env);
+  return json({ ok: true, token, role }, 200, env);
 }
 
 // EDIT_PASS_HASH format: PBKDF2$<iterations>$<salt_b64>$<hash_b64>
 // (verifyPassword + b64ToBytes + constantTimeEqual live in ./verify.js)
 
 // Stateless signed token: base64url(header.payload) + "." + base64url(hmac)
-async function signToken(user, env) {
-  const payload = `${user}.${Date.now() + TOKEN_TTL_MS}`;
+// Payload format: "user.role.expiry" (new) or "user.expiry" (legacy, treated as admin).
+async function signToken(user, role, env) {
+  const payload = `${user}.${role}.${Date.now() + TOKEN_TTL_MS}`;
   const msg = b64url(new TextEncoder().encode(payload));
   const hmac = await crypto.subtle.importKey(
     "raw",
@@ -103,21 +126,24 @@ async function signToken(user, env) {
 }
 
 async function verifyToken(token, env) {
-  if (!env.EDIT_TOKEN_SECRET || !token) return false;
+  if (!env.EDIT_TOKEN_SECRET || !token) return { ok: false };
   const dot = token.lastIndexOf(".");
-  if (dot <= 0) return false;
+  if (dot <= 0) return { ok: false };
   const msgB64 = token.slice(0, dot);
   const sigB64 = token.slice(dot + 1);
   let payload;
   try {
     payload = new TextDecoder().decode(b64urlToBytes(msgB64));
   } catch (e) {
-    return false;
+    return { ok: false };
   }
-  const [user, expiryStr] = payload.split(".");
-  if (user !== env.EDIT_USER) return false;
+  const parts = payload.split(".");
+  const user = parts[0];
+  // New format: user.role.expiry; legacy: user.expiry (admin by default).
+  const role = parts.length >= 3 ? parts[1] : "admin";
+  const expiryStr = parts[parts.length - 1];
   const expiry = Number(expiryStr);
-  if (!Number.isFinite(expiry) || Date.now() > expiry) return false;
+  if (!Number.isFinite(expiry) || Date.now() > expiry) return { ok: false };
 
   const hmac = await crypto.subtle.importKey(
     "raw",
@@ -132,7 +158,7 @@ async function verifyToken(token, env) {
     b64urlToBytes(sigB64),
     new TextEncoder().encode(payload)
   );
-  return ok;
+  return ok ? { ok: true, user, role } : { ok: false };
 }
 
 // ---------------------------------------------------------------
@@ -145,8 +171,12 @@ async function handlePublish(request, env) {
   } catch (e) {
     return json({ error: "Invalid JSON" }, 400, env);
   }
-  if (!(await verifyToken(body.token, env))) {
+  const tokenResult = await verifyToken(body.token, env);
+  if (!tokenResult.ok) {
     return json({ error: "Unauthorized" }, 401, env);
+  }
+  if (tokenResult.role !== "admin") {
+    return json({ error: "Forbidden — this account cannot publish" }, 403, env);
   }
   if (!env.GITHUB_TOKEN || !env.GITHUB_REPO || !env.GITHUB_BRANCH) {
     return json({ error: "Worker not configured (missing GitHub secrets)" }, 500, env);
