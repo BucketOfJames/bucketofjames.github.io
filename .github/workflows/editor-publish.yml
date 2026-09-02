@@ -30,14 +30,16 @@ jobs:
           # Extract fields to temp files (avoids shell quoting issues with HTML)
           echo "$PAYLOAD" | jq -r '.aboutHtml' > /tmp/about.html
           echo "$PAYLOAD" | jq -r '.manHtml' > /tmp/man.html
-          echo "$PAYLOAD" | jq -r '.editHtml' > /tmp/edit-defaults.js
+          echo "$PAYLOAD" | jq -r '.editAboutDefaults' > /tmp/edit-about.js
+          echo "$PAYLOAD" | jq -r '.editManifestosDefaults' > /tmp/edit-mans.js
           msgIndex=$(echo "$PAYLOAD" | jq -r '.msgIndex')
           msgEdit=$(echo "$PAYLOAD" | jq -r '.msgEdit')
 
           echo "=== Extracted payload fields ==="
           echo "aboutHtml: $(wc -c < /tmp/about.html) bytes"
           echo "manHtml: $(wc -c < /tmp/man.html) bytes"
-          echo "editHtml: $(wc -c < /tmp/edit-defaults.js) bytes"
+          echo "editAboutDefaults: $(wc -c < /tmp/edit-about.js) bytes"
+          echo "editManifestosDefaults: $(wc -c < /tmp/edit-mans.js) bytes"
           echo "msgIndex: $msgIndex"
           echo "msgEdit: $msgEdit"
 
@@ -59,14 +61,21 @@ jobs:
           print("index.html updated")
           PYEOF
 
-          # --- edit/index.html: replace between JS default markers ---
+          # --- edit/index.html: replace each section separately ---
           python3 << 'PYEOF'
           import re
           html = open("edit/index.html").read()
-          repl = open("/tmp/edit-defaults.js").read()
+          aboutRepl = open("/tmp/edit-about.js").read()
+          mansRepl = open("/tmp/edit-mans.js").read()
+          # Replace about defaults (between ABOUT_START and ABOUT_END)
           html = re.sub(
-              r"//__ABOUT_START__.*?//__MANIFESTOS_END__",
-              repl,
+              r"//__ABOUT_START__.*?//__ABOUT_END__",
+              "//__ABOUT_START__\n" + aboutRepl + "\n          //__ABOUT_END__",
+              html, count=1, flags=re.DOTALL)
+          # Replace manifestos defaults (between MANIFESTOS_START and MANIFESTOS_END)
+          html = re.sub(
+              r"//__MANIFESTOS_START__.*?//__MANIFESTOS_END__",
+              "//__MANIFESTOS_START__\n" + mansRepl + "\n          //__MANIFESTOS_END__",
               html, count=1, flags=re.DOTALL)
           open("edit/index.html", "w").write(html)
           print("edit/index.html updated")

@@ -204,13 +204,14 @@ async function handlePublish(request, env) {
 
     // Generate edit/index.html defaults replacement.
     const editFile = await getFile(env, "edit/index.html");
-    const editDefaultsReplacement = buildEditDefaultsReplacement(editFile.content, about, manifestos);
+    const { aboutDefaults, manifestosDefaults } = buildEditDefaultsReplacement(editFile.content, about, manifestos);
 
     // Trigger GitHub Actions workflow to commit with GPG signing.
     await triggerWorkflow(env, {
       aboutHtml,
       manHtml,
-      editHtml: editDefaultsReplacement,
+      editAboutDefaults: aboutDefaults,
+      editManifestosDefaults: manifestosDefaults,
       msgIndex: "Update site content from editor",
       msgEdit: "Update editor defaults from publish",
     });
@@ -300,7 +301,6 @@ function replaceBetween(source, open, close, replacement) {
 // ---------------------------------------------------------------
 function buildEditDefaultsReplacement(_html, aboutMd, manifestos) {
   const indent = "          ";
-  const parts = [];
 
   // --- About ---
   const aboutLines = aboutMd.split("\n");
@@ -313,13 +313,13 @@ function buildEditDefaultsReplacement(_html, aboutMd, manifestos) {
       aboutParts.push(indent + jsString(line));
     }
   }
-  parts.push("//__ABOUT_START__\n" + aboutParts.join("\n") + "\n          //__ABOUT_END__");
+  const aboutDefaults = aboutParts.join("\n");
 
   // --- Manifestos ---
   const manParts = manifestos.map((m) => indent + jsString(m) + ",");
-  parts.push("//__MANIFESTOS_START__\n" + manParts.join("\n") + "\n          //__MANIFESTOS_END__");
+  const manifestosDefaults = manParts.join("\n");
 
-  return parts.join("\n");
+  return { aboutDefaults, manifestosDefaults };
 }
 
 // Escape a string for use as a JavaScript "..." literal (double quotes, \n, \\).
