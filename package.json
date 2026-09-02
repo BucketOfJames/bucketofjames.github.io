@@ -1,0 +1,8 @@
+{
+  "name": "bucketofjames-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node edit-worker/test/render.test.mjs && node edit-worker/test/api.test.mjs"
+  }
+}
