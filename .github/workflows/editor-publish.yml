@@ -62,13 +62,18 @@ jobs:
           import re
           html = open("edit/index.html").read()
           repl = open("/tmp/edit-defaults.md").read()
+          # Strip ALL existing marker lines first (prevents duplicates)
+          html = re.sub(r"\n?//__(?:ABOUT|MANIFESTOS)_(?:START|END)__\n?", "\n", html)
+          # Clean up any resulting blank line clusters
+          html = re.sub(r"\n{3,}", "\n\n", html)
+          # Insert fresh markers with content
+          aboutMd = repl.split("//__MANIFESTOS_START__")[0].rstrip()
+          mansMd = repl.split("//__MANIFESTOS_START__")[1].split("//__MANIFESTOS_END__")[0].rstrip()
+          marker = "//__ABOUT_START__\n" + aboutMd + "\n//__ABOUT_END__\n//__MANIFESTOS_START__\n" + mansMd + "\n//__MANIFESTOS_END__"
+          # Find the insertion point (after the script tag opening)
           html = re.sub(
-              r"//__ABOUT_START__\n[\s\S]*?\n//__ABOUT_END__",
-              "//__ABOUT_START__\n" + repl.split("//__MANIFESTOS_START__")[0].rstrip() + "\n//__ABOUT_END__",
-              html, count=1)
-          html = re.sub(
-              r"//__MANIFESTOS_START__\n[\s\S]*?\n//__MANIFESTOS_END__",
-              "//__MANIFESTOS_START__\n" + repl.split("//__MANIFESTOS_START__")[1].split("//__MANIFESTOS_END__")[0].rstrip() + "\n//__MANIFESTOS_END__",
+              r'(<script type="text/markdown" id="default-content">)\n',
+              r"\1\n" + marker + "\n",
               html, count=1)
           open("edit/index.html", "w").write(html)
           print("edit/index.html updated")
