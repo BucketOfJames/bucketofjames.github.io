@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   commit:
@@ -21,70 +22,21 @@ jobs:
           git_user_signingkey: true
           git_commit_gpgsign: true
 
-      - name: Apply editor changes and push
+      - name: Apply staged content and push (GPG-signed)
         env:
-          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+          MSG: ${{ github.event.client_payload.msg }}
         run: |
           set -e
+          git fetch origin editor-staging
+          git checkout FETCH_HEAD -- index.html
+          git add index.html
+          git commit -S -m "${MSG:-Update site content from editor}" || echo "Nothing to commit — content already on main."
+          git push || { git pull --rebase origin main && git push; }
 
-          # Extract fields to temp files
-          echo "$PAYLOAD" | jq -r '.aboutHtml' > /tmp/about.html
-          echo "$PAYLOAD" | jq -r '.manHtml' > /tmp/man.html
-          echo "$PAYLOAD" | jq -r '.editDefaults' > /tmp/edit-defaults.md
-          msgIndex=$(echo "$PAYLOAD" | jq -r '.msgIndex')
-          msgEdit=$(echo "$PAYLOAD" | jq -r '.msgEdit')
-
-          echo "=== Payload ==="
-          echo "aboutHtml: $(wc -c < /tmp/about.html) bytes"
-          echo "manHtml: $(wc -c < /tmp/man.html) bytes"
-          echo "editDefaults: $(wc -c < /tmp/edit-defaults.md) bytes"
-
-          # --- index.html: replace between HTML markers ---
-          python3 << 'PYEOF'
-          import re
-          html = open("index.html").read()
-          about = open("/tmp/about.html").read()
-          man = open("/tmp/man.html").read()
-          html = re.sub(
-              r"<!--about-content-->.*?<!--/about-content-->",
-              "<!--about-content-->\n" + about + "\n<!--/about-content-->",
-              html, count=1, flags=re.DOTALL)
-          html = re.sub(
-              r"<!--manifestos-content-->.*?<!--/manifestos-content-->",
-              "<!--manifestos-content-->\n" + man + "\n<!--/manifestos-content-->",
-              html, count=1, flags=re.DOTALL)
-          open("index.html", "w").write(html)
-          print("index.html updated")
-          PYEOF
-
-          # --- edit/index.html: replace between markdown markers ---
-          python3 << 'PYEOF'
-          import re
-          html = open("edit/index.html").read()
-          repl = open("/tmp/edit-defaults.md").read()
-          # Strip ALL existing marker lines first (prevents duplicates)
-          html = re.sub(r"\n?//__(?:ABOUT|MANIFESTOS)_(?:START|END)__\n?", "\n", html)
-          # Clean up any resulting blank line clusters
-          html = re.sub(r"\n{3,}", "\n\n", html)
-          # Insert fresh markers with content
-          aboutMd = repl.split("//__MANIFESTOS_START__")[0].rstrip()
-          mansMd = repl.split("//__MANIFESTOS_START__")[1].split("//__MANIFESTOS_END__")[0].rstrip()
-          marker = "//__ABOUT_START__\n" + aboutMd + "\n//__ABOUT_END__\n//__MANIFESTOS_START__\n" + mansMd + "\n//__MANIFESTOS_END__"
-          # Find the insertion point (after the script tag opening)
-          html = re.sub(
-              r'(<script type="text/markdown" id="default-content">)\n',
-              r"\1\n" + marker + "\n",
-              html, count=1)
-          open("edit/index.html", "w").write(html)
-          print("edit/index.html updated")
-          PYEOF
-
-          # Commit with GPG signing
-          git config user.name "bucket-editor"
-          git config user.email "mr.jaanv@gmail.com"
-
-          git add index.html edit/index.html
-          git commit -S -m "$msgIndex"
-
-          git push
-          echo "=== Pushed ==="
+      - name: Open issue on failure
+        if: failure()
+        run: |
+          gh issue create \
+            --title "Editor publish failed" \
+            --body "The editor publish workflow failed at $(date -u). Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --label editor-publish || true

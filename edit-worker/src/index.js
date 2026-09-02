@@ -1,8 +1,22 @@
 // Cloudflare Worker: BucketOfJames site editor backend.
 //
 // Routes:
-//   POST /api/login   { user, password } -> { ok:true, token, role }
-//   POST /api/publish { token, about, manifestos[] } -> commits rendered HTML to repo
+//   POST /api/login    { user, password } -> { ok:true, token, role }
+//   POST /api/publish  { token, about, manifestos[] } -> renders, stages, dispatches
+//   GET  /api/content  (Authorization: Bearer <token>) -> { ok, about, manifestos }
+//                      Live content as markdown, derived from index.html.
+//
+// Publish pipeline (GitHub Pages + Actions, GPG-signed commits):
+//   1. Verify token + admin role.
+//   2. Normalize raw HTML -> markdown, render markdown -> HTML.
+//   3. Fetch index.html from the GitHub API; if the marker regions are
+//      unchanged, report "No changes".
+//   4. Otherwise write the fully-assembled index.html to the
+//      `editor-staging` branch (Contents API). This keeps the
+//      repository_dispatch client_payload tiny (message only), immune to the
+//      ~10 KB payload ceiling.
+//   5. Fire repository_dispatch; the editor-publish workflow copies the
+//      staged file to main in one GPG-signed commit.
 //
 // Secrets (set via `wrangler secret put <NAME>`):
 //   EDIT_USERS       - JSON object mapping usernames to { hash, role }
@@ -12,15 +26,16 @@
 //   EDIT_TOKEN_SECRET- long random secret used to sign/verify login tokens
 //   GITHUB_TOKEN     - fine-grained PAT with Contents read+write on the repo
 //   GITHUB_REPO      - "owner/repo" (e.g. "bucketofjames/bucketofjames.github.io")
-//   GITHUB_BRANCH    - branch to write to (e.g. "main")
+//   GITHUB_BRANCH    - branch the site lives on (default "main")
 //
 // Optional var (wrangler.jsonc "vars"):
 //   ALLOWED_ORIGIN   - restrict CORS to this origin (default *)
 
-import { renderMarkdown, htmlToMarkdown } from "./render.js";
+import { renderMarkdown, htmlToMarkdown } from "../../shared/render.js";
 import { verifyPassword, b64ToBytes } from "./verify.js";
 
 const TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
+const STAGING_BRANCH = "editor-staging";
 
 export default {
   async fetch(request, env) {
@@ -34,6 +49,9 @@ export default {
     if (url.pathname === "/api/publish" && request.method === "POST") {
       return handlePublish(request, env);
     }
+    if (url.pathname === "/api/content" && request.method === "GET") {
+      return handleContent(request, env);
+    }
     return json({ error: "Not found" }, 404, env);
   },
 };
@@ -44,8 +62,8 @@ export default {
 function corsHeaders(env) {
   return {
     "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",
   };
 }
@@ -162,7 +180,49 @@ async function verifyToken(token, env) {
 }
 
 // ---------------------------------------------------------------
-// Publish (render markdown -> HTML, replace markers in index.html + edit/index.html, commit)
+// Content (live markdown, derived from the marker regions of index.html)
+// ---------------------------------------------------------------
+const ABOUT_OPEN = "<!--about-content-->";
+const ABOUT_CLOSE = "<!--/about-content-->";
+const MAN_OPEN = "<!--manifestos-content-->";
+const MAN_CLOSE = "<!--/manifestos-content-->";
+
+function extractSection(html, open, close) {
+  const i = html.indexOf(open);
+  if (i < 0) return "";
+  const j = html.indexOf(close, i);
+  if (j < 0) return "";
+  return html.slice(i + open.length, j);
+}
+
+function extractManifestos(manHtml) {
+  const out = [];
+  const re = /<article class="manifestos-item">([\s\S]*?)<\/article>/g;
+  let m;
+  while ((m = re.exec(manHtml)) !== null) out.push(m[1]);
+  return out;
+}
+
+async function handleContent(request, env) {
+  const auth = request.headers.get("Authorization") || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const tokenResult = await verifyToken(token, env);
+  if (!tokenResult.ok) {
+    return json({ error: "Unauthorized" }, 401, env);
+  }
+  try {
+    const file = await getFile(env, "index.html");
+    const aboutHtml = extractSection(file.content, ABOUT_OPEN, ABOUT_CLOSE);
+    const manHtml = extractSection(file.content, MAN_OPEN, MAN_CLOSE);
+    const manifestos = extractManifestos(manHtml).map((m) => htmlToMarkdown(m));
+    return json({ ok: true, about: htmlToMarkdown(aboutHtml), manifestos }, 200, env);
+  } catch (err) {
+    return json({ error: "Failed to load content", detail: String(err) }, 500, env);
+  }
+}
+
+// ---------------------------------------------------------------
+// Publish (render markdown -> HTML, stage on editor-staging, dispatch workflow)
 // ---------------------------------------------------------------
 async function handlePublish(request, env) {
   let body;
@@ -191,8 +251,8 @@ async function handlePublish(request, env) {
 
   const aboutHtml = renderMarkdown(about);
   const manHtml = manifestos
-    .map((m) => `\n<article class="manifestos-item">\n${renderMarkdown(m)}\n</article>`)
-    .join("\n");
+    .map((m) => `<article class="manifestos-item">\n${renderMarkdown(m)}\n</article>`)
+    .join("\n\n");
 
   try {
     // Fetch index.html to detect changes.
@@ -202,34 +262,36 @@ async function handlePublish(request, env) {
       return json({ ok: true, changed: false, message: "No changes" }, 200, env);
     }
 
-    // Generate edit/index.html defaults replacement (raw markdown).
-    const editFile = await getFile(env, "edit/index.html");
-    const editDefaultsReplacement = buildEditDefaultsReplacement(about, manifestos);
+    // Stage the fully-assembled index.html, then let the workflow commit it.
+    await putStaging(env, updatedContent);
+    await triggerWorkflow(env, { msg: "Update site content from editor" });
 
-    // Trigger GitHub Actions workflow to commit with GPG signing.
-    await triggerWorkflow(env, {
-      aboutHtml,
-      manHtml,
-      editDefaults: editDefaultsReplacement,
-      msgIndex: "Update site content from editor",
-      msgEdit: "Update editor defaults from publish",
-    });
-
-    return json({ ok: true, changed: true }, 200, env);
+    return json(
+      { ok: true, changed: true, live: { about, manifestos } },
+      200,
+      env
+    );
   } catch (err) {
     return json({ error: "Publish failed", detail: String(err) }, 500, env);
   }
 }
 
-async function getFile(env, path) {
-  const headers = {
+// ---------------------------------------------------------------
+// GitHub API helpers
+// ---------------------------------------------------------------
+function ghHeaders(env, extra) {
+  return {
     Authorization: `Bearer ${env.GITHUB_TOKEN}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
     "User-Agent": "bucket-editor-worker",
+    ...extra,
   };
+}
+
+async function getFile(env, path) {
   const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${path}`;
-  const res = await fetch(url, { headers });
+  const res = await fetch(url, { headers: ghHeaders(env) });
   if (!res.ok) {
     throw new Error(`GitHub get failed (${res.status}): ${await res.text()}`);
   }
@@ -240,34 +302,65 @@ async function getFile(env, path) {
   return { sha: data.sha, content: decodeBase64(data.content) };
 }
 
-async function triggerWorkflow(env, payload) {
-  const headers = {
-    Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "bucket-editor-worker",
-    "Content-Type": "application/json",
+// Write the assembled index.html to the editor-staging branch.
+// If the branch is missing, create it from main and retry once.
+async function putStaging(env, content) {
+  let res = await putStagingOnce(env, content);
+  if (res.status === 404 || res.status === 422) {
+    await createBranch(env, STAGING_BRANCH, env.GITHUB_BRANCH || "main");
+    res = await putStagingOnce(env, content);
+  }
+  if (!res.ok) {
+    throw new Error(`GitHub staging write failed (${res.status}): ${await res.text()}`);
+  }
+}
+
+async function putStagingOnce(env, content) {
+  const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/index.html`;
+  const existing = await fetch(`${url}?ref=${STAGING_BRANCH}`, { headers: ghHeaders(env) });
+  let sha = null;
+  if (existing.ok) sha = (await existing.json()).sha;
+  const body = {
+    message: "Editor staging",
+    content: encodeBase64(content),
+    branch: STAGING_BRANCH,
   };
+  if (sha) body.sha = sha;
+  return fetch(url, {
+    method: "PUT",
+    headers: ghHeaders(env, { "Content-Type": "application/json" }),
+    body: JSON.stringify(body),
+  });
+}
+
+async function createBranch(env, branch, fromBranch) {
+  const refUrl = `https://api.github.com/repos/${env.GITHUB_REPO}/git/ref`;
+  const head = await fetch(`${refUrl}/heads/${branch}`, { headers: ghHeaders(env) });
+  if (head.ok) return;
+  const base = await fetch(`${refUrl}/heads/${fromBranch}`, { headers: ghHeaders(env) });
+  if (!base.ok) throw new Error(`GitHub ref read failed (${base.status})`);
+  const sha = (await base.json()).object.sha;
+  const res = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/git/refs`, {
+    method: "POST",
+    headers: ghHeaders(env, { "Content-Type": "application/json" }),
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha }),
+  });
+  if (!res.ok) throw new Error(`GitHub branch create failed (${res.status}): ${await res.text()}`);
+}
+
+async function triggerWorkflow(env, payload) {
   const res = await fetch(
     `https://api.github.com/repos/${env.GITHUB_REPO}/dispatches`,
     {
       method: "POST",
-      headers,
-      body: JSON.stringify({
-        event_type: "editor-publish",
-        client_payload: payload,
-      }),
+      headers: ghHeaders(env, { "Content-Type": "application/json" }),
+      body: JSON.stringify({ event_type: "editor-publish", client_payload: payload }),
     }
   );
   if (!res.ok) {
     throw new Error(`GitHub dispatch failed (${res.status}): ${await res.text()}`);
   }
 }
-
-const ABOUT_OPEN = "<!--about-content-->";
-const ABOUT_CLOSE = "<!--/about-content-->";
-const MAN_OPEN = "<!--manifestos-content-->";
-const MAN_CLOSE = "<!--/manifestos-content-->";
 
 function replaceSections(html, aboutHtml, manHtml) {
   let out = html;
@@ -283,31 +376,17 @@ function replaceBetween(source, open, close, replacement) {
   if (j < 0) return source;
   const start = i + open.length;
   const before = source.slice(start, j);
-  // Preserve the newline after the open marker for tidy output.
-  const indent = /^\s*\n/.test(before) ? "\n" : "";
+  // Preserve the region's surrounding whitespace exactly, so an unchanged
+  // publish compares equal (idempotent from the very first save).
+  const leadingWs = /^\s*/.exec(before)[0];
+  const trailingWs = /\s*$/.exec(before.slice(leadingWs.length))[0];
   return (
     source.slice(0, start) +
-    indent +
+    leadingWs +
     replacement +
-    (/\n\s*$/.test(before) ? "\n" : "") +
+    trailingWs +
     source.slice(j)
   );
-}
-
-// ---------------------------------------------------------------
-// Build the replacement content for edit/index.html defaults.
-// Returns the raw text to insert between the markers (excluding markers).
-// ---------------------------------------------------------------
-// Build raw markdown replacement for edit/index.html defaults.
-function buildEditDefaultsReplacement(aboutMd, manifestos) {
-  const aboutBlock = "//__ABOUT_START__\n" + aboutMd + "\n//__ABOUT_END__";
-  const manifestosBlock = "//__MANIFESTOS_START__\n" + manifestos.join("\n---\n") + "\n//__MANIFESTOS_END__";
-  return aboutBlock + "\n" + manifestosBlock;
-}
-
-// Escape a string for use as a JavaScript "..." literal (double quotes, \n, \\).
-function jsString(s) {
-  return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n") + '"';
 }
 
 // ---------------------------------------------------------------

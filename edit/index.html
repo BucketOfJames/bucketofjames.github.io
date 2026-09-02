@@ -308,147 +308,77 @@
       </div>
     </div>
 
-    <script type="text/markdown" id="default-content">
-//__ABOUT_START__
-I am the guy you love to hate.
+    
+    <script type="module">
+      import { renderMarkdown } from "../shared/render.js";
 
-I'm into video james, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.
-
-I use arch btw  ~(cachyos)~
-//__ABOUT_END__
-//__ABOUT_END__
-//__ABOUT_END__
-//__MANIFESTOS_START__
-
-The people who hate me are proof that I'm doing the right thing.
----
-Do you know why just about all the powerful people and almost any figure of authority are so stupid? It's because people hate those who are smarter and more competent than they are. And the masses are generally fairly stupid; the average person is not very smart. This is supported by the Pratfall Effect - a phenomenon where highly competent individuals become more likeable after making a mistake.
----
-Life is actually very simple. If I want something I can always just ask for it. 9 times out of 10 I'm the one overcomplicating shit. So are you, probably.
-
-Who cares what the answer is?
----
-If the good die young, most of you might live forever.
----
-I'm a conceptualist, so I like to think about the future we could have and the potential of humanity, but the hard truth is that the human nature will not let us prevail. We are self-destructive and destined to doom. I'm not being pessimistic, I try my best and I hope for the best. But... c'mon. People fucking suck.
----
-Y'know how they say "You need to love yourself before you can love someone else"? I confidently disagree - I love so deeply that I actually forget to hate myself.
----
-Aren't being bored and being crazy essentially the same? Both have different levels to them, and I am quite certain they overlap more than we might think.
----
-"If they wanted to, they would." is genuinely one of the worst mentalities you can have in almost any relationship. Everyone has things they want to do but won't. I have so many things I (really) want to do but I just don't, I don't for no fucking reason. We are humans, for cryin' out loud - if you want something just ask. And if they keep ignoring that, then you can start considering apathy.
----
-What, you think you're fucking better than me?
-
-Well... you probably are. Not that I care though.
----
-The day we started seeing nudity as something sexual and perverse, instead of the truest form of purity, was the day society was doomed.
----
-One of the reasons I won't kill myself is pure, distilled spite. Not *just* spite, but defiance too. I am choosing to exist as an act of resistance against the people I know full well would feel some sort of happiness from my *absolute absence*. Well, fuck them, I win.
-
-While thinking about this, as one does, I decided to look it up. And apparently it's actually a recognized concept in suicidology. It is sometimes called "spite-based survival" or "outliving your enemies." And, somewhat paradoxically, it is one of the most effective short-term protective factors against acting on suicidal thoughts because the motivation is visceral and immediate (anger).
-
-I still consider my main reasons for not succumbing to suicidal ideation to be happiness, hope and love. As abstract as they are.
-//__MANIFESTOS_END__
-    </script>
-
-    <script>
       (function () {
         "use strict";
 
         // ---------------------------------------------------------------
         // Config
         // ---------------------------------------------------------------
-        // Absolute URL of the deployed Cloudflare Worker /api endpoints.
-        // Change after: npx wrangler deploy
         var API_BASE = "https://bucket-site-editor.bucketofjames.workers.dev";
-        var TOKEN_KEY = "bucketEditorToken";
         var DRAFT_KEY = "bucketEditorDraft";
-        var AUTH_KEY = "bucketEditorAuthed";
-        var ROLE_KEY = "bucketEditorRole";
+        var AUTH_KEY = "bucketEditorAuth";
+        var OLD_TOKEN_KEY = "bucketEditorToken";
+        var OLD_AUTH_KEY = "bucketEditorAuthed";
+        var OLD_ROLE_KEY = "bucketEditorRole";
 
-        // The default content, preloaded into the editor on first use.
-        // The worker updates these values on every publish (markers denote the editable region).
-        // About: raw markdown between markers. Manifestos: raw markdown, separated by ---.
-        var ABOUT = (function () {
-          var el = document.getElementById("default-content");
-          if (!el) return "";
-          var m = el.textContent.match(/\/\/__ABOUT_START__\n([\s\S]*?)\n\s*\/\/__ABOUT_END__/);
-          return m ? m[1] : "";
-        })();
-        var MANIFESTOS = (function () {
-          var el = document.getElementById("default-content");
-          if (!el) return [];
-          var m = el.textContent.match(/\/\/__MANIFESTOS_START__\n([\s\S]*?)\n\s*\/\/__MANIFESTOS_END__/);
-          if (!m) return [];
-          return m[1].split("\n---\n").map(function (x) { return x.trim(); });
-        })();
+        // Live content as published to the repo (authoritative "Reset to live" baseline).
+        var live = { about: "", manifestos: [] };
+        var contentLoaded = false;
+        var state = null;
 
         // ---------------------------------------------------------------
-        // Storage (draft autosave + auth token)
+        // Auth: one localStorage key { token, role } (migrates the old 3-key layout).
+        // The server validates the token on every API call; client checks are UX only.
         // ---------------------------------------------------------------
-        function loadState() {
+        function migrateAuth() {
+          var oldToken = localStorage.getItem(OLD_TOKEN_KEY);
+          if (oldToken && !localStorage.getItem(AUTH_KEY)) {
+            setAuth(oldToken, localStorage.getItem(OLD_ROLE_KEY) || "admin");
+          }
+          localStorage.removeItem(OLD_TOKEN_KEY);
+          localStorage.removeItem(OLD_AUTH_KEY);
+          localStorage.removeItem(OLD_ROLE_KEY);
+        }
+        function getToken() {
           try {
-            var raw = localStorage.getItem(DRAFT_KEY);
-            if (raw) {
-              var d = JSON.parse(raw);
-              if (d && typeof d === "object") {
-                return {
-                  about: typeof d.about === "string" ? d.about : ABOUT,
-                  manifestos: Array.isArray(d.manifestos) ? d.manifestos.map(String) : MANIFESTOS.slice()
-                };
-              }
-            }
-          } catch (e) {}
-          return { about: ABOUT, manifestos: MANIFESTOS.slice() };
+            var a = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
+            return (a && a.token) || "";
+          } catch (e) { return ""; }
         }
-        function saveDraft(state) {
-          try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); } catch (e) {}
+        function getRole() {
+          try {
+            var a = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
+            return (a && a.role) || "admin";
+          } catch (e) { return "admin"; }
+        }
+        function setAuth(token, role) {
+          localStorage.setItem(AUTH_KEY, JSON.stringify({ token: token, role: role || "admin" }));
+        }
+        function logout() {
+          localStorage.removeItem(AUTH_KEY);
+          location.reload();
         }
 
-        // ---------------------------------------------------------------
-        // Auth: worker validates PBKDF2 password, returns a signed token.
-        // ---------------------------------------------------------------
         var loginEl = document.getElementById("login");
         var editorEl = document.getElementById("editor");
         function showEditor() { loginEl.style.display = "none"; editorEl.hidden = false; }
 
-        function logout() {
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(AUTH_KEY);
-          localStorage.removeItem(ROLE_KEY);
-          location.reload();
-        }
         document.getElementById("btn-logout").addEventListener("click", function () {
           if (confirm("Log out? Your draft stays saved on this device.")) logout();
         });
 
-        // ---------------------------------------------------------------
-        // Role-based restrictions (viewer cannot save/publish)
-        // ---------------------------------------------------------------
         function applyRoleRestrictions() {
-          var role = getRole();
           var btn = document.getElementById("btn-save");
-          if (role !== "admin") {
+          if (getRole() !== "admin") {
             btn.disabled = true;
             btn.title = "Read-only — this account cannot publish";
             btn.style.opacity = "0.45";
             btn.style.cursor = "not-allowed";
           }
-        }
-
-        // If we have a stored token, trust it (it validates server-side on publish).
-        if (localStorage.getItem(AUTH_KEY) === "1" && localStorage.getItem(TOKEN_KEY)) {
-          showEditor();
-          applyRoleRestrictions();
-        }
-
-        function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
-        function getRole() { return localStorage.getItem(ROLE_KEY) || "admin"; }
-        function setAuth(token, role) {
-          localStorage.setItem(TOKEN_KEY, token);
-          localStorage.setItem(AUTH_KEY, "1");
-          localStorage.setItem(ROLE_KEY, role || "admin");
         }
 
         document.getElementById("login-form").addEventListener("submit", function (e) {
@@ -471,6 +401,7 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
             setAuth(data.token, data.role);
             showEditor();
             applyRoleRestrictions();
+            loadLive();
           }).catch(function () {
             err.textContent = "Login failed — wrong credentials, or the save worker isn't deployed / configured.";
             err.style.display = "block";
@@ -481,262 +412,52 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
         });
 
         // ---------------------------------------------------------------
-        // Custom renderer (identical to edit-worker/src/render.js output)
+        // Live content (markdown, converted server-side from index.html)
         // ---------------------------------------------------------------
-        function renderMarkdown(raw) {
-          if (typeof raw !== "string") raw = String(raw || "");
-          return renderBlocks(raw.split(/\r?\n/));
+        function loadLive() {
+          contentLoaded = false;
+          fetch(API_BASE + "/api/content", {
+            headers: { "Authorization": "Bearer " + getToken() }
+          }).then(function (res) {
+            if (res.status === 401) { logout(); throw new Error("auth"); }
+            if (!res.ok) throw new Error("bad");
+            return res.json();
+          }).then(function (data) {
+            if (!data.ok) throw new Error("bad");
+            live.about = data.about;
+            live.manifestos = data.manifestos;
+            contentLoaded = true;
+            initEditor();
+          }).catch(function () {
+            showStatus("Couldn't load live content — refresh the page.", false);
+          });
         }
-        function renderBlocks(lines) {
-          var out = [];
-          var i = 0;
-          while (i < lines.length) {
-            var ln = lines[i];
-            var t = ln.trim();
-
-            // Fenced code block: ``` (optional info string) ... ```
-            var fence = /^(`{3,})\s*([^`]*)$/.exec(t);
-            if (fence) {
-              var closeRe = new RegExp("^`{" + fence[1].length + ",}\\s*$");
-              var buf = [];
-              i++;
-              while (i < lines.length && !closeRe.test(lines[i].trim())) {
-                buf.push(lines[i]);
-                i++;
-              }
-              i++; // skip the closing fence (or EOF)
-              out.push("<pre><code>" + escapeHtml(buf.join("\n")) + "</code></pre>");
-              continue;
-            }
-
-            // Standalone --- lines are dropped.
-            if (/^-{3,}$/.test(t)) { i++; continue; }
-
-            // Blank line -> empty paragraph (site CSS pads it to a full line).
-            if (t === "") { out.push("<p></p>"); i++; continue; }
-
-            // Heading.
-            var h = /^(#{1,6})\s+/.exec(t);
-            if (h) {
-              var level = h[1].length;
-              out.push("<h" + level + ">" + inline(t.slice(h[0].length)) + "</h" + level + ">");
-              i++;
-              continue;
-            }
-
-            // Horizontal rule: standalone *** or ___ (3+).
-            if (/^(\*\*\*+|___+)$/.test(t)) { out.push("<hr>"); i++; continue; }
-
-            // Unordered list: consecutive "- "/"* "/" + " lines.
-            if (/^[-*+]\s+/.test(t)) {
-              var items = [];
-              while (i < lines.length && /^[-*+]\s+/.test(lines[i].trim())) {
-                items.push(lines[i].trim().replace(/^[-*+]\s+/, ""));
-                i++;
-              }
-              out.push("<ul>" + items.map(function (x) { return "<li>" + inline(x) + "</li>"; }).join("") + "</ul>");
-              continue;
-            }
-
-            // Ordered list: consecutive "1. "/"1) " lines.
-            if (/^\d{1,9}[.)]\s+/.test(t)) {
-              var oitems = [];
-              while (i < lines.length && /^\d{1,9}[.)]\s+/.test(lines[i].trim())) {
-                oitems.push(lines[i].trim().replace(/^\d{1,9}[.)]\s+/, ""));
-                i++;
-              }
-              out.push("<ol>" + oitems.map(function (x) { return "<li>" + inline(x) + "</li>"; }).join("") + "</ol>");
-              continue;
-            }
-
-            // Blockquote (also the base of [!NOTE]-style callouts).
-            if (/^>\s?/.test(t)) {
-              var q = [];
-              while (i < lines.length && /^>\s?/.test(lines[i].trim())) {
-                q.push(lines[i].trim().replace(/^>\s?/, ""));
-                i++;
-              }
-              var note = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.exec(q[0] || "");
-              if (note) {
-                var cls = note[1].toLowerCase();
-                var label = note[1].charAt(0).toUpperCase() + note[1].slice(1).toLowerCase();
-                out.push('<blockquote class="note note-' + cls + '"><p class="note-title">' + label + "</p>" + renderBlocks(q.slice(1)) + "</blockquote>");
-              } else {
-                out.push("<blockquote>" + renderBlocks(q) + "</blockquote>");
-              }
-              continue;
-            }
-
-            out.push("<p>" + inline(ln) + "</p>");
-            i++;
-          }
-          return out.join("\n");
-        }
-        var INLINE_RULES = [
-          { type: "escape", re: /^\\([!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~])/ },
-          { type: "code", re: /^(`+)(.+?)\1/ },
-          { type: "strong", re: /^(\*\*|__)(.+?)\1/ },
-          { type: "del", re: /^(~~)(.+?)\1/ },
-          { type: "underline", re: /^(\+\+)(.+?)\1/ },
-          { type: "mark", re: /^(==)(.+?)\1/ },
-          { type: "sub", re: /^(~)([^~\s](?:[^~]*[^~\s])?)\1/ },
-          { type: "sup", re: /^(\^)([^\^\s](?:[^\^]*[^\^\s])?)\1/ },
-          { type: "em", re: /^(\*|_)(.+?)\1/ },
-          { type: "img", re: /^!\[([^\]]*)\]\(([^)]+)\)/ },
-          { type: "link", re: /^\[([^\]]+)\]\(([^)]+)\)/ },
-        ];
-        function inline(text) {
-          var i = 0, out = "";
-          var stopRe = /[*_~`[!\\^+=]/;
-          while (i < text.length) {
-            var rest = text.slice(i), matched = false;
-            for (var r = 0; r < INLINE_RULES.length; r++) {
-              var m = INLINE_RULES[r].re.exec(rest);
-              if (m) {
-                matched = true;
-                if (INLINE_RULES[r].type === "escape") out += escapeHtml(m[1]);
-                else if (INLINE_RULES[r].type === "code") out += "<code>" + escapeHtml(m[2]) + "</code>";
-                else if (INLINE_RULES[r].type === "strong") out += "<strong>" + inline(m[2]) + "</strong>";
-                else if (INLINE_RULES[r].type === "del") out += "<del>" + inline(m[2]) + "</del>";
-                else if (INLINE_RULES[r].type === "underline") out += "<u>" + inline(m[2]) + "</u>";
-                else if (INLINE_RULES[r].type === "mark") out += "<mark>" + inline(m[2]) + "</mark>";
-                else if (INLINE_RULES[r].type === "sub") out += "<sub>" + inline(m[2]) + "</sub>";
-                else if (INLINE_RULES[r].type === "sup") out += "<sup>" + inline(m[2]) + "</sup>";
-                else if (INLINE_RULES[r].type === "em") out += "<em>" + inline(m[2]) + "</em>";
-                else if (INLINE_RULES[r].type === "img") out += "<img src=\"" + escapeAttr(m[2]) + "\" alt=\"" + escapeAttr(m[1]) + "\">";
-                else if (INLINE_RULES[r].type === "link") out += "<a href=\"" + escapeAttr(m[2]) + "\">" + inline(m[1]) + "</a>";
-                i += m[0].length;
-                break;
-              }
-            }
-            if (!matched) {
-              var restSlice = text.slice(i);
-              var next = restSlice.search(stopRe);
-              var chunkEnd = next === -1 ? restSlice.length : next;
-              var chunk = restSlice.slice(0, chunkEnd);
-              if (chunk.length === 0) chunk = restSlice[0];
-              out += escapeHtml(chunk);
-              i += chunk.length;
-            }
-          }
-          return out;
-        }
-        function escapeHtml(s) {
-          return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-        function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
 
         // ---------------------------------------------------------------
-        // HTML → Markdown (converts raw HTML tags back to markdown syntax)
+        // Storage (draft autosave; kept locally, never sent without a save)
         // ---------------------------------------------------------------
-        function htmlToMarkdown(html) {
-          if (!html || !/<[a-z/]/i.test(html)) return html || "";
-          var tree = parseHtmlTree(html);
-          return treeToMd(tree).replace(/\n{3,}/g, "\n\n").trim();
-        }
-        function parseHtmlTree(html) {
-          var root = [], stack = [root];
-          var tagRe = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*\/?>/g;
-          var selfC = { br:1, hr:1, img:1 };
-          var m, lastIdx = 0;
-          while ((m = tagRe.exec(html)) !== null) {
-            if (m.index > lastIdx) stack[stack.length-1].push(html.slice(lastIdx, m.index));
-            var raw = m[0], tag = m[1], isClose = raw[1]==="/", isSelf = selfC[tag] || raw.endsWith("/>");
-            if (isClose) {
-              if (stack.length > 1) { stack.pop(); stack[stack.length-1].push({tag:tag,close:true}); }
-              else stack[stack.length-1].push(raw);
-            } else if (isSelf) {
-              stack[stack.length-1].push({tag:tag,self:true,html:raw});
-            } else {
-              var children = []; stack[stack.length-1].push({tag:tag,children:children,html:raw}); stack.push(children);
+        function readDraft() {
+          try {
+            var raw = localStorage.getItem(DRAFT_KEY);
+            if (raw) {
+              var d = JSON.parse(raw);
+              if (d && typeof d === "object") {
+                return {
+                  about: typeof d.about === "string" ? d.about : "",
+                  manifestos: Array.isArray(d.manifestos) ? d.manifestos.map(String) : []
+                };
+              }
             }
-            lastIdx = tagRe.lastIndex;
-          }
-          if (lastIdx < html.length) stack[stack.length-1].push(html.slice(lastIdx));
-          while (stack.length > 1) { var u = stack.pop(); stack[stack.length-1].push({tag:"unknown",children:u}); }
-          return root;
+          } catch (e) {}
+          return null;
         }
-        function treeToMd(nodes) {
-          var out = "";
-          for (var i = 0; i < nodes.length; i++) {
-            var n = nodes[i];
-            if (typeof n === "string") { out += n; continue; }
-            if (n.close) continue;
-            if (n.tag === "p" || n.tag === "div") {
-              var inner = treeToMd(n.children).trim();
-              out += inner ? "\n\n" + inner : "";
-            } else if (/^h[1-6]$/.test(n.tag)) {
-              var lvl = parseInt(n.tag[1]);
-              out += "\n\n" + "#".repeat(lvl) + " " + treeToMd(n.children).trim() + "\n\n";
-            } else if (n.tag === "ul") {
-              out += "\n" + collectLis(n.children, false) + "\n";
-            } else if (n.tag === "ol") {
-              out += "\n" + collectLis(n.children, true) + "\n";
-            } else if (n.tag === "blockquote") {
-              var bq = treeToMd(n.children).trim();
-              out += "\n" + bq.split("\n").map(function(l){return "> "+l}).join("\n") + "\n";
-            } else if (n.tag === "pre") {
-              out += "\n\n```\n" + extractTxt(n.children) + "\n```\n\n";
-            } else if (n.tag === "hr") {
-              out += "\n\n***\n\n";
-            } else if (n.tag === "em" || n.tag === "i") {
-              out += "*" + treeToMd(n.children) + "*";
-            } else if (n.tag === "strong" || n.tag === "b") {
-              out += "**" + treeToMd(n.children) + "**";
-            } else if (n.tag === "del" || n.tag === "s") {
-              out += "~~" + treeToMd(n.children) + "~~";
-            } else if (n.tag === "u") {
-              out += "++" + treeToMd(n.children) + "++";
-            } else if (n.tag === "mark") {
-              out += "==" + treeToMd(n.children) + "==";
-            } else if (n.tag === "sub") {
-              out += "~" + treeToMd(n.children) + "~";
-            } else if (n.tag === "sup") {
-              out += "^" + treeToMd(n.children) + "^";
-            } else if (n.tag === "code") {
-              out += "`" + extractTxt(n.children) + "`";
-            } else if (n.tag === "a") {
-              var href = (n.html||"").match(/href="([^"]*)"/);
-              out += "[" + treeToMd(n.children).trim() + "](" + (href?href[1]:"") + ")";
-            } else if (n.tag === "img") {
-              var src = (n.html||"").match(/src="([^"]*)"/)||[];
-              var alt = (n.html||"").match(/alt="([^"]*)"/)||[];
-              out += "![" + (alt[1]||"") + "](" + (src[1]||"") + ")";
-            } else if (n.tag === "br") {
-              out += "\n";
-            } else if (n.children) {
-              out += treeToMd(n.children);
-            }
-          }
-          return out;
-        }
-        function collectLis(nodes, ordered) {
-          var items = [], num = 1;
-          for (var i = 0; i < nodes.length; i++) {
-            var n = nodes[i];
-            if (typeof n === "string" || n.close) continue;
-            if (n.tag === "li") {
-              items.push((ordered ? (num++)+". " : "- ") + treeToMd(n.children).trim());
-            } else if (n.children) {
-              items.push(treeToMd(n.children).trim());
-            }
-          }
-          return items.join("\n");
-        }
-        function extractTxt(nodes) {
-          var o = "";
-          for (var i = 0; i < nodes.length; i++) {
-            var n = nodes[i];
-            if (typeof n === "string") o += n;
-            else if (n.children) o += extractTxt(n.children);
-          }
-          return o;
+        function saveDraft(s) {
+          try { localStorage.setItem(DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
         }
 
         // ---------------------------------------------------------------
         // State & rendering
         // ---------------------------------------------------------------
-        var state = loadState();
         var aboutInput = document.getElementById("about-input");
         var aboutPreview = document.getElementById("about-preview");
         var aboutWordcount = document.getElementById("about-wordcount");
@@ -750,41 +471,44 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
           state.manifestos.forEach(function (m) { total += wordCount(m); });
           document.getElementById("man-wordcount").textContent = total + " words";
         }
-
         function updateAboutPreview() {
           aboutPreview.innerHTML = renderMarkdown(aboutInput.value);
           aboutWordcount.textContent = wordCount(aboutInput.value) + " words";
         }
-
         function thumbOf(md) { return md.replace(/\s+/g, " ").slice(0, 60) || "(empty)"; }
+
+        function el(tag, props, children) {
+          var n = document.createElement(tag);
+          if (props) {
+            Object.keys(props).forEach(function (k) {
+              if (k === "className") n.className = props[k];
+              else if (k === "textContent") n.textContent = props[k];
+              else if (k === "html") n.innerHTML = props[k];
+              else if (k === "style") Object.keys(props[k]).forEach(function (sk) { n.style[sk] = props[k][sk]; });
+              else if (k === "dataset") Object.keys(props[k]).forEach(function (dk) { n.dataset[dk] = props[k][dk]; });
+              else if (k === "hidden") n.hidden = !!props[k];
+              else n.setAttribute(k, props[k]);
+            });
+          }
+          (children || []).forEach(function (c) {
+            n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+          });
+          return n;
+        }
 
         function renderManifestoList() {
           var list = document.getElementById("man-list");
           list.innerHTML = "";
           if (state.manifestos.length === 0) {
-            var empty = document.createElement("div");
-            empty.className = "empty";
-            empty.textContent = "No manifestos yet. Add one below.";
-            list.appendChild(empty);
+            list.appendChild(el("div", { className: "empty", textContent: "No manifestos yet. Add one below." }));
             updateManTotal();
             return;
           }
           state.manifestos.forEach(function (md, idx) {
-            var item = document.createElement("div");
-            item.className = "man-item";
-            var grip = document.createElement("div"); grip.className = "grip";
-            var meta = document.createElement("div"); meta.className = "meta";
-            var badge = document.createElement("span"); badge.className = "badge"; badge.textContent = "#" + (idx + 1);
-            var thumb = document.createElement("span"); thumb.textContent = thumbOf(md);
-            var wc = document.createElement("span"); wc.className = "wc"; wc.textContent = wordCount(md) + " words";
-            meta.appendChild(badge); meta.appendChild(thumb); meta.appendChild(wc);
-            var actions = document.createElement("div"); actions.className = "meta-actions";
-            var mResetWrap = document.createElement("span"); mResetWrap.className = "man-reset-wrap";
-            var mReset = document.createElement("button"); mReset.type = "button"; mReset.className = "reset-symbol"; mReset.innerHTML = "&#x21BA;"; mReset.title = "Reset to live"; mReset.dataset.idx = idx;
-            if (state.manifestos[idx] === MANIFESTOS[idx]) mReset.classList.add("hidden");
-            var mPopup = document.createElement("div"); mPopup.className = "confirm-popup";
-            mPopup.innerHTML = "Reset?<button class=\"cp-yes\">Yes</button><button class=\"cp-no\">No</button>";
-            mResetWrap.appendChild(mReset); mResetWrap.appendChild(mPopup);
+            var mReset = el("button", { type: "button", className: "reset-symbol", html: "&#x21BA;", title: "Reset to live", dataset: { idx: String(idx) } });
+            if (state.manifestos[idx] === live.manifestos[idx]) mReset.classList.add("hidden");
+            var mPopup = el("div", { className: "confirm-popup", html: "Reset?<button class=\"cp-yes\">Yes</button><button class=\"cp-no\">No</button>" });
+            var mResetWrap = el("span", { className: "man-reset-wrap" }, [mReset, mPopup]);
             mReset.addEventListener("click", function (e) {
               e.stopPropagation();
               closeAllPopups();
@@ -792,30 +516,36 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
             });
             mPopup.querySelector(".cp-yes").addEventListener("click", function (e) {
               e.stopPropagation();
-              state.manifestos[idx] = MANIFESTOS[idx];
+              state.manifestos[idx] = live.manifestos[idx] || "";
               renderManifestoList(); markDirty(); closeAllPopups();
             });
             mPopup.querySelector(".cp-no").addEventListener("click", function (e) {
               e.stopPropagation(); closeAllPopups();
             });
-            actions.appendChild(mResetWrap);
-            var up = document.createElement("button"); up.type="button"; up.textContent="↑"; up.title="Move up";
-            var down = document.createElement("button"); down.type="button"; down.textContent="↓"; down.title="Move down";
-            var del = document.createElement("button"); del.type="button"; del.textContent="✕"; del.title="Delete"; del.className="del";
-            actions.appendChild(up); actions.appendChild(down); actions.appendChild(del);
-            grip.appendChild(meta); grip.appendChild(actions);
 
-            var body = document.createElement("div"); body.className = "man-body"; body.hidden = true;
-            var ta = document.createElement("textarea"); ta.value = md; ta.spellcheck = false; ta.placeholder = "Write this manifesto...";
-            var uiBtns = document.createElement("div"); uiBtns.className = "ui-btns";
-            var ok = document.createElement("button"); ok.type="button"; ok.className="btn"; ok.textContent="Set";
-            var cancel = document.createElement("button"); cancel.type="button"; cancel.className="btn ghost"; cancel.textContent="Cancel";
-            uiBtns.appendChild(ok); uiBtns.appendChild(cancel);
-            var live = document.createElement("div"); live.className = "preview"; live.style.marginTop = "0.5rem"; live.style.minHeight = "0";
-            live.innerHTML = renderMarkdown(md);
+            var wc = el("span", { className: "wc", textContent: wordCount(md) + " words" });
+            var meta = el("div", { className: "meta" }, [
+              el("span", { className: "badge", textContent: "#" + (idx + 1) }),
+              el("span", { textContent: thumbOf(md) }),
+              wc
+            ]);
+            var up = el("button", { type: "button", textContent: "↑", title: "Move up" });
+            var down = el("button", { type: "button", textContent: "↓", title: "Move down" });
+            var del = el("button", { type: "button", textContent: "✕", title: "Delete", className: "del" });
+            var actions = el("div", { className: "meta-actions" }, [mResetWrap, up, down, del]);
+            var grip = el("div", { className: "grip" }, [meta, actions]);
+
+            var ta = el("textarea", { spellcheck: "false", placeholder: "Write this manifesto..." });
+            ta.value = md;
+            var livePreview = el("div", { className: "preview", style: { marginTop: "0.5rem", minHeight: "0" } });
+            livePreview.innerHTML = renderMarkdown(md);
+            var ok = el("button", { type: "button", className: "btn", textContent: "Set" });
+            var cancel = el("button", { type: "button", className: "btn ghost", textContent: "Cancel" });
+            var uiBtns = el("div", { className: "ui-btns" }, [ok, cancel]);
+            var body = el("div", { className: "man-body", hidden: true }, [ta, livePreview, uiBtns]);
 
             ta.addEventListener("input", function () {
-              live.innerHTML = renderMarkdown(ta.value);
+              livePreview.innerHTML = renderMarkdown(ta.value);
               md = ta.value;
               state.manifestos[idx] = md;
               wc.textContent = wordCount(md) + " words";
@@ -827,28 +557,25 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
               body.hidden = true;
               if (ta.value !== md) { md = ta.value; state.manifestos[idx] = md; updateState(); renderManifestoList(); markDirty(); }
             }
-            grip.addEventListener("click", function () { body.hidden = !body.hidden; live.innerHTML = renderMarkdown(ta.value); });
+            grip.addEventListener("click", function () { body.hidden = !body.hidden; livePreview.innerHTML = renderMarkdown(ta.value); });
             ok.addEventListener("click", function () {
               md = ta.value; state.manifestos[idx] = md; body.hidden = true; updateState(); renderManifestoList(); markDirty();
             });
             cancel.addEventListener("click", collapse);
             up.addEventListener("click", function (e) {
               e.stopPropagation();
-              if (idx > 0) { var t = state.manifestos[idx-1]; state.manifestos[idx-1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
+              if (idx > 0) { var t = state.manifestos[idx - 1]; state.manifestos[idx - 1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
             });
             down.addEventListener("click", function (e) {
               e.stopPropagation();
-              if (idx < state.manifestos.length - 1) { var t = state.manifestos[idx+1]; state.manifestos[idx+1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
+              if (idx < state.manifestos.length - 1) { var t = state.manifestos[idx + 1]; state.manifestos[idx + 1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
             });
             del.addEventListener("click", function (e) {
               e.stopPropagation();
               if (confirm("Delete this manifesto?")) { state.manifestos.splice(idx, 1); renderManifestoList(); markDirty(); }
             });
-            [up, down, del].forEach(function (b) { b.addEventListener("click", function (e) { e.stopPropagation(); }); });
 
-            body.appendChild(ta); body.appendChild(live); body.appendChild(uiBtns);
-            item.appendChild(grip); item.appendChild(body);
-            list.appendChild(item);
+            list.appendChild(el("div", { className: "man-item" }, [grip, body]));
           });
           updateManTotal();
           updateResetButtons();
@@ -856,6 +583,7 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
 
         function updateState() { state.about = aboutInput.value; }
         function markDirty() {
+          if (!state) return;
           updateState();
           saveDraft(state);
           updateResetButtons();
@@ -868,48 +596,44 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
         document.querySelectorAll(".tabs .tab").forEach(function (tab) {
           tab.addEventListener("click", function () {
             document.querySelectorAll(".tabs .tab").forEach(function (t) { t.classList.toggle("active", t === tab); });
-            ["about","man"].forEach(function (id) {
+            ["about", "man"].forEach(function (id) {
               document.getElementById("pane-" + id).classList.toggle("active", tab.dataset.tab === id);
             });
           });
         });
 
         // ---------------------------------------------------------------
-        // Cheat sheet (list, each item has a preview)
+        // Cheat sheet (previews generated by the real renderer)
         // ---------------------------------------------------------------
         var CHEATS = [
-          { md: "# Heading", html: "<h1>Heading</h1>", desc: "Big heading" },
-          { md: "**bold**", html: "<strong>bold</strong>", desc: "Bold" },
-          { md: "*italic*", html: "<em>italic</em>", desc: "Italic" },
-          { md: "++underline++", html: "<u>underline</u>", desc: "Underline" },
-          { md: "~~struck~~", html: "<del>struck</del>", desc: "Strikethrough" },
-          { md: "==highlight==", html: "<mark>highlight</mark>", desc: "Highlight" },
-          { md: "H~2~O", html: "H<sub>2</sub>O", desc: "Subscript" },
-          { md: "x^2^", html: "x<sup>2</sup>", desc: "Superscript" },
-          { md: "`code`", html: "<code>code</code>", desc: "Inline code" },
-          { md: "```\ncode block\n```", html: "<pre><code>code block</code></pre>", desc: "Code block" },
-          { md: "- bullet item", html: "<ul><li>bullet item</li></ul>", desc: "Bullet list" },
-          { md: "1. numbered item", html: "<ol><li>numbered item</li></ol>", desc: "Numbered list" },
-          { md: "> quoted text", html: "<blockquote><p>quoted text</p></blockquote>", desc: "Quote" },
-          { md: "> [!NOTE]\n> worth noting", html: "<blockquote class=\"note note-note\"><p class=\"note-title\">Note</p><p>worth noting</p></blockquote>", desc: "Note box — also TIP, IMPORTANT, WARNING, CAUTION" },
-          { md: "***", html: "<hr>", desc: "Horizontal line" },
-          { md: "[link](https://x.example)", html: "<a href=\"https://x.example\">link</a>", desc: "Hyperlink" },
-          { md: "![alt](https://loremflickr.com/320/240)", html: "<img src=\"https://loremflickr.com/320/240\" alt=\"alt\">" },
-          { md: "\\*literal\\*", html: "*literal*", desc: "Backslash escapes any symbol" },
+          { md: "# Heading", desc: "Big heading" },
+          { md: "**bold**", desc: "Bold" },
+          { md: "*italic*", desc: "Italic" },
+          { md: "++underline++", desc: "Underline" },
+          { md: "~~struck~~", desc: "Strikethrough" },
+          { md: "==highlight==", desc: "Highlight" },
+          { md: "H~2~O", desc: "Subscript" },
+          { md: "x^2^", desc: "Superscript" },
+          { md: "`code`", desc: "Inline code" },
+          { md: "```\ncode block\n```", desc: "Code block" },
+          { md: "- bullet item", desc: "Bullet list" },
+          { md: "1. numbered item", desc: "Numbered list" },
+          { md: "> quoted text", desc: "Quote" },
+          { md: "> [!NOTE]\n> worth noting", desc: "Note box — also TIP, IMPORTANT, WARNING, CAUTION" },
+          { md: "***", desc: "Horizontal line" },
+          { md: "[link](https://x.example)", desc: "Hyperlink" },
+          { md: "![alt](https://loremflickr.com/320/240)" },
+          { md: "\\*literal\\*", desc: "Backslash escapes any symbol" },
         ];
-        function csOut(raw) {
-          var div = document.createElement("div");
-          div.innerHTML = raw;
-          return div.innerHTML;
-        }
         function buildCheatsheet() {
           var ul = document.getElementById("cs-list");
           ul.innerHTML = "";
           CHEATS.forEach(function (c) {
-            var li = document.createElement("li"); li.className = "cs-item";
-            var mdEl = document.createElement("span"); mdEl.className = "cs-md"; mdEl.textContent = c.md;
-            var outEl = document.createElement("span"); outEl.className = "cs-out"; outEl.innerHTML = c.html + (c.desc ? " <span style='display:inline;color:#6c767e;font-size:0.78rem;'>— " + c.desc + "</span>" : "");
-            li.appendChild(mdEl); li.appendChild(outEl);
+            var li = el("li", { className: "cs-item" });
+            li.appendChild(el("span", { className: "cs-md", textContent: c.md }));
+            var outEl = el("span", { className: "cs-out" });
+            outEl.innerHTML = renderMarkdown(c.md) + (c.desc ? " <span style='display:inline;color:#6c767e;font-size:0.78rem;'>— " + c.desc + "</span>" : "");
+            li.appendChild(outEl);
             ul.appendChild(li);
           });
         }
@@ -923,6 +647,7 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
         });
 
         document.getElementById("btn-add-man").addEventListener("click", function () {
+          if (!state) return;
           state.manifestos.push("");
           renderManifestoList();
           var item = document.querySelector("#man-list .man-item:last-child");
@@ -931,7 +656,7 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
         });
 
         // ---------------------------------------------------------------
-        // Publish (server renders + commits to repo)
+        // Save (server renders + stages + workflow commits)
         // ---------------------------------------------------------------
         var saveStatus = document.getElementById("save-status");
         var saveTimer = null;
@@ -952,6 +677,7 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
 
         function publish() {
           if (getRole() !== "admin") return;
+          if (!contentLoaded || !state) { showStatus("Content not loaded yet — refresh the page.", false); return; }
           updateState();
           saveDraft(state);
           var btn = document.getElementById("btn-save");
@@ -967,7 +693,16 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
             return res.json();
           }).then(function (data) {
             if (!data.ok) throw new Error("server");
-            showStatus(data.changed === false ? "No changes to save" : "Saved!", true);
+            if (data.changed === false) {
+              showStatus("No changes to save", true);
+            } else {
+              showStatus("Saved! (deploy takes about a minute)", true);
+              if (data.live) {
+                live.about = data.live.about;
+                live.manifestos = data.live.manifestos;
+                updateResetButtons();
+              }
+            }
           }).catch(function (err) {
             var msg = err.message === "auth"
               ? "Session expired — log in again."
@@ -975,7 +710,10 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
               ? "Read-only — this account cannot publish."
               : "Save failed. Is the worker deployed and configured?";
             showStatus(msg, false);
-          }).finally(function () { btn.disabled = false; });
+          }).finally(function () {
+            btn.disabled = false;
+            applyRoleRestrictions();
+          });
         }
 
         aboutInput.addEventListener("input", function () { updateAboutPreview(); markDirty(); });
@@ -988,11 +726,12 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
           for (var i = 0; i < a.length; i++) { if (a[i] !== b[i]) return false; }
           return true;
         }
-        function isAboutDirty() { return state.about !== ABOUT; }
-        function isMansDirty() { return !manifestsEqual(state.manifestos, MANIFESTOS); }
+        function isAboutDirty() { return state.about !== live.about; }
+        function isMansDirty() { return !manifestsEqual(state.manifestos, live.manifestos); }
         function isAllDirty() { return isAboutDirty() || isMansDirty(); }
 
         function updateResetButtons() {
+          if (!state) return;
           var allDirty = isAllDirty();
           var allBtn = document.getElementById("btn-reset-all");
           allBtn.disabled = !allDirty;
@@ -1001,7 +740,7 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
           document.getElementById("btn-reset-mans").classList.toggle("hidden", !isMansDirty());
           document.querySelectorAll("[data-idx]").forEach(function (btn) {
             var idx = parseInt(btn.dataset.idx, 10);
-            btn.classList.toggle("hidden", state.manifestos[idx] === MANIFESTOS[idx]);
+            btn.classList.toggle("hidden", state.manifestos[idx] === live.manifestos[idx]);
           });
         }
 
@@ -1020,8 +759,8 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
         });
         document.getElementById("confirm-reset-all-yes").addEventListener("click", function (e) {
           e.stopPropagation();
-          state.about = ABOUT;
-          state.manifestos = MANIFESTOS.slice();
+          state.about = live.about;
+          state.manifestos = live.manifestos.slice();
           aboutInput.value = state.about;
           updateAboutPreview();
           renderManifestoList();
@@ -1039,7 +778,7 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
         });
         document.getElementById("confirm-reset-about-yes").addEventListener("click", function (e) {
           e.stopPropagation();
-          state.about = ABOUT;
+          state.about = live.about;
           aboutInput.value = state.about;
           updateAboutPreview();
           markDirty();
@@ -1056,7 +795,7 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
         });
         document.getElementById("confirm-reset-mans-yes").addEventListener("click", function (e) {
           e.stopPropagation();
-          state.manifestos = MANIFESTOS.slice();
+          state.manifestos = live.manifestos.slice();
           renderManifestoList();
           markDirty();
           closeAllPopups();
@@ -1066,11 +805,23 @@ I still consider my main reasons for not succumbing to suicidal ideation to be h
         });
 
         // ---------------------------------------------------------------
-        // Init
+        // Init (editor content loads from the live site after auth)
         // ---------------------------------------------------------------
-        aboutInput.value = state.about;
-        updateAboutPreview();
-        renderManifestoList();
+        function initEditor() {
+          var draft = readDraft();
+          state = draft || { about: live.about, manifestos: live.manifestos.slice() };
+          aboutInput.value = state.about;
+          updateAboutPreview();
+          renderManifestoList();
+          updateResetButtons();
+        }
+
+        migrateAuth();
+        if (localStorage.getItem(AUTH_KEY)) {
+          showEditor();
+          applyRoleRestrictions();
+          loadLive();
+        }
       })();
     </script>
   </body>

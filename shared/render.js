@@ -194,6 +194,18 @@ export function htmlToMarkdown(html) {
   return treeToMd(tree).replace(/\n{3,}/g, "\n\n").trim();
 }
 
+// Decode the entities escapeHtml/escapeAttr produce, so rendered HTML
+// converts back to the exact markdown text (e.g. "a & b" -> <p>a &amp; b</p> -> "a & b").
+// &amp; must be decoded LAST so "&amp;lt;" becomes a literal "&lt;", not "<".
+function decodeEntities(s) {
+  return s
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
 function parseHtmlTree(html) {
   const root = [];
   const stack = [root];
@@ -228,27 +240,33 @@ function parseHtmlTree(html) {
 
 function treeToMd(nodes) {
   let out = "";
+  // Append a block element, normalizing inter-block whitespace (the renderer
+  // joins blocks with "\n", which would otherwise pile up as blank lines).
+  const block = (text) => {
+    if (!text) return;
+    out = out.replace(/\s+$/, "");
+    out += (out ? "\n\n" : "") + text;
+  };
   for (const node of nodes) {
-    if (typeof node === "string") { out += node; continue; }
+    if (typeof node === "string") { out += decodeEntities(node); continue; }
     if (node.close) continue;
     if (node.tag === "p" || node.tag === "div") {
       const inner = treeToMd(node.children).trim();
-      out += inner ? "\n\n" + inner : "";
+      if (inner) block(inner);
     } else if (/^h[1-6]$/.test(node.tag)) {
       const lvl = parseInt(node.tag[1]);
-      out += "\n\n" + "#".repeat(lvl) + " " + treeToMd(node.children).trim() + "\n\n";
+      block("#".repeat(lvl) + " " + treeToMd(node.children).trim());
     } else if (node.tag === "ul") {
-      out += "\n" + collectListItems(node.children, false) + "\n";
+      block(collectListItems(node.children, false));
     } else if (node.tag === "ol") {
-      out += "\n" + collectListItems(node.children, true) + "\n";
+      block(collectListItems(node.children, true));
     } else if (node.tag === "blockquote") {
-      const inner = treeToMd(node.children).trim();
-      out += "\n" + inner.split("\n").map(l => "> " + l).join("\n") + "\n";
+      block(treeToMd(node.children).trim().split("\n").map((l) => "> " + l).join("\n"));
     } else if (node.tag === "pre") {
-      const code = extractText(node.children);
-      out += "\n\n```\n" + code + "\n```\n\n";
+      const code = decodeEntities(extractText(node.children));
+      block("```\n" + code + "\n```");
     } else if (node.tag === "hr") {
-      out += "\n\n***\n\n";
+      block("***");
     } else if (node.tag === "em" || node.tag === "i") {
       out += "*" + treeToMd(node.children) + "*";
     } else if (node.tag === "strong" || node.tag === "b") {
@@ -264,14 +282,14 @@ function treeToMd(nodes) {
     } else if (node.tag === "sup") {
       out += "^" + treeToMd(node.children) + "^";
     } else if (node.tag === "code") {
-      out += "`" + extractText(node.children) + "`";
+      out += "`" + decodeEntities(extractText(node.children)) + "`";
     } else if (node.tag === "a") {
       const href = (node.html || "").match(/href="([^"]*)"/);
-      out += "[" + treeToMd(node.children).trim() + "](" + (href ? href[1] : "") + ")";
+      out += "[" + treeToMd(node.children).trim() + "](" + (href ? decodeEntities(href[1]) : "") + ")";
     } else if (node.tag === "img") {
       const src = (node.html || "").match(/src="([^"]*)"/) || "";
       const alt = (node.html || "").match(/alt="([^"]*)"/) || "";
-      out += "![" + (alt[1] || "") + "](" + (src[1] || "") + ")";
+      out += "![" + decodeEntities(alt[1] || "") + "](" + decodeEntities(src[1] || "") + ")";
     } else if (node.tag === "br") {
       out += "\n";
     } else if (node.children) {
