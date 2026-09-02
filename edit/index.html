@@ -77,6 +77,7 @@
       header.ed .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
       .status { font-size: 0.85rem; color: #7dce8a; opacity: 0; transition: opacity 0.25s; flex: 1 1 0; min-width: 0; }
       .status.show { opacity: 1; }
+      .status.err { color: #ffd27b; }
 
       /* ---------- Tabs ---------- */
       .tabs { display: flex; gap: 0.35rem; margin-bottom: 1rem; }
@@ -103,6 +104,7 @@
 
       /* ---------- Cheat sheet (list, one item per line, each with preview) ---------- */
       .cheatsheet { display: none; margin: 0 0 1rem; padding: 0.8rem 1rem; background: #050507; border: 1px dashed #3a4148; border-radius: 0.4rem; }
+      .cheatsheet.open { display: block; }
       .cs-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: auto 1fr auto; column-gap: 1rem; }
       .cs-item { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: start; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
       .cs-item:last-child { border-bottom: none; }
@@ -325,7 +327,7 @@
 
     
     <script type="module">
-      import { renderMarkdown } from "../shared/render.js";
+import { renderMarkdown } from "../shared/render.js";
 
       (function () {
         "use strict";
@@ -333,24 +335,24 @@
         // ---------------------------------------------------------------
         // Config
         // ---------------------------------------------------------------
-        var API_BASE = "https://bucket-site-editor.bucketofjames.workers.dev";
-        var DRAFT_KEY = "bucketEditorDraft";
-        var AUTH_KEY = "bucketEditorAuth";
-        var OLD_TOKEN_KEY = "bucketEditorToken";
-        var OLD_AUTH_KEY = "bucketEditorAuthed";
-        var OLD_ROLE_KEY = "bucketEditorRole";
+        const API_BASE = "https://bucket-site-editor.bucketofjames.workers.dev";
+        const DRAFT_KEY = "bucketEditorDraft";
+        const AUTH_KEY = "bucketEditorAuth";
+        const OLD_TOKEN_KEY = "bucketEditorToken";
+        const OLD_AUTH_KEY = "bucketEditorAuthed";
+        const OLD_ROLE_KEY = "bucketEditorRole";
 
         // Live content as published to the repo (authoritative "Reset to live" baseline).
-        var live = { about: "", manifestos: [] };
-        var contentLoaded = false;
-        var state = null;
+        const live = { about: "", manifestos: [] };
+        let contentLoaded = false;
+        let state = null;
 
         // ---------------------------------------------------------------
         // Auth: one localStorage key { token, role } (migrates the old 3-key layout).
         // The server validates the token on every API call; client checks are UX only.
         // ---------------------------------------------------------------
         function migrateAuth() {
-          var oldToken = localStorage.getItem(OLD_TOKEN_KEY);
+          const oldToken = localStorage.getItem(OLD_TOKEN_KEY);
           if (oldToken && !localStorage.getItem(AUTH_KEY)) {
             setAuth(oldToken, localStorage.getItem(OLD_ROLE_KEY) || "admin");
           }
@@ -358,18 +360,14 @@
           localStorage.removeItem(OLD_AUTH_KEY);
           localStorage.removeItem(OLD_ROLE_KEY);
         }
-        function getToken() {
+        function getAuth() {
           try {
-            var a = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
-            return (a && a.token) || "";
-          } catch (e) { return ""; }
+            const a = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
+            return a && typeof a === "object" ? a : null;
+          } catch (e) { return null; }
         }
-        function getRole() {
-          try {
-            var a = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
-            return (a && a.role) || "admin";
-          } catch (e) { return "admin"; }
-        }
+        function getToken() { const a = getAuth(); return (a && a.token) || ""; }
+        function getRole() { const a = getAuth(); return (a && a.role) || "admin"; }
         function setAuth(token, role) {
           localStorage.setItem(AUTH_KEY, JSON.stringify({ token: token, role: role || "admin" }));
         }
@@ -378,30 +376,30 @@
           location.reload();
         }
 
-        var loginEl = document.getElementById("login");
-        var editorEl = document.getElementById("editor");
+        const loginEl = document.getElementById("login");
+        const editorEl = document.getElementById("editor");
         function showEditor() { loginEl.style.display = "none"; editorEl.hidden = false; }
 
         document.getElementById("btn-logout").addEventListener("click", function () {
           if (confirm("Log out? Your draft stays saved on this device.")) logout();
         });
 
+        // Button disabling is UX only — the server enforces roles. The
+        // disabled state is styled by .btn:disabled in the head CSS.
         function applyRoleRestrictions() {
-          var btn = document.getElementById("btn-save");
+          const btn = document.getElementById("btn-save");
           if (getRole() !== "admin") {
             btn.disabled = true;
             btn.title = "Read-only — this account cannot publish";
-            btn.style.opacity = "0.45";
-            btn.style.cursor = "not-allowed";
           }
         }
 
         document.getElementById("login-form").addEventListener("submit", function (e) {
           e.preventDefault();
-          var err = document.getElementById("login-err");
-          var btn = document.getElementById("login-btn");
-          var user = document.getElementById("login-user").value.trim();
-          var pass = document.getElementById("login-pass").value;
+          const err = document.getElementById("login-err");
+          const btn = document.getElementById("login-btn");
+          const user = document.getElementById("login-user").value.trim();
+          const pass = document.getElementById("login-pass").value;
           btn.disabled = true; btn.textContent = "Logging in…";
           err.style.display = "none";
           fetch(API_BASE + "/api/login", {
@@ -453,9 +451,9 @@
         // ---------------------------------------------------------------
         function readDraft() {
           try {
-            var raw = localStorage.getItem(DRAFT_KEY);
+            const raw = localStorage.getItem(DRAFT_KEY);
             if (raw) {
-              var d = JSON.parse(raw);
+              const d = JSON.parse(raw);
               if (d && typeof d === "object") {
                 return {
                   about: typeof d.about === "string" ? d.about : "",
@@ -473,16 +471,16 @@
         // ---------------------------------------------------------------
         // State & rendering
         // ---------------------------------------------------------------
-        var aboutInput = document.getElementById("about-input");
-        var aboutPreview = document.getElementById("about-preview");
-        var aboutWordcount = document.getElementById("about-wordcount");
+        const aboutInput = document.getElementById("about-input");
+        const aboutPreview = document.getElementById("about-preview");
+        const aboutWordcount = document.getElementById("about-wordcount");
 
         function wordCount(s) {
           s = (s || "").trim();
           return s ? s.split(/\s+/).length : 0;
         }
         function updateManTotal() {
-          var total = 0;
+          let total = 0;
           state.manifestos.forEach(function (m) { total += wordCount(m); });
           document.getElementById("man-wordcount").textContent = total + " words";
         }
@@ -493,7 +491,7 @@
         function thumbOf(md) { return md.replace(/\s+/g, " ").slice(0, 60) || "(empty)"; }
 
         function el(tag, props, children) {
-          var n = document.createElement(tag);
+          const n = document.createElement(tag);
           if (props) {
             Object.keys(props).forEach(function (k) {
               if (k === "className") n.className = props[k];
@@ -512,88 +510,90 @@
         }
 
         function renderManifestoList() {
-          var list = document.getElementById("man-list");
+          const list = document.getElementById("man-list");
           list.innerHTML = "";
           if (state.manifestos.length === 0) {
             list.appendChild(el("div", { className: "empty", textContent: "No manifestos yet. Add one below." }));
             updateManTotal();
             return;
           }
-          state.manifestos.forEach(function (md, idx) {
-            var mReset = el("button", { type: "button", className: "reset-symbol", html: "&#x21BA;", title: "Reset to live", dataset: { idx: String(idx) } });
-            if (state.manifestos[idx] === live.manifestos[idx]) mReset.classList.add("hidden");
-            var mPopup = el("div", { className: "confirm-popup", html: "Reset?<button class=\"cp-yes\">Yes</button><button class=\"cp-no\">No</button>" });
-            var mResetWrap = el("span", { className: "man-reset-wrap" }, [mReset, mPopup]);
-            mReset.addEventListener("click", function (e) {
-              e.stopPropagation();
-              closeAllPopups();
-              mPopup.classList.toggle("show");
-            });
-            mPopup.querySelector(".cp-yes").addEventListener("click", function (e) {
-              e.stopPropagation();
-              state.manifestos[idx] = live.manifestos[idx] || "";
-              renderManifestoList(); markDirty(); closeAllPopups();
-            });
-            mPopup.querySelector(".cp-no").addEventListener("click", function (e) {
-              e.stopPropagation(); closeAllPopups();
-            });
-
-            var wc = el("span", { className: "wc", textContent: wordCount(md) + " words" });
-            var meta = el("div", { className: "meta" }, [
-              el("span", { className: "badge", textContent: "#" + (idx + 1) }),
-              el("span", { textContent: thumbOf(md) }),
-              wc
-            ]);
-            var up = el("button", { type: "button", textContent: "↑", title: "Move up" });
-            var down = el("button", { type: "button", textContent: "↓", title: "Move down" });
-            var del = el("button", { type: "button", textContent: "✕", title: "Delete", className: "del" });
-            var actions = el("div", { className: "meta-actions" }, [mResetWrap, up, down, del]);
-            var grip = el("div", { className: "grip" }, [meta, actions]);
-
-            var ta = el("textarea", { spellcheck: "false", placeholder: "Write this manifesto..." });
-            ta.value = md;
-            var livePreview = el("div", { className: "preview", style: { marginTop: "0.5rem", minHeight: "0" } });
-            livePreview.innerHTML = renderMarkdown(md);
-            var ok = el("button", { type: "button", className: "btn", textContent: "Set" });
-            var cancel = el("button", { type: "button", className: "btn ghost", textContent: "Cancel" });
-            var uiBtns = el("div", { className: "ui-btns" }, [ok, cancel]);
-            var body = el("div", { className: "man-body", hidden: true }, [ta, livePreview, uiBtns]);
-
-            ta.addEventListener("input", function () {
-              livePreview.innerHTML = renderMarkdown(ta.value);
-              md = ta.value;
-              state.manifestos[idx] = md;
-              wc.textContent = wordCount(md) + " words";
-              updateManTotal();
-              updateResetButtons();
-              markDirty();
-            });
-            function collapse() {
-              body.hidden = true;
-              if (ta.value !== md) { md = ta.value; state.manifestos[idx] = md; updateState(); renderManifestoList(); markDirty(); }
-            }
-            grip.addEventListener("click", function () { body.hidden = !body.hidden; livePreview.innerHTML = renderMarkdown(ta.value); });
-            ok.addEventListener("click", function () {
-              md = ta.value; state.manifestos[idx] = md; body.hidden = true; updateState(); renderManifestoList(); markDirty();
-            });
-            cancel.addEventListener("click", collapse);
-            up.addEventListener("click", function (e) {
-              e.stopPropagation();
-              if (idx > 0) { var t = state.manifestos[idx - 1]; state.manifestos[idx - 1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
-            });
-            down.addEventListener("click", function (e) {
-              e.stopPropagation();
-              if (idx < state.manifestos.length - 1) { var t = state.manifestos[idx + 1]; state.manifestos[idx + 1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
-            });
-            del.addEventListener("click", function (e) {
-              e.stopPropagation();
-              if (confirm("Delete this manifesto?")) { state.manifestos.splice(idx, 1); renderManifestoList(); markDirty(); }
-            });
-
-            list.appendChild(el("div", { className: "man-item" }, [grip, body]));
-          });
+          state.manifestos.forEach((md, idx) => list.appendChild(makeManifestoItem(md, idx)));
           updateManTotal();
           updateResetButtons();
+        }
+
+        function makeManifestoItem(md, idx) {
+          const mReset = el("button", { type: "button", className: "reset-symbol", html: "&#x21BA;", title: "Reset to live", dataset: { idx: String(idx) } });
+          if (state.manifestos[idx] === live.manifestos[idx]) mReset.classList.add("hidden");
+          const mPopup = el("div", { className: "confirm-popup", html: "Reset?<button class=\"cp-yes\">Yes</button><button class=\"cp-no\">No</button>" });
+          const mResetWrap = el("span", { className: "man-reset-wrap" }, [mReset, mPopup]);
+          mReset.addEventListener("click", function (e) {
+            e.stopPropagation();
+            closeAllPopups();
+            mPopup.classList.toggle("show");
+          });
+          mPopup.querySelector(".cp-yes").addEventListener("click", function (e) {
+            e.stopPropagation();
+            state.manifestos[idx] = live.manifestos[idx] || "";
+            renderManifestoList(); markDirty(); closeAllPopups();
+          });
+          mPopup.querySelector(".cp-no").addEventListener("click", function (e) {
+            e.stopPropagation(); closeAllPopups();
+          });
+
+          const wc = el("span", { className: "wc", textContent: wordCount(md) + " words" });
+          const meta = el("div", { className: "meta" }, [
+            el("span", { className: "badge", textContent: "#" + (idx + 1) }),
+            el("span", { textContent: thumbOf(md) }),
+            wc
+          ]);
+          const up = el("button", { type: "button", textContent: "↑", title: "Move up" });
+          const down = el("button", { type: "button", textContent: "↓", title: "Move down" });
+          const del = el("button", { type: "button", textContent: "✕", title: "Delete", className: "del" });
+          const actions = el("div", { className: "meta-actions" }, [mResetWrap, up, down, del]);
+          const grip = el("div", { className: "grip" }, [meta, actions]);
+
+          const ta = el("textarea", { spellcheck: "false", placeholder: "Write this manifesto..." });
+          ta.value = md;
+          const livePreview = el("div", { className: "preview", style: { marginTop: "0.5rem", minHeight: "0" } });
+          livePreview.innerHTML = renderMarkdown(md);
+          const ok = el("button", { type: "button", className: "btn", textContent: "Set" });
+          const cancel = el("button", { type: "button", className: "btn ghost", textContent: "Cancel" });
+          const uiBtns = el("div", { className: "ui-btns" }, [ok, cancel]);
+          const body = el("div", { className: "man-body", hidden: true }, [ta, livePreview, uiBtns]);
+
+          ta.addEventListener("input", function () {
+            livePreview.innerHTML = renderMarkdown(ta.value);
+            md = ta.value;
+            state.manifestos[idx] = md;
+            wc.textContent = wordCount(md) + " words";
+            updateManTotal();
+            updateResetButtons();
+            markDirty();
+          });
+          function collapse() {
+            body.hidden = true;
+            if (ta.value !== md) { md = ta.value; state.manifestos[idx] = md; updateState(); renderManifestoList(); markDirty(); }
+          }
+          grip.addEventListener("click", function () { body.hidden = !body.hidden; livePreview.innerHTML = renderMarkdown(ta.value); });
+          ok.addEventListener("click", function () {
+            md = ta.value; state.manifestos[idx] = md; body.hidden = true; updateState(); renderManifestoList(); markDirty();
+          });
+          cancel.addEventListener("click", collapse);
+          up.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (idx > 0) { const t = state.manifestos[idx - 1]; state.manifestos[idx - 1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
+          });
+          down.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (idx < state.manifestos.length - 1) { const t = state.manifestos[idx + 1]; state.manifestos[idx + 1] = state.manifestos[idx]; state.manifestos[idx] = t; renderManifestoList(); markDirty(); }
+          });
+          del.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (confirm("Delete this manifesto?")) { state.manifestos.splice(idx, 1); renderManifestoList(); markDirty(); }
+          });
+
+          return el("div", { className: "man-item" }, [grip, body]);
         }
 
         function updateState() { state.about = aboutInput.value; }
@@ -621,7 +621,7 @@
         // ---------------------------------------------------------------
         // Cheat sheet (previews generated by the real renderer)
         // ---------------------------------------------------------------
-        var CHEATS = [
+        const CHEATS = [
           { md: "# Heading", desc: "Big heading" },
           { md: "**bold**", desc: "Bold" },
           { md: "*italic*", desc: "Italic" },
@@ -642,12 +642,12 @@
           { md: "\\*literal\\*", desc: "Backslash escapes any symbol", wrap: true },
         ];
         function buildCheatsheet() {
-          var ul = document.getElementById("cs-list");
+          const ul = document.getElementById("cs-list");
           ul.innerHTML = "";
           CHEATS.forEach(function (c) {
-            var li = el("li", { className: "cs-item" });
+            const li = el("li", { className: "cs-item" });
             li.appendChild(el("span", { className: "cs-md", textContent: c.md }));
-            var previewEl = el("span", { className: "cs-preview" });
+            const previewEl = el("span", { className: "cs-preview" });
             previewEl.innerHTML = renderMarkdown(c.md);
             li.appendChild(previewEl);
             if (c.desc) {
@@ -660,8 +660,7 @@
         document.querySelectorAll(".cheatsheet-toggle").forEach(function (link) {
           link.addEventListener("click", function (e) {
             e.preventDefault();
-            var cs = document.getElementById("cheatsheet");
-            cs.style.display = cs.style.display === "block" ? "none" : "block";
+            document.getElementById("cheatsheet").classList.toggle("open");
           });
         });
 
@@ -669,7 +668,7 @@
           if (!state) return;
           state.manifestos.push("");
           renderManifestoList();
-          var item = document.querySelector("#man-list .man-item:last-child");
+          const item = document.querySelector("#man-list .man-item:last-child");
           if (item) { item.querySelector(".man-body").hidden = false; item.querySelector("textarea").focus(); }
           markDirty();
         });
@@ -677,11 +676,12 @@
         // ---------------------------------------------------------------
         // Save (server renders + stages + workflow commits)
         // ---------------------------------------------------------------
-        var saveStatus = document.getElementById("save-status");
-        var saveTimer = null;
+        const saveStatus = document.getElementById("save-status");
+        let saveTimer = null;
         function showStatus(msg, isSaved) {
           saveStatus.textContent = msg;
-          saveStatus.style.color = isSaved ? "#7dce8a" : "#ffd27b";
+          saveStatus.classList.toggle("ok", isSaved);
+          saveStatus.classList.toggle("err", !isSaved);
           saveStatus.classList.add("show");
           clearTimeout(saveTimer);
           saveTimer = setTimeout(function () { saveStatus.classList.remove("show"); }, isSaved ? 2200 : 4000);
@@ -699,7 +699,7 @@
           if (!contentLoaded || !state) { showStatus("Content not loaded yet — refresh the page.", false); return; }
           updateState();
           saveDraft(state);
-          var btn = document.getElementById("btn-save");
+          const btn = document.getElementById("btn-save");
           btn.disabled = true;
           showStatus("Saving…", false);
           fetch(API_BASE + "/api/publish", {
@@ -723,7 +723,7 @@
               }
             }
           }).catch(function (err) {
-            var msg = err.message === "auth"
+            const msg = err.message === "auth"
               ? "Session expired — log in again."
               : err.message === "forbidden"
               ? "Read-only — this account cannot publish."
@@ -742,7 +742,7 @@
         // ---------------------------------------------------------------
         function manifestsEqual(a, b) {
           if (a.length !== b.length) return false;
-          for (var i = 0; i < a.length; i++) { if (a[i] !== b[i]) return false; }
+          for (let i = 0; i < a.length; i++) { if (a[i] !== b[i]) return false; }
           return true;
         }
         function isAboutDirty() { return state.about !== live.about; }
@@ -751,14 +751,14 @@
 
         function updateResetButtons() {
           if (!state) return;
-          var allDirty = isAllDirty();
-          var allBtn = document.getElementById("btn-reset-all");
+          const allDirty = isAllDirty();
+          const allBtn = document.getElementById("btn-reset-all");
           allBtn.disabled = !allDirty;
           allBtn.title = allDirty ? "" : "No changes to reset";
           document.getElementById("btn-reset-about").classList.toggle("hidden", !isAboutDirty());
           document.getElementById("btn-reset-mans").classList.toggle("hidden", !isMansDirty());
           document.querySelectorAll("[data-idx]").forEach(function (btn) {
-            var idx = parseInt(btn.dataset.idx, 10);
+            const idx = parseInt(btn.dataset.idx, 10);
             btn.classList.toggle("hidden", state.manifestos[idx] === live.manifestos[idx]);
           });
         }
@@ -827,7 +827,7 @@
         // Init (editor content loads from the live site after auth)
         // ---------------------------------------------------------------
         function initEditor() {
-          var draft = readDraft();
+          const draft = readDraft();
           state = draft || { about: live.about, manifestos: live.manifestos.slice() };
           aboutInput.value = state.about;
           updateAboutPreview();
