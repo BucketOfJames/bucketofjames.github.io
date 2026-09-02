@@ -103,30 +103,31 @@
 
       /* ---------- Cheat sheet (list, one item per line, each with preview) ---------- */
       .cheatsheet { display: none; margin: 0 0 1rem; padding: 0.8rem 1rem; background: #050507; border: 1px dashed #3a4148; border-radius: 0.4rem; }
-      .cs-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: auto 1fr; }
-      .cs-item { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: start; column-gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .cs-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: auto 1fr auto; column-gap: 1rem; }
+      .cs-item { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: start; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
       .cs-item:last-child { border-bottom: none; }
       .cs-md { white-space: pre; min-width: 0; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.85rem; color: #d7b0f0; }
-      /* Preview and description share one line: the preview shrink-wraps its
-         content (and clips if too wide), the description sits after it and
-         truncates with an ellipsis instead of wrapping underneath. */
-      .cs-out { display: flex; align-items: center; gap: 0.5rem; min-width: 0; font-size: 0.9rem; color: #e8edf2; line-height: 1.4; overflow: hidden; }
-      .cs-out .cs-preview { min-width: 0; overflow: hidden; }
-      .cs-out .cs-desc { flex: 0 1 auto; min-width: 0; color: #6c767e; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .cs-out h1, .cs-out h2, .cs-out h3, .cs-out h4, .cs-out h5, .cs-out h6 { display: inline; font-weight: 700; }
-      .cs-out h1 { font-size: 1.4em; }
-      .cs-out img { max-width: 100%; height: auto; display: block; margin-top: 0.25rem; border-radius: 0.3rem; }
-      .cs-out code { background: #000; padding: 0.05em 0.3em; border-radius: 0.25em; font-size: 0.88em; color: #d7b0f0; }
-      .cs-out a { color: #b27bd6; }
-      .cs-out p { margin: 0; }
-      .cs-out ul, .cs-out ol { margin: 0; padding-left: 1.3rem; }
-      .cs-out blockquote { margin: 0; padding: 0.1em 0.9em; border-left: 0.25em solid #9b4d9b; color: #c6cdd3; background: #050507; }
-      .cs-out pre { margin: 0; padding: 0.5em 0.7em; background: #050507; border: 1px solid #2c3238; border-radius: 0.3rem; overflow-x: auto; }
-      .cs-out pre code { background: none; padding: 0; }
-      .cs-out mark { background: rgba(215,176,240,0.85); color: #0d0f11; padding: 0 0.15em; border-radius: 0.2em; }
-      .cs-out u { text-underline-offset: 0.15em; }
-      .cs-out sub, .cs-out sup { line-height: 0; }
-      .cs-out hr { min-width: 3em; border: none; border-top: 1px solid rgba(255,255,255,0.25); margin: 0.5em 0; }
+      /* Three aligned columns: markdown | preview | description. The preview
+         fills its column (clipped if too wide), descriptions line up in
+         their own column instead of sitting at each preview's edge. */
+      .cs-preview { min-width: 0; overflow: hidden; width: 100%; }
+      .cs-desc { color: #6c767e; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 10rem; }
+      .cs-desc.wrap { white-space: normal; overflow: visible; text-overflow: clip; }
+      .cs-desc.under { display: block; margin-top: 0.3em; }
+      .cs-preview h1, .cs-preview h2, .cs-preview h3, .cs-preview h4, .cs-preview h5, .cs-preview h6 { display: inline; font-weight: 700; }
+      .cs-preview h1 { font-size: 1.4em; }
+      .cs-preview img { max-width: 100%; height: auto; display: block; margin-top: 0.25rem; border-radius: 0.3rem; }
+      .cs-preview code { background: #000; padding: 0.05em 0.3em; border-radius: 0.25em; font-size: 0.88em; color: #d7b0f0; }
+      .cs-preview a { color: #b27bd6; }
+      .cs-preview p { margin: 0; }
+      .cs-preview ul, .cs-preview ol { margin: 0; padding-left: 1.3rem; }
+      .cs-preview blockquote { margin: 0; padding: 0.1em 0.9em; border-left: 0.25em solid #9b4d9b; color: #c6cdd3; background: #050507; }
+      .cs-preview pre { margin: 0; padding: 0.5em 0.7em; background: #050507; border: 1px solid #2c3238; border-radius: 0.3rem; overflow-x: auto; }
+      .cs-preview pre code { background: none; padding: 0; }
+      .cs-preview mark { background: rgba(215,176,240,0.85); color: #0d0f11; padding: 0 0.15em; border-radius: 0.2em; }
+      .cs-preview u { text-underline-offset: 0.15em; }
+      .cs-preview sub, .cs-preview sup { line-height: 0; }
+      .cs-preview hr { min-width: 3em; border: none; border-top: 1px solid rgba(255,255,255,0.25); margin: 0.5em 0; }
       @media (max-width: 40rem) { .cs-list { grid-template-columns: 1fr; } .cs-item { grid-template-columns: 1fr; column-gap: 0; } .cs-md { white-space: pre-line; } }
 
       /* ---------- Editor split ---------- */
@@ -157,22 +158,22 @@
       .preview u { text-underline-offset:0.15em; }
       .preview sub, .preview sup { line-height:0; }
       .preview hr { border:none; border-top:1px solid rgba(255,255,255,0.25); margin:0.5em 0; }
-      .preview kbd, .cs-out kbd { font-family:ui-monospace,'Roboto Mono',Consolas,monospace; font-size:0.88em; padding:0.1em 0.35em; border:1px solid rgba(255,255,255,0.25); border-bottom-width:2px; border-radius:0.25em; background:#050507; }
+      .preview kbd, .cs-preview kbd { font-family:ui-monospace,'Roboto Mono',Consolas,monospace; font-size:0.88em; padding:0.1em 0.35em; border:1px solid rgba(255,255,255,0.25); border-bottom-width:2px; border-radius:0.25em; background:#050507; }
       .preview a { color:#b27bd6; }
       .preview img { max-width:100%; border-radius:0.3rem; }
       /* Note boxes ([!NOTE] etc.) — shared by the preview and the cheat sheet. */
-      .preview .note, .cs-out .note { margin:0; padding:0.45em 0.7em; border-left:0.2em solid; border-radius:0 0.3rem 0.3rem 0; }
-      .preview .note-title, .cs-out .note-title { margin:0 0 0.15em; font-weight:700; }
-      .preview .note-note, .cs-out .note-note { border-left-color:#6ea8fe; background:rgba(110,168,254,0.10); }
-      .preview .note-note .note-title, .cs-out .note-note .note-title { color:#6ea8fe; }
-      .preview .note-tip, .cs-out .note-tip { border-left-color:#56d364; background:rgba(86,211,100,0.10); }
-      .preview .note-tip .note-title, .cs-out .note-tip .note-title { color:#56d364; }
-      .preview .note-important, .cs-out .note-important { border-left-color:#d7b0f0; background:rgba(215,176,240,0.10); }
-      .preview .note-important .note-title, .cs-out .note-important .note-title { color:#d7b0f0; }
-      .preview .note-warning, .cs-out .note-warning { border-left-color:#ffd27b; background:rgba(255,210,123,0.10); }
-      .preview .note-warning .note-title, .cs-out .note-warning .note-title { color:#ffd27b; }
-      .preview .note-caution, .cs-out .note-caution { border-left-color:#ff7b72; background:rgba(255,123,114,0.10); }
-      .preview .note-caution .note-title, .cs-out .note-caution .note-title { color:#ff7b72; }
+      .preview .note, .cs-preview .note { margin:0; padding:0.45em 0.7em; border-left:0.2em solid; border-radius:0 0.3rem 0.3rem 0; }
+      .preview .note-title, .cs-preview .note-title { margin:0 0 0.15em; font-weight:700; }
+      .preview .note-note, .cs-preview .note-note { border-left-color:#6ea8fe; background:rgba(110,168,254,0.10); }
+      .preview .note-note .note-title, .cs-preview .note-note .note-title { color:#6ea8fe; }
+      .preview .note-tip, .cs-preview .note-tip { border-left-color:#56d364; background:rgba(86,211,100,0.10); }
+      .preview .note-tip .note-title, .cs-preview .note-tip .note-title { color:#56d364; }
+      .preview .note-important, .cs-preview .note-important { border-left-color:#d7b0f0; background:rgba(215,176,240,0.10); }
+      .preview .note-important .note-title, .cs-preview .note-important .note-title { color:#d7b0f0; }
+      .preview .note-warning, .cs-preview .note-warning { border-left-color:#ffd27b; background:rgba(255,210,123,0.10); }
+      .preview .note-warning .note-title, .cs-preview .note-warning .note-title { color:#ffd27b; }
+      .preview .note-caution, .cs-preview .note-caution { border-left-color:#ff7b72; background:rgba(255,123,114,0.10); }
+      .preview .note-caution .note-title, .cs-preview .note-caution .note-title { color:#ff7b72; }
       .col-label { font-size:0.78rem; color:#9aa4ad; margin-bottom:0.35rem; }
 
       /* ---------- Manifesto list ---------- */
@@ -634,11 +635,11 @@
           { md: "- bullet item", desc: "Bullet list" },
           { md: "1. numbered item", desc: "Numbered list" },
           { md: "> quoted text", desc: "Quote" },
-          { md: "> [!NOTE]\n> worth noting", desc: "Note box — also TIP, IMPORTANT, WARNING, CAUTION" },
-          { md: "***", desc: "Horizontal line" },
+          { md: "> [!NOTE]\n> worth noting", desc: "Note box — also TIP, IMPORTANT, WARNING, CAUTION", wrap: true },
+          { md: "***", desc: "Horizontal line", under: true },
           { md: "[link](https://x.example)", desc: "Hyperlink" },
           { md: "![alt](https://loremflickr.com/320/240)" },
-          { md: "\\*literal\\*", desc: "Backslash escapes any symbol" },
+          { md: "\\*literal\\*", desc: "Backslash escapes any symbol", wrap: true },
         ];
         function buildCheatsheet() {
           var ul = document.getElementById("cs-list");
@@ -648,9 +649,12 @@
             li.appendChild(el("span", { className: "cs-md", textContent: c.md }));
             var previewEl = el("span", { className: "cs-preview" });
             previewEl.innerHTML = renderMarkdown(c.md);
-            var outEl = el("span", { className: "cs-out" }, [previewEl]);
-            if (c.desc) outEl.appendChild(el("span", { className: "cs-desc", textContent: "— " + c.desc }));
-            li.appendChild(outEl);
+            li.appendChild(previewEl);
+            if (c.desc) {
+              var cls = "cs-desc" + (c.under ? " under" : "") + (c.wrap ? " wrap" : "");
+              var descEl = el("span", { className: cls, textContent: "— " + c.desc });
+              if (c.under) previewEl.appendChild(descEl); else li.appendChild(descEl);
+            }
             ul.appendChild(li);
           });
         }
