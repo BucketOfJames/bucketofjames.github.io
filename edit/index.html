@@ -115,7 +115,7 @@
          column instead of sitting at each preview's edge. */
       .cs-preview { min-width: 0; overflow: hidden; width: 100%; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.9rem; line-height: 1.5; }
       .cs-desc { color: #6c767e; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 10rem; }
-      .cs-desc.wrap { white-space: normal; overflow: visible; text-overflow: clip; max-width: 13rem; }
+      .cs-desc.wrapdesc { white-space: normal; overflow: visible; text-overflow: clip; max-width: 13rem; }
       .cs-preview h1, .cs-preview h2, .cs-preview h3, .cs-preview h4, .cs-preview h5, .cs-preview h6 { display: inline; font-weight: 700; }
       .cs-preview h1 { font-size: 1.4em; }
       .cs-preview img { max-width: 100%; height: auto; display: block; margin-top: 0.25rem; border-radius: 0.3rem; }
@@ -643,7 +643,7 @@ import { renderMarkdown } from "../shared/render.js";
             previewEl.innerHTML = renderMarkdown(c.md);
             li.appendChild(previewEl);
             if (c.desc) {
-              li.appendChild(el("span", { className: "cs-desc" + (c.wrap ? " wrap" : ""), textContent: "— " + c.desc }));
+              li.appendChild(el("span", { className: "cs-desc" + (c.wrap ? " wrapdesc" : ""), textContent: "— " + c.desc }));
             }
             ul.appendChild(li);
           });
