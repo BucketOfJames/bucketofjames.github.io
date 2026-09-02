@@ -1,0 +1,71 @@
+name: Editor Publish (Signed)
+
+on:
+  repository_dispatch:
+    types: [editor-publish]
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.EDITOR_GPG_PRIVATE_KEY }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Apply editor changes and push
+        env:
+          PAYLOAD: ${{ github.event.client_payload }}
+        run: |
+          aboutHtml=$(echo "$PAYLOAD" | jq -r '.aboutHtml')
+          manHtml=$(echo "$PAYLOAD" | jq -r '.manHtml')
+          editHtml=$(echo "$PAYLOAD" | jq -r '.editHtml')
+          msgIndex=$(echo "$PAYLOAD" | jq -r '.msgIndex')
+          msgEdit=$(echo "$PAYLOAD" | jq -r '.msgEdit')
+
+          # --- index.html: replace between about/manifestos markers ---
+          python3 -c "
+          import sys, re
+          html = open('index.html').read()
+          aboutRepl = sys.argv[1]
+          manRepl = sys.argv[2]
+          html = re.sub(
+              r'<!--about-content-->.*?<!--/about-content-->',
+              '<!--about-content-->\n' + aboutRepl + '\n<!--/about-content-->',
+              html, count=1, flags=re.DOTALL)
+          html = re.sub(
+              r'<!--manifestos-content-->.*?<!--/manifestos-content-->',
+              '<!--manifestos-content-->\n' + manRepl + '\n<!--/manifestos-content-->',
+              html, count=1, flags=re.DOTALL)
+          open('index.html', 'w').write(html)
+          " "$aboutHtml" "$manHtml"
+
+          # --- edit/index.html: replace between JS default markers ---
+          python3 -c "
+          import sys, re
+          html = open('edit/index.html').read()
+          repl = sys.argv[1]
+          html = re.sub(
+              r'//__ABOUT_START__.*?//__MANIFESTOS_END__',
+              repl,
+              html, count=1, flags=re.DOTALL)
+          open('edit/index.html', 'w').write(html)
+          " "$editHtml"
+
+          git config user.name "bucket-editor"
+          git config user.email "mr.jaanv@gmail.com"
+
+          git add index.html
+          git commit -S -m "$msgIndex"
+
+          git add edit/index.html
+          git commit -S -m "$msgEdit"
+
+          git push
