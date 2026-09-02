@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="description" content="BucketOfJames — my personal website. A description about me and links to all my socials. I use arch btw." />
     <title>BucketOfJames</title>
@@ -21,22 +20,19 @@
            register @font-face, so declare them here to keep them global. */
         @font-face {
           font-family: "Pixelated MS Sans Serif";
-          src: url(https://unpkg.com/xp.css@0.2.6/dist/ms_sans_serif.woff) format("woff");
-          src: url(https://unpkg.com/xp.css@0.2.6/dist/ms_sans_serif.woff2) format("woff2");
+          src: url('assets/fonts/ms_sans_serif.woff2') format("woff2");
           font-weight: 400;
           font-style: normal;
         }
         @font-face {
           font-family: "Pixelated MS Sans Serif";
-          src: url(https://unpkg.com/xp.css@0.2.6/dist/ms_sans_serif_bold.woff) format("woff");
-          src: url(https://unpkg.com/xp.css@0.2.6/dist/ms_sans_serif_bold.woff2) format("woff2");
+          src: url('assets/fonts/ms_sans_serif_bold.woff2') format("woff2");
           font-weight: 700;
           font-style: normal;
         }
         @font-face {
           font-family: "Perfect DOS VGA 437 Win";
-          src: url(https://unpkg.com/xp.css@0.2.6/dist/PerfectDOSVGA437Win.woff2) format("woff2"),
-               url(https://unpkg.com/xp.css@0.2.6/dist/PerfectDOSVGA437Win.woff) format("woff");
+          src: url('assets/fonts/PerfectDOSVGA437Win.woff2') format("woff2");
           font-weight: 400;
           font-style: normal;
         }
@@ -352,7 +348,16 @@
         border-radius: 50%;
         margin-bottom: 0.39063vw;
         background-color: transparent;
+        background-size: 80%;
+        background-repeat: no-repeat;
+        background-position: center;
       }
+
+      .link-item.spotify .icon { background-image: url('assets/spotify.svg'); }
+      .link-item.steam .icon { background-image: url('assets/steam.svg'); }
+      .link-item.fluxer .icon { background-image: url('assets/fluxer.svg'); }
+      .link-item.medal .icon { background-image: url('assets/medal.svg'); }
+      .link-item.youtube .icon { background-image: url('assets/youtube.svg'); }
 
     </style>
 
@@ -1688,48 +1693,48 @@
       }
         </style>
 
-<div class="retro-player" hidden>
-            <div class="retro-player-shell">
-              <div class="retro-player-topbar">
-                <div class="retro-player-brand">
-                  <span>Media Player</span>
+        <div class="retro-player" hidden>
+          <div class="retro-player-shell">
+            <div class="retro-player-topbar">
+              <div class="retro-player-brand">
+                <span>Media Player</span>
+              </div>
+              <div class="retro-window-controls">
+                <button type="button" aria-label="Minimize"><span>−</span></button>
+                <button type="button" aria-label="Maximize"><span>□</span></button>
+                <button type="button" aria-label="Close"><span>×</span></button>
+              </div>
+            </div>
+
+            <div class="retro-player-tabs">
+              <button type="button" class="is-active"><span>Now Playing</span></button>
+              <button type="button"><span>Library</span></button>
+              <button type="button"><span>Rip</span></button>
+              <button type="button"><span>Burn</span></button>
+              <button type="button"><span>Sync</span></button>
+            </div>
+
+            <div class="retro-player-main">
+              <div class="spotify-meta">
+                <div id="spotify-label" class="spotify-label">Spotify is closed</div>
+                <div id="spotify-title" class="spotify-title">[no song found]</div>
+                <div id="spotify-artist" class="spotify-artist">[no artist either]</div>
+
+                <a id="spotify-link" class="spotify-link is-disabled">Spotify unavailable</a>
+
+                <div class="spotify-time-row">
+                  <span id="spotify-current">-:--</span>
+                  <span id="spotify-duration">-:--</span>
                 </div>
-                <div class="retro-window-controls">
-                  <button type="button" aria-label="Minimize"><span>−</span></button>
-                  <button type="button" aria-label="Maximize"><span>□</span></button>
-                  <button type="button" aria-label="Close"><span>×</span></button>
+
+                <div class="spotify-progress">
+                  <div id="spotify-progress-bar" class="spotify-progress-bar" style="width: 0%"></div>
                 </div>
               </div>
 
-              <div class="retro-player-tabs">
-                <button type="button" class="is-active"><span>Now Playing</span></button>
-                <button type="button"><span>Library</span></button>
-                <button type="button"><span>Rip</span></button>
-                <button type="button"><span>Burn</span></button>
-                <button type="button"><span>Sync</span></button>
-              </div>
-
-              <div class="retro-player-main">
-                <div class="spotify-meta">
-                  <div id="spotify-label" class="spotify-label">Spotify is closed</div>
-                  <div id="spotify-title" class="spotify-title">[no song found]</div>
-                  <div id="spotify-artist" class="spotify-artist">[no artist either]</div>
-
-                  <a id="spotify-link" class="spotify-link is-disabled">Spotify unavailable</a>
-
-                  <div class="spotify-time-row">
-                    <span id="spotify-current">-:--</span>
-                    <span id="spotify-duration">-:--</span>
-                  </div>
-
-                  <div class="spotify-progress">
-                    <div id="spotify-progress-bar" class="spotify-progress-bar" style="width: 0%"></div>
-                  </div>
-                </div>
-
-                <div class="retro-cover-column">
-                  <div class="retro-cover-frame">
-                    <img id="spotify-cover" class="spotify-cover offline" src="assets/spotify.svg" alt="Spotify icon" />
+              <div class="retro-cover-column">
+                <div class="retro-cover-frame">
+                  <img id="spotify-cover" class="spotify-cover offline" src="assets/spotify.svg" alt="Spotify icon" />
                   </div>
                 </div>
               </div>
@@ -1782,24 +1787,24 @@
 
                 <div class="linkage">
                   <a href="https://open.spotify.com/user/0ksfj8yes49dkju5w48dr3x3u?si=2205d68da45e48fa" class="link-item spotify">
-                    <div class="icon" style="background-image:url('assets/spotify.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="icon"></div>
                     <div class="label">Spotify</div>
                   </a>
                   <a href="https://steamcommunity.com/id/bucketofjames/" class="link-item steam">
-                    <div class="icon" style="background-image:url('assets/steam.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="icon"></div>
                     <div class="label">Steam</div>
                   </a>
                   <a href="https://fluxer.gg/NFR4JYst" class="link-item fluxer">
                     <div class="custom-tooltip">My Fluxer server. FluxerTag is just BucketOfJames.</div>
-                    <div class="icon" style="background-image:url('assets/fluxer.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="icon"></div>
                     <div class="label">Fluxer</div>
                   </a>
                   <a href="https://medal.tv/u/BucketOfJames/?invite=ur-MSxzVVgsMTczOTM5ODA5" class="link-item medal">
-                    <div class="icon" style="background-image:url('assets/medal.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="icon"></div>
                     <div class="label">Medal.tv</div>
                   </a>
                   <a href="https://youtube.com/@bucketofjames?si=9ODTwmbXb2_LDSkW" class="link-item youtube">
-                    <div class="icon" style="background-image:url('assets/youtube.svg'); background-size:80%; background-repeat:no-repeat; background-position:center;"></div>
+                    <div class="icon"></div>
                     <div class="label">YouTube</div>
                   </a>
                 </div>
@@ -1940,6 +1945,13 @@
 <p>I still consider my main reasons for not succumbing to suicidal ideation to be happiness, hope and love. As abstract as they are.</p>
 </article>
 
+<article class="manifestos-item">
+<p>test manifesto</p>
+<p></p>
+<p>goober</p>
+<p>goob</p>
+</article>
+
 <!--/manifestos-content-->
                 </div>
               </div>
@@ -1991,6 +2003,8 @@
       let playbackState = null;
       let tickInterval = null;
       let dragState = null;
+
+      const vw = (px) => (px / window.innerWidth * 100) + "vw";
 
       if (card) {
         const revealCard = () => {
@@ -2261,20 +2275,20 @@
         card.style.top = nextTop + "px";
       }
       function endWindowDrag(event) {
-  if (!dragState || !card) return;
-  dragState = null;
-  card.classList.remove("dragging");
-  if (dragHandle && dragHandle.releasePointerCapture) {
-    dragHandle.releasePointerCapture(event.pointerId);
-  }
-}
+        if (!dragState || !card) return;
+        dragState = null;
+        card.classList.remove("dragging");
+        if (dragHandle && dragHandle.releasePointerCapture) {
+          dragHandle.releasePointerCapture(event.pointerId);
+        }
+      }
 
-if (dragHandle) {
-  dragHandle.addEventListener("pointerdown", beginWindowDrag);
-}
-window.addEventListener("pointermove", moveWindow);
-window.addEventListener("pointerup", endWindowDrag);
-window.addEventListener("pointercancel", endWindowDrag);
+      if (dragHandle) {
+        dragHandle.addEventListener("pointerdown", beginWindowDrag);
+      }
+      window.addEventListener("pointermove", moveWindow);
+      window.addEventListener("pointerup", endWindowDrag);
+      window.addEventListener("pointercancel", endWindowDrag);
 
 refreshPlayback();
 window.setInterval(refreshPlayback, 15000);
@@ -2297,7 +2311,6 @@ function positionControlGroups() {
   if (!wingPrev || !wingNext) return;
 
   const trayRect = controlsTray.getBoundingClientRect();
-  const vw = (px) => (px / window.innerWidth * 100) + "vw";
 
   const prevRect = wingPrev.getBoundingClientRect();
   auxControls.style.width = vw(prevRect.left - auxControls.getBoundingClientRect().left);
@@ -2329,7 +2342,6 @@ function syncCoverSize() {
   const maxCover = mainEl.clientWidth - gap - leftW;
   const size = Math.min(avail, maxCover);
   if (size <= 0) return;
-  const vw = (px) => (px / window.innerWidth * 100) + "vw";
   coverFrame.style.width = vw(size);
   coverFrame.style.height = vw(size);
 }
@@ -2414,7 +2426,9 @@ const specPanes = document.querySelectorAll(".specs-pane");
 
 function showSpecTab(id) {
   specTabButtons.forEach((btn) => {
-    btn.classList.toggle("is-active", btn.dataset.specsTab === id);
+    const active = btn.dataset.specsTab === id;
+    btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-selected", String(active));
   });
   specPanes.forEach((pane) => {
     pane.hidden = pane.id !== id;
