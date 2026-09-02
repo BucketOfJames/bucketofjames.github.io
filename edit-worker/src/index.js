@@ -162,7 +162,7 @@ async function verifyToken(token, env) {
 }
 
 // ---------------------------------------------------------------
-// Publish (render markdown -> HTML, replace markers in index.html, commit)
+// Publish (render markdown -> HTML, replace markers in index.html + edit/index.html, commit)
 // ---------------------------------------------------------------
 async function handlePublish(request, env) {
   let body;
@@ -191,42 +191,47 @@ async function handlePublish(request, env) {
     .join("\n");
 
   try {
-    const file = await getIndexHtml(env);
+    // Update index.html (live site)
+    const file = await getFile(env, "index.html");
     const updated = replaceSections(file.content, aboutHtml, manHtml);
     if (updated === file.content) {
       return json({ ok: true, changed: false, message: "No changes" }, 200, env);
     }
-    const commit = await putIndexHtml(env, file.sha, updated);
-    return json(
-      { ok: true, changed: true, sha: commit.sha, htmlUrl: commit.html_url },
-      200,
-      env
-    );
+    await putFile(env, "index.html", file.sha, updated,
+      "Update site content from editor");
+
+    // Update edit/index.html (keep editor defaults in sync)
+    const editFile = await getFile(env, "edit/index.html");
+    const editUpdated = replaceEditDefaults(editFile.content, about, manifestos);
+    await putFile(env, "edit/index.html", editFile.sha, editUpdated,
+      "Update editor defaults from publish");
+
+    return json({ ok: true, changed: true }, 200, env);
   } catch (err) {
     return json({ error: "Publish failed", detail: String(err) }, 500, env);
   }
 }
 
-async function getIndexHtml(env) {
+async function getFile(env, path) {
   const headers = {
     Authorization: `Bearer ${env.GITHUB_TOKEN}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
     "User-Agent": "bucket-editor-worker",
   };
-  const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/index.html`;
+  const url = `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${path}`;
   const res = await fetch(url, { headers });
   if (!res.ok) {
     throw new Error(`GitHub get failed (${res.status}): ${await res.text()}`);
   }
   const data = await res.json();
   if (data.type !== "file" || !data.content) {
-    throw new Error("index.html not found in repo root");
+    throw new Error(`${path} not found in repo`);
   }
   return { sha: data.sha, content: decodeBase64(data.content) };
 }
 
-async function putIndexHtml(env, sha, content) {
+async function putFile(env, path, sha, content, message) {
   const headers = {
     Authorization: `Bearer ${env.GITHUB_TOKEN}`,
     Accept: "application/vnd.github+json",
@@ -235,13 +240,13 @@ async function putIndexHtml(env, sha, content) {
     "Content-Type": "application/json",
   };
   const body = {
-    message: "Update site content from editor",
+    message,
     content: encodeBase64(content),
     sha,
     branch: env.GITHUB_BRANCH,
   };
   const res = await fetch(
-    `https://api.github.com/repos/${env.GITHUB_REPO}/contents/index.html`,
+    `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${path}`,
     { method: "PUT", headers, body: JSON.stringify(body) }
   );
   if (!res.ok) {
@@ -278,6 +283,53 @@ function replaceBetween(source, open, close, replacement) {
     (/\n\s*$/.test(before) ? "\n" : "") +
     source.slice(j)
   );
+}
+
+// ---------------------------------------------------------------
+// Keep edit/index.html defaults in sync with published content.
+// Uses //__ABOUT_START__//__ABOUT_END__ and
+//       //__MANIFESTOS_START__//__MANIFESTOS_END__ markers.
+// ---------------------------------------------------------------
+function replaceEditDefaults(html, aboutMd, manifestos) {
+  let out = html;
+
+  // --- About ---
+  const aboutStart = html.indexOf("//__ABOUT_START__");
+  const aboutEnd = html.indexOf("//__ABOUT_END__");
+  if (aboutStart >= 0 && aboutEnd > aboutStart) {
+    const indent = "          ";
+    const aboutLines = aboutMd.split("\n");
+    const aboutParts = [];
+    for (let i = 0; i < aboutLines.length; i++) {
+      let line = aboutLines[i];
+      if (i < aboutLines.length - 1) {
+        // Mid-line: end with " +\n"
+        aboutParts.push(indent + jsString(line) + " +");
+      } else {
+        // Last line: no trailing +
+        aboutParts.push(indent + jsString(line));
+      }
+    }
+    const aboutReplacement = aboutParts.join("\n");
+    out = out.slice(0, aboutStart) + "//__ABOUT_START__\n" + aboutReplacement + "\n          " + out.slice(aboutEnd);
+  }
+
+  // --- Manifestos ---
+  const manStart = out.indexOf("//__MANIFESTOS_START__");
+  const manEnd = out.indexOf("//__MANIFESTOS_END__");
+  if (manStart >= 0 && manEnd > manStart) {
+    const indent = "          ";
+    const manParts = manifestos.map((m) => indent + jsString(m) + ",");
+    const manReplacement = manParts.join("\n");
+    out = out.slice(0, manStart) + "//__MANIFESTOS_START__\n" + manReplacement + "\n          " + out.slice(manEnd);
+  }
+
+  return out;
+}
+
+// Escape a string for use as a JavaScript "..." literal (double quotes, \n, \\).
+function jsString(s) {
+  return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n") + '"';
 }
 
 // ---------------------------------------------------------------
