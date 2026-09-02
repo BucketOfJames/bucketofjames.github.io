@@ -108,9 +108,10 @@
       .cs-item:last-child { border-bottom: none; }
       .cs-md { white-space: pre; min-width: 0; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.85rem; color: #d7b0f0; }
       /* Three aligned columns: markdown | preview | description. The preview
-         fills its column (clipped if too wide), descriptions line up in
-         their own column instead of sitting at each preview's edge. */
-      .cs-preview { min-width: 0; overflow: hidden; width: 100%; }
+         fills its column (clipped if too wide) and uses the same monospace
+         font as the editor textarea; descriptions line up in their own
+         column instead of sitting at each preview's edge. */
+      .cs-preview { min-width: 0; overflow: hidden; width: 100%; font-family: ui-monospace, 'Roboto Mono', Consolas, monospace; font-size: 0.9rem; line-height: 1.5; }
       .cs-desc { color: #6c767e; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 10rem; }
       .cs-desc.wrap { white-space: normal; overflow: visible; text-overflow: clip; }
       .cs-preview h1, .cs-preview h2, .cs-preview h3, .cs-preview h4, .cs-preview h5, .cs-preview h6 { display: inline; font-weight: 700; }
