@@ -17,7 +17,7 @@
 // Optional var (wrangler.jsonc "vars"):
 //   ALLOWED_ORIGIN   - restrict CORS to this origin (default *)
 
-import { renderMarkdown } from "./render.js";
+import { renderMarkdown, htmlToMarkdown } from "./render.js";
 import { verifyPassword, b64ToBytes } from "./verify.js";
 
 const TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
@@ -182,8 +182,12 @@ async function handlePublish(request, env) {
     return json({ error: "Worker not configured (missing GitHub secrets)" }, 500, env);
   }
 
-  const about = typeof body.about === "string" ? body.about : "";
-  const manifestos = Array.isArray(body.manifestos) ? body.manifestos.map(String) : [];
+  const aboutRaw = typeof body.about === "string" ? body.about : "";
+  const manifestosRaw = Array.isArray(body.manifestos) ? body.manifestos.map(String) : [];
+
+  // Normalize: convert any raw HTML to markdown before rendering.
+  const about = htmlToMarkdown(aboutRaw);
+  const manifestos = manifestosRaw.map(htmlToMarkdown);
 
   const aboutHtml = renderMarkdown(about);
   const manHtml = manifestos
@@ -191,20 +195,25 @@ async function handlePublish(request, env) {
     .join("\n");
 
   try {
-    // Update index.html (live site)
+    // Fetch index.html to detect changes.
     const file = await getFile(env, "index.html");
-    const updated = replaceSections(file.content, aboutHtml, manHtml);
-    if (updated === file.content) {
+    const updatedContent = replaceSections(file.content, aboutHtml, manHtml);
+    if (updatedContent === file.content) {
       return json({ ok: true, changed: false, message: "No changes" }, 200, env);
     }
-    await putFile(env, "index.html", file.sha, updated,
-      "Update site content from editor");
 
-    // Update edit/index.html (keep editor defaults in sync)
+    // Generate edit/index.html defaults replacement.
     const editFile = await getFile(env, "edit/index.html");
-    const editUpdated = replaceEditDefaults(editFile.content, about, manifestos);
-    await putFile(env, "edit/index.html", editFile.sha, editUpdated,
-      "Update editor defaults from publish");
+    const editDefaultsReplacement = buildEditDefaultsReplacement(editFile.content, about, manifestos);
+
+    // Trigger GitHub Actions workflow to commit with GPG signing.
+    await triggerWorkflow(env, {
+      aboutHtml,
+      manHtml,
+      editHtml: editDefaultsReplacement,
+      msgIndex: "Update site content from editor",
+      msgEdit: "Update editor defaults from publish",
+    });
 
     return json({ ok: true, changed: true }, 200, env);
   } catch (err) {
@@ -231,7 +240,7 @@ async function getFile(env, path) {
   return { sha: data.sha, content: decodeBase64(data.content) };
 }
 
-async function putFile(env, path, sha, content, message) {
+async function triggerWorkflow(env, payload) {
   const headers = {
     Authorization: `Bearer ${env.GITHUB_TOKEN}`,
     Accept: "application/vnd.github+json",
@@ -239,20 +248,20 @@ async function putFile(env, path, sha, content, message) {
     "User-Agent": "bucket-editor-worker",
     "Content-Type": "application/json",
   };
-  const body = {
-    message,
-    content: encodeBase64(content),
-    sha,
-    branch: env.GITHUB_BRANCH,
-  };
   const res = await fetch(
-    `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${path}`,
-    { method: "PUT", headers, body: JSON.stringify(body) }
+    `https://api.github.com/repos/${env.GITHUB_REPO}/dispatches`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        event_type: "editor-publish",
+        client_payload: payload,
+      }),
+    }
   );
   if (!res.ok) {
-    throw new Error(`GitHub put failed (${res.status}): ${await res.text()}`);
+    throw new Error(`GitHub dispatch failed (${res.status}): ${await res.text()}`);
   }
-  return res.json();
 }
 
 const ABOUT_OPEN = "<!--about-content-->";
@@ -286,45 +295,31 @@ function replaceBetween(source, open, close, replacement) {
 }
 
 // ---------------------------------------------------------------
-// Keep edit/index.html defaults in sync with published content.
-// Uses //__ABOUT_START__//__ABOUT_END__ and
-//       //__MANIFESTOS_START__//__MANIFESTOS_END__ markers.
+// Build the replacement content for edit/index.html defaults.
+// Returns the raw text to insert between the markers (excluding markers).
 // ---------------------------------------------------------------
-function replaceEditDefaults(html, aboutMd, manifestos) {
-  let out = html;
+function buildEditDefaultsReplacement(_html, aboutMd, manifestos) {
+  const indent = "          ";
+  const parts = [];
 
   // --- About ---
-  const aboutStart = html.indexOf("//__ABOUT_START__");
-  const aboutEnd = html.indexOf("//__ABOUT_END__");
-  if (aboutStart >= 0 && aboutEnd > aboutStart) {
-    const indent = "          ";
-    const aboutLines = aboutMd.split("\n");
-    const aboutParts = [];
-    for (let i = 0; i < aboutLines.length; i++) {
-      let line = aboutLines[i];
-      if (i < aboutLines.length - 1) {
-        // Mid-line: end with " +\n"
-        aboutParts.push(indent + jsString(line) + " +");
-      } else {
-        // Last line: no trailing +
-        aboutParts.push(indent + jsString(line));
-      }
+  const aboutLines = aboutMd.split("\n");
+  const aboutParts = [];
+  for (let i = 0; i < aboutLines.length; i++) {
+    let line = aboutLines[i];
+    if (i < aboutLines.length - 1) {
+      aboutParts.push(indent + jsString(line) + " +");
+    } else {
+      aboutParts.push(indent + jsString(line));
     }
-    const aboutReplacement = aboutParts.join("\n");
-    out = out.slice(0, aboutStart) + "//__ABOUT_START__\n" + aboutReplacement + "\n          " + out.slice(aboutEnd);
   }
+  parts.push("//__ABOUT_START__\n" + aboutParts.join("\n") + "\n          //__ABOUT_END__");
 
   // --- Manifestos ---
-  const manStart = out.indexOf("//__MANIFESTOS_START__");
-  const manEnd = out.indexOf("//__MANIFESTOS_END__");
-  if (manStart >= 0 && manEnd > manStart) {
-    const indent = "          ";
-    const manParts = manifestos.map((m) => indent + jsString(m) + ",");
-    const manReplacement = manParts.join("\n");
-    out = out.slice(0, manStart) + "//__MANIFESTOS_START__\n" + manReplacement + "\n          " + out.slice(manEnd);
-  }
+  const manParts = manifestos.map((m) => indent + jsString(m) + ",");
+  parts.push("//__MANIFESTOS_START__\n" + manParts.join("\n") + "\n          //__MANIFESTOS_END__");
 
-  return out;
+  return parts.join("\n");
 }
 
 // Escape a string for use as a JavaScript "..." literal (double quotes, \n, \\).

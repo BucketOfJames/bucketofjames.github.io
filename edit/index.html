@@ -329,7 +329,7 @@
           //__ABOUT_START__
           "I am the guy you love to hate.\n\n" +
           "I'm into video games, music and gym. I'm your average power user who is just looking for privacy in today's digital landscape. I am passionate, but a little tired of life. My humour leans into dark and satirical.\n\n" +
-          "I use arch btw  <sub>(cachyos)</sub>"
+          "I use arch btw  ~(cachyos)~"
           //__ABOUT_END__
           ;
         var MANIFESTOS = [
@@ -344,7 +344,7 @@
           "\"If they wanted to, they would.\" is genuinely one of the worst mentalities you can have in almost any relationship. Everyone has things they want to do but won't. I have so many things I (really) want to do but I just don't, I don't for no fucking reason. We are humans, for cryin' out loud - if you want something just ask. And if they keep ignoring that, then you can start considering apathy.",
           "What, you think you're fucking better than me?\n\nWell... you probably are. Not that I care though.",
           "The day we started seeing nudity as something sexual and perverse, instead of the truest form of purity, was the day society was doomed.",
-          "One of the reasons I won't kill myself is pure, distilled spite. Not <em>just</em> spite, but defiance too. I am choosing to exist as an act of resistance against the people I know full well would feel some sort of happiness from my <em>absolute absence</em>. Well, fuck them, I win.\n\nWhile thinking about this, as one does, I decided to look it up. And apparently it's actually a recognized concept in suicidology. It is sometimes called \"spite-based survival\" or \"outliving your enemies.\" And, somewhat paradoxically, it is one of the most effective short-term protective factors against acting on suicidal thoughts because the motivation is visceral and immediate (anger).\n\nI still consider my main reasons for not succumbing to suicidal ideation to be happiness, hope and love. As abstract as they are."
+          "One of the reasons I won't kill myself is pure, distilled spite. Not *just* spite, but defiance too. I am choosing to exist as an act of resistance against the people I know full well would feel some sort of happiness from my *absolute absence*. Well, fuck them, I win.\n\nWhile thinking about this, as one does, I decided to look it up. And apparently it's actually a recognized concept in suicidology. It is sometimes called \"spite-based survival\" or \"outliving your enemies.\" And, somewhat paradoxically, it is one of the most effective short-term protective factors against acting on suicidal thoughts because the motivation is visceral and immediate (anger).\n\nI still consider my main reasons for not succumbing to suicidal ideation to be happiness, hope and love. As abstract as they are."
           //__MANIFESTOS_END__
         ];
 
@@ -358,13 +358,13 @@
               var d = JSON.parse(raw);
               if (d && typeof d === "object") {
                 return {
-                  about: typeof d.about === "string" ? d.about : ABOUT,
-                  manifestos: Array.isArray(d.manifestos) ? d.manifestos.map(String) : MANIFESTOS.slice()
+                  about: htmlToMarkdown(typeof d.about === "string" ? d.about : ABOUT),
+                  manifestos: Array.isArray(d.manifestos) ? d.manifestos.map(function(m){ return htmlToMarkdown(String(m)); }) : MANIFESTOS.slice()
                 };
               }
             }
           } catch (e) {}
-          return { about: ABOUT, manifestos: MANIFESTOS.slice() };
+          return { about: htmlToMarkdown(ABOUT), manifestos: MANIFESTOS.slice() };
         }
         function saveDraft(state) {
           try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); } catch (e) {}
@@ -586,15 +586,116 @@
           return out;
         }
         function escapeHtml(s) {
-          var keep = [];
-          var protected_ = s.replace(/(<\/(?:sub|sup|kbd|i|b)>|<(?:sub|sup|kbd|i|b)(?:\s[^>]*)?>)/g, function (m) {
-            keep.push(m);
-            return "\u0000" + (keep.length - 1) + "\u0000";
-          });
-          var escaped = protected_.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-          return escaped.replace(/\u0000(\d+)\u0000/g, function (m, i) { return keep[Number(i)]; });
+          return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
         function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+        // ---------------------------------------------------------------
+        // HTML → Markdown (converts raw HTML tags back to markdown syntax)
+        // ---------------------------------------------------------------
+        function htmlToMarkdown(html) {
+          if (!html || !/<[a-z/]/i.test(html)) return html || "";
+          var tree = parseHtmlTree(html);
+          return treeToMd(tree).replace(/\n{3,}/g, "\n\n").trim();
+        }
+        function parseHtmlTree(html) {
+          var root = [], stack = [root];
+          var tagRe = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*\/?>/g;
+          var selfC = { br:1, hr:1, img:1 };
+          var m, lastIdx = 0;
+          while ((m = tagRe.exec(html)) !== null) {
+            if (m.index > lastIdx) stack[stack.length-1].push(html.slice(lastIdx, m.index));
+            var raw = m[0], tag = m[1], isClose = raw[1]==="/", isSelf = selfC[tag] || raw.endsWith("/>");
+            if (isClose) {
+              if (stack.length > 1) { stack.pop(); stack[stack.length-1].push({tag:tag,close:true}); }
+              else stack[stack.length-1].push(raw);
+            } else if (isSelf) {
+              stack[stack.length-1].push({tag:tag,self:true,html:raw});
+            } else {
+              var children = []; stack[stack.length-1].push({tag:tag,children:children,html:raw}); stack.push(children);
+            }
+            lastIdx = tagRe.lastIndex;
+          }
+          if (lastIdx < html.length) stack[stack.length-1].push(html.slice(lastIdx));
+          while (stack.length > 1) { var u = stack.pop(); stack[stack.length-1].push({tag:"unknown",children:u}); }
+          return root;
+        }
+        function treeToMd(nodes) {
+          var out = "";
+          for (var i = 0; i < nodes.length; i++) {
+            var n = nodes[i];
+            if (typeof n === "string") { out += n; continue; }
+            if (n.close) continue;
+            if (n.tag === "p" || n.tag === "div") {
+              var inner = treeToMd(n.children).trim();
+              out += inner ? "\n\n" + inner : "";
+            } else if (/^h[1-6]$/.test(n.tag)) {
+              var lvl = parseInt(n.tag[1]);
+              out += "\n\n" + "#".repeat(lvl) + " " + treeToMd(n.children).trim() + "\n\n";
+            } else if (n.tag === "ul") {
+              out += "\n" + collectLis(n.children, false) + "\n";
+            } else if (n.tag === "ol") {
+              out += "\n" + collectLis(n.children, true) + "\n";
+            } else if (n.tag === "blockquote") {
+              var bq = treeToMd(n.children).trim();
+              out += "\n" + bq.split("\n").map(function(l){return "> "+l}).join("\n") + "\n";
+            } else if (n.tag === "pre") {
+              out += "\n\n```\n" + extractTxt(n.children) + "\n```\n\n";
+            } else if (n.tag === "hr") {
+              out += "\n\n***\n\n";
+            } else if (n.tag === "em" || n.tag === "i") {
+              out += "*" + treeToMd(n.children) + "*";
+            } else if (n.tag === "strong" || n.tag === "b") {
+              out += "**" + treeToMd(n.children) + "**";
+            } else if (n.tag === "del" || n.tag === "s") {
+              out += "~~" + treeToMd(n.children) + "~~";
+            } else if (n.tag === "u") {
+              out += "++" + treeToMd(n.children) + "++";
+            } else if (n.tag === "mark") {
+              out += "==" + treeToMd(n.children) + "==";
+            } else if (n.tag === "sub") {
+              out += "~" + treeToMd(n.children) + "~";
+            } else if (n.tag === "sup") {
+              out += "^" + treeToMd(n.children) + "^";
+            } else if (n.tag === "code") {
+              out += "`" + extractTxt(n.children) + "`";
+            } else if (n.tag === "a") {
+              var href = (n.html||"").match(/href="([^"]*)"/);
+              out += "[" + treeToMd(n.children).trim() + "](" + (href?href[1]:"") + ")";
+            } else if (n.tag === "img") {
+              var src = (n.html||"").match(/src="([^"]*)"/)||[];
+              var alt = (n.html||"").match(/alt="([^"]*)"/)||[];
+              out += "![" + (alt[1]||"") + "](" + (src[1]||"") + ")";
+            } else if (n.tag === "br") {
+              out += "\n";
+            } else if (n.children) {
+              out += treeToMd(n.children);
+            }
+          }
+          return out;
+        }
+        function collectLis(nodes, ordered) {
+          var items = [], num = 1;
+          for (var i = 0; i < nodes.length; i++) {
+            var n = nodes[i];
+            if (typeof n === "string" || n.close) continue;
+            if (n.tag === "li") {
+              items.push((ordered ? (num++)+". " : "- ") + treeToMd(n.children).trim());
+            } else if (n.children) {
+              items.push(treeToMd(n.children).trim());
+            }
+          }
+          return items.join("\n");
+        }
+        function extractTxt(nodes) {
+          var o = "";
+          for (var i = 0; i < nodes.length; i++) {
+            var n = nodes[i];
+            if (typeof n === "string") o += n;
+            else if (n.children) o += extractTxt(n.children);
+          }
+          return o;
+        }
 
         // ---------------------------------------------------------------
         // State & rendering
@@ -759,7 +860,6 @@
           { md: "[link](https://x.example)", html: "<a href=\"https://x.example\">link</a>", desc: "Hyperlink" },
           { md: "![alt](https://loremflickr.com/320/240)", html: "<img src=\"https://loremflickr.com/320/240\" alt=\"alt\">" },
           { md: "\\*literal\\*", html: "*literal*", desc: "Backslash escapes any symbol" },
-          { md: "<kbd>Ctrl</kbd>", html: "<kbd>Ctrl</kbd>", desc: "Key — raw HTML also works: sub, sup, kbd, i, b" },
         ];
         function csOut(raw) {
           var div = document.createElement("div");

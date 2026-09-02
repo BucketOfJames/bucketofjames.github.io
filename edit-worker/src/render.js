@@ -164,8 +164,7 @@ function inline(text) {
       }
     }
     if (!matched) {
-      // Consume a run of plain text so escapeHtml can protect whitelisted
-      // inline tags (e.g. <sub> … </sub>) which spans multiple characters.
+      // Consume a run of plain text (escapeHtml escapes any HTML in it).
       const restSlice = text.slice(i);
       const next = restSlice.search(stopRe);
       const chunkEnd = next === -1 ? restSlice.length : next;
@@ -178,19 +177,131 @@ function inline(text) {
   return out;
 }
 
-// Whitelisted inline HTML tags passed through untouched (not escaped).
-const SAFE_TAG_RE = /(<\/(?:sub|sup|kbd|i|b)>|<(?:sub|sup|kbd|i|b)(?:\s[^>]*)?>)/g;
-
 function escapeHtml(s) {
-  // Protect whitelisted tags, escape everything else, restore tags.
-  const keep = [];
-  const protected_ = s.replace(SAFE_TAG_RE, (m) => {
-    keep.push(m);
-    return `\u0000${keep.length - 1}\u0000`;
-  });
-  const escaped = protected_.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  return escaped.replace(/\u0000(\d+)\u0000/g, (m, i) => keep[Number(i)]);
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 function escapeAttr(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// ---------------------------------------------------------------
+// HTML → Markdown converter (reverses renderMarkdown output).
+// Converts known HTML tags back to markdown, strips the rest.
+// ---------------------------------------------------------------
+export function htmlToMarkdown(html) {
+  if (!html || !/<[a-z/]/i.test(html)) return html || "";
+  const tree = parseHtmlTree(html);
+  return treeToMd(tree).replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function parseHtmlTree(html) {
+  const root = [];
+  const stack = [root];
+  const tagRe = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*\/?>/g;
+  const selfClosing = new Set(["br", "hr", "img"]);
+  let m, lastIdx = 0;
+  while ((m = tagRe.exec(html)) !== null) {
+    if (m.index > lastIdx) stack[stack.length - 1].push(html.slice(lastIdx, m.index));
+    const raw = m[0];
+    const tag = m[1];
+    const isClose = raw[1] === "/";
+    const isSelf = selfClosing.has(tag) || raw.endsWith("/>");
+    if (isClose) {
+      if (stack.length > 1) { stack.pop(); stack[stack.length - 1].push({ tag, close: true }); }
+      else stack[stack.length - 1].push(raw);
+    } else if (isSelf) {
+      stack[stack.length - 1].push({ tag, self: true, html: raw });
+    } else {
+      const children = [];
+      stack[stack.length - 1].push({ tag, children, html: raw });
+      stack.push(children);
+    }
+    lastIdx = tagRe.lastIndex;
+  }
+  if (lastIdx < html.length) stack[stack.length - 1].push(html.slice(lastIdx));
+  while (stack.length > 1) {
+    const unfinished = stack.pop();
+    stack[stack.length - 1].push({ tag: "unknown", children: unfinished });
+  }
+  return root;
+}
+
+function treeToMd(nodes) {
+  let out = "";
+  for (const node of nodes) {
+    if (typeof node === "string") { out += node; continue; }
+    if (node.close) continue;
+    if (node.tag === "p" || node.tag === "div") {
+      const inner = treeToMd(node.children).trim();
+      out += inner ? "\n\n" + inner : "";
+    } else if (/^h[1-6]$/.test(node.tag)) {
+      const lvl = parseInt(node.tag[1]);
+      out += "\n\n" + "#".repeat(lvl) + " " + treeToMd(node.children).trim() + "\n\n";
+    } else if (node.tag === "ul") {
+      out += "\n" + collectListItems(node.children, false) + "\n";
+    } else if (node.tag === "ol") {
+      out += "\n" + collectListItems(node.children, true) + "\n";
+    } else if (node.tag === "blockquote") {
+      const inner = treeToMd(node.children).trim();
+      out += "\n" + inner.split("\n").map(l => "> " + l).join("\n") + "\n";
+    } else if (node.tag === "pre") {
+      const code = extractText(node.children);
+      out += "\n\n```\n" + code + "\n```\n\n";
+    } else if (node.tag === "hr") {
+      out += "\n\n***\n\n";
+    } else if (node.tag === "em" || node.tag === "i") {
+      out += "*" + treeToMd(node.children) + "*";
+    } else if (node.tag === "strong" || node.tag === "b") {
+      out += "**" + treeToMd(node.children) + "**";
+    } else if (node.tag === "del" || node.tag === "s") {
+      out += "~~" + treeToMd(node.children) + "~~";
+    } else if (node.tag === "u") {
+      out += "++" + treeToMd(node.children) + "++";
+    } else if (node.tag === "mark") {
+      out += "==" + treeToMd(node.children) + "==";
+    } else if (node.tag === "sub") {
+      out += "~" + treeToMd(node.children) + "~";
+    } else if (node.tag === "sup") {
+      out += "^" + treeToMd(node.children) + "^";
+    } else if (node.tag === "code") {
+      out += "`" + extractText(node.children) + "`";
+    } else if (node.tag === "a") {
+      const href = (node.html || "").match(/href="([^"]*)"/);
+      out += "[" + treeToMd(node.children).trim() + "](" + (href ? href[1] : "") + ")";
+    } else if (node.tag === "img") {
+      const src = (node.html || "").match(/src="([^"]*)"/) || "";
+      const alt = (node.html || "").match(/alt="([^"]*)"/) || "";
+      out += "![" + (alt[1] || "") + "](" + (src[1] || "") + ")";
+    } else if (node.tag === "br") {
+      out += "\n";
+    } else if (node.children) {
+      out += treeToMd(node.children);
+    }
+  }
+  return out;
+}
+
+function collectListItems(nodes, ordered) {
+  const items = [];
+  let num = 1;
+  for (const node of nodes) {
+    if (typeof node === "string") continue;
+    if (node.close) continue;
+    if (node.tag === "li") {
+      const prefix = ordered ? (num++ + ". ") : "- ";
+      items.push(prefix + treeToMd(node.children).trim());
+    } else if (node.children) {
+      items.push(treeToMd(node.children).trim());
+    }
+  }
+  return items.join("\n");
+}
+
+function extractText(nodes) {
+  let out = "";
+  for (const node of nodes) {
+    if (typeof node === "string") { out += node; continue; }
+    if (node.children) out += extractText(node.children);
+  }
+  return out;
 }
