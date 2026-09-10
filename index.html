@@ -1097,6 +1097,22 @@
         box-sizing: border-box;
       }
 
+      .spotify-video {
+        position: absolute;
+        left: 0.31250vw;
+        top: 0.31250vw;
+        width: calc(100% - 0.62500vw);
+        height: calc(100% - 0.62500vw);
+        border-radius: 0.39063vw;
+        object-fit: cover;
+        background: #04070c;
+        display: none;
+      }
+
+      .spotify-video.on {
+        display: block;
+      }
+
       .spotify-meta {
         text-align: left;
         min-width: 0;
@@ -1742,6 +1758,7 @@
               <div class="retro-cover-column">
                 <div class="retro-cover-frame">
                   <img id="spotify-cover" class="spotify-cover offline" src="assets/spotify.svg" alt="Spotify icon" />
+                  <video id="spotify-video" class="spotify-video" src="assets/rickroll.webm" loop playsinline preload="none"></video>
                   </div>
                 </div>
               </div>
@@ -2551,6 +2568,7 @@ background: rgba(24, 26, 30, 0.65);
 
       const card = widgetRoot.querySelector(".retro-player");
       const cover = widgetRoot.getElementById("spotify-cover");
+      const video = widgetRoot.getElementById("spotify-video");
       const labelEl = widgetRoot.getElementById("spotify-label");
       const titleEl = widgetRoot.getElementById("spotify-title");
       const artistEl = widgetRoot.getElementById("spotify-artist");
@@ -2563,6 +2581,7 @@ background: rgba(24, 26, 30, 0.65);
       let playbackState = null;
       let tickInterval = null;
       let dragState = null;
+      let rickrollActive = false;
 
       const vw = (px) => (px / window.innerWidth * 100) + "vw";
 
@@ -2681,6 +2700,34 @@ background: rgba(24, 26, 30, 0.65);
       }
 
       if (minimizeButton) minimizeButton.addEventListener('click', minimizePlayer);
+
+      const rickrollNextBtn = widgetRoot.querySelector(".transport-wing.next");
+      const rickrollPrevBtn = widgetRoot.querySelector(".transport-wing.prev");
+
+      function enterRickroll() {
+        if (!video) return;
+        rickrollActive = true;
+        if (titleEl) titleEl.textContent = "Never Gonna Give You Up";
+        if (artistEl) artistEl.textContent = "Rick Astley";
+        if (labelEl) labelEl.textContent = "Listening on Spotify";
+        if (cover) cover.classList.add("offline");
+        video.classList.add("on");
+        const playPromise = video.play();
+        if (playPromise) playPromise.catch(function () {});
+        syncPreviewTrack();
+      }
+
+      function exitRickroll() {
+        if (!video) return;
+        rickrollActive = false;
+        video.pause();
+        video.currentTime = 0;
+        video.classList.remove("on");
+        refreshPlayback();
+      }
+
+      if (rickrollNextBtn) rickrollNextBtn.addEventListener("click", enterRickroll);
+      if (rickrollPrevBtn) rickrollPrevBtn.addEventListener("click", exitRickroll);
       // The widget opens only by clicking inside the preview (see below); clicking
       // the taskbar media button does not open it.
 
@@ -3158,6 +3205,7 @@ background: rgba(24, 26, 30, 0.65);
       }
 
       function renderPlayback(data) {
+        if (rickrollActive) return;
         const cleanTitle = normalizeTrackTitle(data.title);
         const cleanArtist = (data.artist || "").trim();
         const hasTrack = Boolean(cleanTitle || cleanArtist || data.durationMs || data.progressMs);
@@ -3178,7 +3226,7 @@ background: rgba(24, 26, 30, 0.65);
           renderPlayback(data || {});
         } catch (error) {
           console.error("Spotify widget refresh failed:", error);
-          renderClosedState();
+          if (!rickrollActive) renderClosedState();
         }
         syncCoverSize();
       }
