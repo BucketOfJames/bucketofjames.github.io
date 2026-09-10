@@ -2675,17 +2675,20 @@ background: rgba(24, 26, 30, 0.65);
         }, MINIMIZE_MS);
       }
 
-      function restorePlayer() {
+      function restorePlayer(dismissPopup) {
+        if (dismissPopup === undefined) dismissPopup = true;
         if (isClosed) {
-          reopenPlayer();
+          reopenPlayer(dismissPopup);
           return;
         }
         if (!isMinimized) return;
         isMinimized = false;
         if (taskbarLaunch) taskbarLaunch.classList.add('is-open');
-        showTaskbar(false);
-        hidePreview();
-        closeTzPopup();
+        if (dismissPopup) {
+          showTaskbar(false);
+          hidePreview();
+          closeTzPopup();
+        }
         if (card) card.hidden = false;
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -2700,6 +2703,19 @@ background: rgba(24, 26, 30, 0.65);
       function closePlayer() {
         isClosed = true;
         isMinimized = false;
+        if (rickrollActive && video) {
+          rickrollActive = false;
+          video.pause();
+          video.currentTime = 0;
+          video.classList.remove("on");
+        }
+        if (card) {
+          card.querySelectorAll(".nuh-uh").forEach(function (el) { el.remove(); });
+        }
+        nuhUhCount = 0;
+        nuhUhBig = null;
+        nuhUhBeyondScreen = false;
+        nuhUhExtra = 0;
         if (taskbarLaunch) {
           taskbarLaunch.classList.remove('is-open');
           taskbarLaunch.classList.add('is-closed');
@@ -2713,16 +2729,19 @@ background: rgba(24, 26, 30, 0.65);
         hidePreview();
       }
 
-      function reopenPlayer() {
+      function reopenPlayer(dismissPopup) {
+        if (dismissPopup === undefined) dismissPopup = true;
         isClosed = false;
         if (taskbarLaunch) {
           taskbarLaunch.classList.remove('is-closed');
           taskbarLaunch.classList.add('is-open');
         }
         if (card) card.hidden = false;
-        showTaskbar(false);
-        hidePreview();
-        closeTzPopup();
+        if (dismissPopup) {
+          showTaskbar(false);
+          hidePreview();
+          closeTzPopup();
+        }
       }
 
       if (minimizeButton) minimizeButton.addEventListener('click', minimizePlayer);
@@ -2772,6 +2791,8 @@ background: rgba(24, 26, 30, 0.65);
 
       let nuhUhCount = 0;
       let nuhUhBig = null;
+      let nuhUhBeyondScreen = false;
+      let nuhUhExtra = 0;
       const rickrollPauseBtn = widgetRoot.querySelector(".transport-core");
 
       function getCoverRect() {
@@ -2848,7 +2869,18 @@ background: rgba(24, 26, 30, 0.65);
             nuhUhBig.style.top = top + "px";
             card.appendChild(nuhUhBig);
           } else {
+            const before = nuhUhBig.offsetWidth;
             nuhUhBig.textContent += "!";
+            const cardLeft = card.getBoundingClientRect().left;
+            const leftPx = parseFloat(nuhUhBig.style.left) || 0;
+            if (cardLeft + leftPx + nuhUhBig.offsetWidth > window.innerWidth) {
+              nuhUhBeyondScreen = true;
+              nuhUhExtra++;
+              if (nuhUhExtra > 3) {
+                const delta = nuhUhBig.offsetWidth - before;
+                nuhUhBig.style.left = (leftPx - delta) + "px";
+              }
+            }
           }
         }
       }
@@ -2997,6 +3029,15 @@ background: rgba(24, 26, 30, 0.65);
       if (taskbarLaunch) {
         taskbarLaunch.addEventListener('mouseenter', scheduleShowPreview);
         taskbarLaunch.addEventListener('mouseleave', scheduleHidePreview);
+        taskbarLaunch.addEventListener('click', () => {
+          clearTimeout(previewHideTimer);
+          clearTimeout(previewShowTimer);
+          if (isClosed || isMinimized) {
+            restorePlayer(false);
+          } else {
+            minimizePlayer();
+          }
+        });
       }
 
       if (taskbarPreview) {
