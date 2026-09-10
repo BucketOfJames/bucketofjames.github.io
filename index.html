@@ -1113,6 +1113,32 @@
         display: block;
       }
 
+      .nuh-uh {
+        position: absolute;
+        color: #5865f2;
+        font-family: 'Roboto', sans-serif;
+        font-weight: 700;
+        white-space: nowrap;
+        pointer-events: none;
+        user-select: none;
+        z-index: 20;
+        text-shadow:
+          0 0.07813vw 0.11719vw rgba(0, 0, 0, 0.9),
+          0 0.03906vw 0.07813vw rgba(0, 0, 0, 0.8),
+          0 0 0.15625vw rgba(88, 101, 242, 0.9),
+          0 0 0.46875vw rgba(88, 101, 242, 0.55),
+          0 0 1.17188vw rgba(88, 101, 242, 0.25);
+      }
+
+      .nuh-uh.small {
+        font-size: 1.17188vw;
+      }
+
+      .nuh-uh.big {
+        font-size: 2.34375vw;
+        line-height: 1;
+      }
+
       .spotify-meta {
         text-align: left;
         min-width: 0;
@@ -2702,7 +2728,6 @@ background: rgba(24, 26, 30, 0.65);
       if (minimizeButton) minimizeButton.addEventListener('click', minimizePlayer);
 
       const rickrollNextBtn = widgetRoot.querySelector(".transport-wing.next");
-      const rickrollPrevBtn = widgetRoot.querySelector(".transport-wing.prev");
 
       function rickrollTimeUpdate() {
         if (!rickrollActive || !video) return;
@@ -2721,6 +2746,7 @@ background: rgba(24, 26, 30, 0.65);
 
       function enterRickroll() {
         if (!video) return;
+        if (rickrollActive) return;
         rickrollActive = true;
         clearInterval(tickInterval);
         tickInterval = null;
@@ -2730,25 +2756,106 @@ background: rgba(24, 26, 30, 0.65);
         if (cover) cover.classList.add("offline");
         if (currentEl) currentEl.textContent = "0:00";
         if (progressBar) progressBar.style.width = "0%";
+        setLinkState({
+          text: "Play on Spotify",
+          href: "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC",
+        });
         video.classList.add("on");
         const playPromise = video.play();
         if (playPromise) playPromise.catch(function () {});
         syncPreviewTrack();
       }
 
-      function exitRickroll() {
-        if (!video) return;
-        rickrollActive = false;
-        video.pause();
-        video.currentTime = 0;
-        video.classList.remove("on");
-        refreshPlayback();
-      }
-
       if (rickrollNextBtn) rickrollNextBtn.addEventListener("click", enterRickroll);
-      if (rickrollPrevBtn) rickrollPrevBtn.addEventListener("click", exitRickroll);
       // The widget opens only by clicking inside the preview (see below); clicking
       // the taskbar media button does not open it.
+
+      let nuhUhCount = 0;
+      let nuhUhBig = null;
+      const rickrollPauseBtn = widgetRoot.querySelector(".transport-core");
+
+      function getCoverRect() {
+        const frame = widgetRoot.querySelector(".retro-cover-frame");
+        if (!frame || !card) return null;
+        const f = frame.getBoundingClientRect();
+        const c = card.getBoundingClientRect();
+        return {
+          left: f.left - c.left,
+          top: f.top - c.top,
+          right: f.right - c.left,
+          bottom: f.bottom - c.top,
+        };
+      }
+
+      function nuhUhBBox(angle, textW, textH) {
+        const cos = Math.abs(Math.cos(angle));
+        const sin = Math.abs(Math.sin(angle));
+        return {
+          halfW: (textW * cos + textH * sin) / 2,
+          halfH: (textW * sin + textH * cos) / 2,
+        };
+      }
+
+      function intersectsCover(cx, cy, halfW, halfH, cover, pad) {
+        if (!cover) return false;
+        return cx + halfW + pad > cover.left &&
+          cx - halfW - pad < cover.right &&
+          cy + halfH + pad > cover.top &&
+          cy - halfH - pad < cover.bottom;
+      }
+
+      function spawnNuhUh() {
+        if (!card) return;
+        nuhUhCount++;
+        if (nuhUhCount <= 9) {
+          const el = document.createElement("div");
+          el.className = "nuh-uh small";
+          el.textContent = "nuh uh!";
+          const angle = (Math.random() * 140 - 70) * Math.PI / 180;
+          const cardW = card.clientWidth;
+          const cardH = card.clientHeight;
+          const textW = el.offsetWidth || cardW * 0.3;
+          const textH = el.offsetHeight || cardW * 0.09;
+          const bbox = nuhUhBBox(angle, textW, textH);
+          const cover = getCoverRect();
+          let x = cardW * 0.3;
+          let y = cardH * 0.3;
+          for (let attempt = 0; attempt < 30; attempt++) {
+            const cx = (Math.random() * 1.1 - 0.05) * cardW;
+            const cy = (Math.random() * 1.1 - 0.05) * cardH;
+            if (!intersectsCover(cx, cy, bbox.halfW, bbox.halfH, cover, 0.15625)) {
+              x = cx;
+              y = cy;
+              break;
+            }
+          }
+          el.style.left = (x - textW / 2) + "px";
+          el.style.top = (y - textH / 2) + "px";
+          el.style.transform = "rotate(" + angle + "rad)";
+          card.appendChild(el);
+        } else {
+          if (!nuhUhBig) {
+            nuhUhBig = document.createElement("div");
+            nuhUhBig.className = "nuh-uh big";
+            nuhUhBig.textContent = "nuh uh!";
+            const cover = getCoverRect();
+            const cardH = card.clientHeight;
+            const margin = card.clientWidth * 0.05;
+            let top = cover && cover.bottom < cardH * 0.6
+              ? cover.bottom + margin
+              : cardH * 0.06;
+            nuhUhBig.style.left = "0";
+            nuhUhBig.style.top = top + "px";
+            card.appendChild(nuhUhBig);
+          } else {
+            nuhUhBig.textContent += "!";
+          }
+        }
+      }
+
+      if (rickrollPauseBtn) rickrollPauseBtn.addEventListener("click", function () {
+        if (rickrollActive) spawnNuhUh();
+      });
 
       const taskbarPreview = taskbarRoot.getElementById('taskbar-preview');
       const previewBody = taskbarRoot.getElementById('taskbar-preview-body');
