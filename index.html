@@ -1758,7 +1758,7 @@
               <div class="retro-cover-column">
                 <div class="retro-cover-frame">
                   <img id="spotify-cover" class="spotify-cover offline" src="assets/spotify.svg" alt="Spotify icon" />
-                  <video id="spotify-video" class="spotify-video" src="assets/rickroll.webm" loop playsinline preload="none"></video>
+                  <video id="spotify-video" class="spotify-video" src="assets/rickroll.webm" loop playsinline preload="auto"></video>
                   </div>
                 </div>
               </div>
@@ -3345,6 +3345,16 @@ function positionControlGroups() {
 window.addEventListener("load", positionControlGroups);
 window.addEventListener("resize", positionControlGroups);
 compactLayout.addEventListener("change", positionControlGroups);
+
+// Warm the HTTP cache with the easter-egg video so the rickroll starts
+// instantly instead of waiting for the 30 MB file to download on click.
+window.addEventListener("load", function () {
+  const video = widgetRoot.getElementById("spotify-video");
+  if (video) video.load();
+  try {
+    fetch("assets/rickroll.webm", { mode: "no-cors", cache: "force-cache" }).catch(function () {});
+  } catch (e) {}
+});
 
 const coverFrame = widgetRoot.querySelector(".retro-cover-frame");
 
