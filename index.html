@@ -2704,13 +2704,32 @@ background: rgba(24, 26, 30, 0.65);
       const rickrollNextBtn = widgetRoot.querySelector(".transport-wing.next");
       const rickrollPrevBtn = widgetRoot.querySelector(".transport-wing.prev");
 
+      function rickrollTimeUpdate() {
+        if (!rickrollActive || !video) return;
+        const dur = isFinite(video.duration) ? video.duration : 0;
+        if (currentEl) currentEl.textContent = formatTime(video.currentTime * 1000);
+        if (durationEl) durationEl.textContent = dur > 0 ? formatTime(dur * 1000) : "-:--";
+        const pct = dur > 0 ? (video.currentTime / dur) * 100 : 0;
+        if (progressBar) progressBar.style.width = clamp(pct, 0, 100) + "%";
+      }
+
+      if (video) {
+        video.addEventListener("timeupdate", rickrollTimeUpdate);
+        video.addEventListener("loadedmetadata", rickrollTimeUpdate);
+        video.addEventListener("play", rickrollTimeUpdate);
+      }
+
       function enterRickroll() {
         if (!video) return;
         rickrollActive = true;
+        clearInterval(tickInterval);
+        tickInterval = null;
         if (titleEl) titleEl.textContent = "Never Gonna Give You Up";
         if (artistEl) artistEl.textContent = "Rick Astley";
         if (labelEl) labelEl.textContent = "Listening on Spotify";
         if (cover) cover.classList.add("offline");
+        if (currentEl) currentEl.textContent = "0:00";
+        if (progressBar) progressBar.style.width = "0%";
         video.classList.add("on");
         const playPromise = video.play();
         if (playPromise) playPromise.catch(function () {});
