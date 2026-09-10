@@ -217,6 +217,14 @@
         left: 0;
       }
 
+      /* Shadow-root anchor for the taskbar; must stay out of the grid flow
+         (absolute like #spotify-widget) so it never shifts the page layout. */
+      #taskbar-host {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
       .page-body {
         position: relative;
         padding: 0 0.78125vw 1.56250vw;
@@ -808,8 +816,13 @@
   <body>
     <div id="page-home">
             <div id="spotify-widget"></div>
+            <div id="taskbar-host"></div>
 
       <template id="spotify-widget-template">
+        <!-- xp.css is STRICTLY retro-scoped. It loads ONLY here (retro Spotify widget) and may also be used for
+             the retro PC specs page. It is NOT a site default and must NEVER be loaded/apply anywhere else.
+             Non-retro elements (e.g. the taskbar, preview, clock, timezone popup) must live in their own scope
+             WITHOUT xp.css. Nothing but retro-styled components may ever receive styles from this file. -->
         <link rel="stylesheet" href="xp.css" />
         <style>
           * {
@@ -1654,6 +1667,12 @@
         border-radius: 0 0.46875vw 0.46875vw 0;
       }
 
+      /* Minimize animation */
+      .retro-player-shell {
+        transition: transform 0.1s ease-in, opacity 0.1s ease-in;
+      }
+
+
       @media (max-width: 40em) {
         .retro-player {
           position: relative;
@@ -1761,7 +1780,543 @@
               </div>
             </div>
           </div>
-              </template>
+
+      </template>
+
+      <!-- Taskbar scope: the taskbar is its OWN component, independent of the Spotify widget. It is MODERN
+           (non-retro) UI and deliberately has NO xp.css link - the taskbar, preview, clock and timezone popup
+           must never inherit xp.css styles. The retro Spotify widget (spotify-widget-template) is only the
+           trigger that reveals the taskbar. xp.css is retro-only (widget + specs). -->
+      <template id="taskbar-template">
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+
+      /* Taskbar */
+      .taskbar[hidden] {
+        display: none;
+      }
+
+      .taskbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        height: 46px;
+        display: flex;
+        align-items: stretch;
+        background: #0c0c0e;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        font-family: 'Roboto', sans-serif;
+        user-select: none;
+      }
+
+      .taskbar-center {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+      }
+
+      .taskbar-app {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        cursor: default;
+        position: relative;
+        width: 46px;
+        min-width: 0;
+        min-height: 0;
+        height: 46px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0;
+        box-sizing: border-box;
+      }
+
+      .taskbar-app svg {
+        width: 32px;
+        height: 32px;
+        display: block;
+        flex-shrink: 0;
+        transition: filter 0.1s ease;
+      }
+
+      .taskbar-app::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 3px;
+        background: #56575c;
+        transition: background 0.1s ease;
+      }
+
+      .taskbar-app:hover {
+        background: #07346e;
+      }
+
+      .taskbar-app:hover::after {
+        background: #0072ff;
+      }
+
+      .taskbar-app:hover svg {
+        filter: brightness(1.2);
+      }
+
+      .taskbar-app.is-open::after {
+        background: #0072ff;
+      }
+
+      .taskbar-app.is-closed::after {
+        display: none;
+      }
+
+      .taskbar-app.is-closed:hover,
+      button.taskbar-app.is-closed:active {
+        background: transparent;
+      }
+
+      .taskbar-preview[hidden] {
+        display: none;
+      }
+
+      .taskbar-preview {
+        position: fixed;
+        z-index: 60;
+background: rgba(24, 26, 30, 0.65);
+        backdrop-filter: blur(90px) saturate(1.6);
+        -webkit-backdrop-filter: blur(90px) saturate(1.6);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        overflow: hidden;
+        font-family: 'Roboto', sans-serif;
+        user-select: none;
+      }
+
+      .taskbar-preview-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 8px 2px 12px;
+        font-size: 15px;
+        color: #f0f2f4;
+        background: transparent;
+      }
+
+      .taskbar-preview-body {
+        overflow: hidden;
+        pointer-events: auto;
+        margin: 2px 12px;
+        padding: 5px 24px;
+        aspect-ratio: 2 / 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.15s ease;
+      }
+
+      .taskbar-preview-body:hover {
+        background: rgba(40, 58, 94, 0.72);
+      }
+
+      .taskbar-preview-body * {
+        pointer-events: none !important;
+      }
+
+      .taskbar-preview-close {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        background: transparent;
+        color: #c9ced3;
+        font-size: 18px;
+        font-family: inherit;
+        line-height: 1;
+        min-width: 0;
+        min-height: 0;
+        box-shadow: none;
+        padding: 2px 6px;
+        cursor: default;
+        border-radius: 0;
+      }
+
+      .taskbar-preview-close:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+      }
+
+      .taskbar-preview-close:hover,
+      .taskbar-preview-close:active,
+      .taskbar-preview-close:focus,
+      .taskbar-preview-close:focus-visible {
+        outline: none;
+        box-shadow: none;
+      }
+
+      .taskbar-preview-media {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 4px 12px 10px;
+      }
+
+      .taskbar-preview-track {
+        min-width: 0;
+        overflow: hidden;
+        line-height: 1.3;
+      }
+
+      .taskbar-preview-track.scrolling {
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      }
+
+      .taskbar-preview-title {
+        font-size: 15px;
+        font-weight: 500;
+        color: #f0f2f4;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .taskbar-preview-artist {
+        font-size: 13px;
+        color: #a8b0b8;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .taskbar-preview-title span,
+      .taskbar-preview-artist span {
+        display: inline-block;
+        padding-right: 16px;
+      }
+
+      .taskbar-preview-title span.scrolling,
+      .taskbar-preview-artist span.scrolling {
+        animation: preview-marquee var(--marquee-dur, 8s) linear infinite;
+        will-change: transform;
+      }
+
+      @keyframes preview-marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(var(--marquee-dist, -100%)); }
+      }
+
+      .taskbar-preview-transport {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
+      .taskbar-preview-btn {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        background: transparent;
+        color: #e8ecf0;
+        min-width: 0;
+        min-height: 0;
+        box-shadow: none;
+        padding: 4px;
+        cursor: default;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .taskbar-preview-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .taskbar-preview-btn:active {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .taskbar-preview-btn svg {
+        width: 20px;
+        height: 20px;
+        display: block;
+        fill: currentColor;
+      }
+
+      .taskbar-preview-btn.play svg {
+        width: 22px;
+        height: 17px;
+      }
+
+      .taskbar-preview-btn:focus,
+      .taskbar-preview-btn:focus-visible,
+      .taskbar-preview-btn:active {
+        outline: none;
+        box-shadow: none;
+      }
+
+      .taskbar-tray {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        padding: 0 18px 0 10px;
+      }
+
+      .taskbar-clock {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        padding: 2px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: center;
+        color: #f2f2f2;
+        line-height: 1.25;
+        font-family: 'Roboto', sans-serif;
+        user-select: none;
+      }
+
+      .taskbar-clock:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      button.taskbar-clock:active {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .taskbar-app:hover {
+        background: #07346e;
+      }
+
+      button.taskbar-app:active {
+        background: #07346e;
+      }
+
+      button.taskbar-clock:hover,
+      button.taskbar-app:hover,
+      button.tz-opt:hover,
+      button.taskbar-clock:active,
+      button.taskbar-app:active,
+      button.tz-opt:active,
+      button.taskbar-clock:focus,
+      button.taskbar-app:focus,
+      button.tz-opt:focus {
+        box-shadow: none;
+      }
+
+      button.taskbar-clock:focus,
+      button.taskbar-app:focus,
+      button.tz-opt:focus {
+        outline: none;
+      }
+
+      button.taskbar-clock:focus-visible,
+      button.taskbar-app:focus-visible {
+        outline: 2px solid #4da3ff;
+        outline-offset: 2px;
+      }
+
+      button.tz-opt:focus-visible {
+        outline: 1px solid #4da3ff;
+        outline-offset: -1px;
+      }
+
+      .taskbar-clock-time {
+        display: block;
+        font-size: 19px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+      }
+
+      .taskbar-clock-date {
+        display: block;
+        font-size: 12px;
+        color: #b4b4b4;
+        letter-spacing: 0.02em;
+      }
+
+      /* Time zone popup */
+      .tz-popup[hidden] {
+        display: none;
+      }
+
+      .tz-popup {
+        position: absolute;
+        right: 10px;
+        bottom: 50px;
+        z-index: 60;
+        width: 216px;
+        background: #232428;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+        font-family: 'Roboto', sans-serif;
+        user-select: none;
+        padding: 6px 0;
+      }
+
+      .tz-popup-title {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9aa0a8;
+        padding: 2px 12px 6px;
+      }
+
+      .tz-list {
+        max-height: 264px;
+        overflow-y: auto;
+      }
+
+      .tz-opt {
+        appearance: none;
+        -webkit-appearance: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: #f2f2f2;
+        font-family: inherit;
+        font-size: 13px;
+        line-height: 1;
+        padding: 7px 12px;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .tz-opt:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+      }
+
+      button.tz-opt:active {
+        background: rgba(128, 0, 128, 0.4);
+        color: #ffffff;
+      }
+
+      .tz-opt.is-selected {
+        background: rgba(128, 0, 128, 0.4);
+        color: #ffffff;
+        box-shadow: inset 0 0 0 1px rgba(180, 120, 220, 0.35);
+      }
+
+      .tz-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .tz-sub {
+        flex-shrink: 0;
+        color: #9aa0a8;
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .tz-opt:hover .tz-sub,
+      .tz-opt:active .tz-sub,
+      .tz-opt.is-selected .tz-sub {
+        color: #cfd6de;
+      }
+
+      .tz-sep {
+        height: 1px;
+        margin: 4px 8px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+        </style>
+
+          <div id="taskbar" class="taskbar" hidden>
+            <div class="taskbar-center">
+              <button type="button" id="taskbar-media-player" class="taskbar-app is-open" aria-label="Media Player">
+                <span class="taskbar-icon" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="taskbarIconGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#8fc0ec"/>
+                        <stop offset="0.45" stop-color="#3f74ad"/>
+                        <stop offset="1" stop-color="#173f6b"/>
+                      </linearGradient>
+                    </defs>
+                    <rect x="1" y="1" width="30" height="30" rx="6" fill="url(#taskbarIconGrad)" stroke="#0b2a48" stroke-width="1"/>
+                    <path d="M4 8 A 12 12 0 0 1 16 1 L 24 1 L 28 4 L 28 8 Z" fill="rgba(255,255,255,0.28)"/>
+                    <rect x="6.5" y="7" width="19" height="18" rx="2.5" fill="#eaf4ff"/>
+                    <g fill="#1a3d66">
+                      <rect x="8.5" y="9.5" width="2" height="2.6" rx="0.5"/>
+                      <rect x="8.5" y="15.2" width="2" height="2.6" rx="0.5"/>
+                      <rect x="8.5" y="20.9" width="2" height="2.6" rx="0.5"/>
+                      <rect x="21.5" y="9.5" width="2" height="2.6" rx="0.5"/>
+                      <rect x="21.5" y="15.2" width="2" height="2.6" rx="0.5"/>
+                      <rect x="21.5" y="20.9" width="2" height="2.6" rx="0.5"/>
+                    </g>
+                    <polygon points="14.5,12 14.5,20 21.3,16" fill="#12304f"/>
+                  </svg>
+                </span>
+              </button>
+            </div>
+            <div class="taskbar-tray">
+              <button type="button" id="taskbar-clock" class="taskbar-clock" aria-label="Clock" aria-haspopup="menu" title="Time zone">
+                <span id="taskbar-clock-time" class="taskbar-clock-time">--:--</span>
+                <span id="taskbar-clock-date" class="taskbar-clock-date">--.--.--</span>
+              </button>
+            </div>
+
+            <div id="tz-popup" class="tz-popup" hidden role="menu" aria-label="Time zone">
+              <div class="tz-popup-title">Time zone</div>
+              <button type="button" class="tz-opt tz-auto" role="menuitemradio" aria-checked="true" data-tz="auto">
+                <span class="tz-label">Automatic</span>
+                <span class="tz-sub" id="tz-auto-sub"></span>
+              </button>
+              <div class="tz-sep" role="separator"></div>
+              <div class="tz-list" id="tz-list"></div>
+            </div>
+          </div>
+
+          <div id="taskbar-preview" class="taskbar-preview" hidden>
+            <div class="taskbar-preview-head">
+              <span>Media Player</span>
+              <button type="button" class="taskbar-preview-close" aria-label="Close preview">×</button>
+            </div>
+            <div id="taskbar-preview-body" class="taskbar-preview-body"></div>
+            <div class="taskbar-preview-media" aria-hidden="true">
+              <div class="taskbar-preview-track">
+                <div id="taskbar-preview-title" class="taskbar-preview-title">[no song found]</div>
+                <div id="taskbar-preview-artist" class="taskbar-preview-artist">[no artist either]</div>
+              </div>
+              <div class="taskbar-preview-transport">
+                <button type="button" class="taskbar-preview-btn" tabindex="-1" aria-label="Previous">
+                  <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h1.8v10H3zM13.5 3 7 8l6.5 5z"/></svg>
+                </button>
+                <button type="button" class="taskbar-preview-btn play" tabindex="-1" aria-label="Pause">
+                  <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>
+                </button>
+                <button type="button" class="taskbar-preview-btn" tabindex="-1" aria-label="Next">
+                  <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M11.2 3H13v10h-1.8zM2.5 3 9 8l-6.5 5z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+      </template>
 
 <div class="page-body">
           <div class="page-layout">
@@ -1999,6 +2554,12 @@
       const widgetTemplate = document.getElementById("spotify-widget-template");
       const widgetRoot = widgetHost.attachShadow({ mode: "open" });
       widgetRoot.appendChild(widgetTemplate.content.cloneNode(true));
+      const retroStyleText = widgetTemplate.content.querySelector("style").textContent;
+
+      const taskbarHost = document.getElementById("taskbar-host");
+      const taskbarTemplate = document.getElementById("taskbar-template");
+      const taskbarRoot = taskbarHost.attachShadow({ mode: "open" });
+      taskbarRoot.appendChild(taskbarTemplate.content.cloneNode(true));
 
       const card = widgetRoot.querySelector(".retro-player");
       const cover = widgetRoot.getElementById("spotify-cover");
@@ -2038,10 +2599,400 @@
 
       const closeButton = widgetRoot.querySelector('.retro-window-controls button[aria-label="Close"]');
       if (closeButton) {
-        closeButton.addEventListener("click", () => {
-          widgetHost.style.display = "none";
+        closeButton.addEventListener("click", closePlayer);
+      }
+
+      const minimizeButton = widgetRoot.querySelector('.retro-window-controls button[aria-label="Minimize"]');
+      const playerShell = widgetRoot.querySelector('.retro-player-shell');
+      const taskbar = taskbarRoot.getElementById('taskbar');
+      const taskbarLaunch = taskbarRoot.getElementById('taskbar-media-player');
+      const clockEl = taskbarRoot.getElementById('taskbar-clock');
+      const clockTimeEl = taskbarRoot.getElementById('taskbar-clock-time');
+      const clockDateEl = taskbarRoot.getElementById('taskbar-clock-date');
+      const tzPopup = taskbarRoot.getElementById('tz-popup');
+      const tzList = taskbarRoot.getElementById('tz-list');
+      const tzAutoSub = taskbarRoot.getElementById('tz-auto-sub');
+
+      let isMinimized = false;
+      let isClosed = false;
+      let taskbarPersistent = false;
+      const MINIMIZE_MS = 110;
+
+      function showTaskbar(visible) {
+        if (taskbar) taskbar.hidden = !visible;
+      }
+
+      function minimizePlayer() {
+        if (isMinimized || !card || card.hidden) return;
+        isMinimized = true;
+        taskbarPersistent = true;
+        if (taskbarLaunch) taskbarLaunch.classList.remove('is-open');
+        const rect = card.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const tx = window.innerWidth / 2;
+        const ty = window.innerHeight - 22;
+        if (playerShell) {
+          playerShell.style.transform = 'translate(' + (tx - cx) + 'px, ' + (ty - cy) + 'px) scale(0.3)';
+          playerShell.style.opacity = '0';
+        }
+        window.setTimeout(() => {
+          if (card) card.hidden = true;
+          showTaskbar(true);
+        }, MINIMIZE_MS);
+      }
+
+      function restorePlayer() {
+        if (isClosed) {
+          reopenPlayer();
+          return;
+        }
+        if (!isMinimized) return;
+        isMinimized = false;
+        if (taskbarLaunch) taskbarLaunch.classList.add('is-open');
+        showTaskbar(false);
+        hidePreview();
+        closeTzPopup();
+        if (card) card.hidden = false;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (playerShell) {
+              playerShell.style.transform = '';
+              playerShell.style.opacity = '';
+            }
+          });
         });
       }
+
+      function closePlayer() {
+        isClosed = true;
+        isMinimized = false;
+        if (taskbarLaunch) {
+          taskbarLaunch.classList.remove('is-open');
+          taskbarLaunch.classList.add('is-closed');
+        }
+        if (card) card.hidden = true;
+        if (playerShell) {
+          playerShell.style.transform = '';
+          playerShell.style.opacity = '';
+        }
+        closeTzPopup();
+        hidePreview();
+      }
+
+      function reopenPlayer() {
+        isClosed = false;
+        if (taskbarLaunch) {
+          taskbarLaunch.classList.remove('is-closed');
+          taskbarLaunch.classList.add('is-open');
+        }
+        if (card) card.hidden = false;
+        showTaskbar(false);
+        hidePreview();
+        closeTzPopup();
+      }
+
+      if (minimizeButton) minimizeButton.addEventListener('click', minimizePlayer);
+      // The widget opens only by clicking inside the preview (see below); clicking
+      // the taskbar media button does not open it.
+
+      const taskbarPreview = taskbarRoot.getElementById('taskbar-preview');
+      const previewBody = taskbarRoot.getElementById('taskbar-preview-body');
+      const previewTitleEl = taskbarRoot.getElementById('taskbar-preview-title');
+      const previewArtistEl = taskbarRoot.getElementById('taskbar-preview-artist');
+      const previewPlayBtn = taskbarRoot.querySelector('.taskbar-preview-btn.play');
+      let previewHideTimer = null;
+      let previewShowTimer = null;
+
+      const PREVIEW_THUMB_PAD = 24;
+      const PREVIEW_VPAD = 5;
+      const PREVIEW_BLUE_MARGIN = 12;
+
+      function syncPreviewTrack() {
+        if (!previewTitleEl || !previewArtistEl) return;
+        setTrackText(previewTitleEl, (titleEl && titleEl.textContent) ? titleEl.textContent : '[no song found]');
+        setTrackText(previewArtistEl, (artistEl && artistEl.textContent) ? artistEl.textContent : '[no artist either]');
+        if (previewPlayBtn) {
+          const playing = playbackState ? Boolean(playbackState.isPlaying) : false;
+          previewPlayBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+          previewPlayBtn.innerHTML = playing
+            ? '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>'
+            : '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M4 2.5v11l9-5.5z"/></svg>';
+        }
+      }
+
+      // Title/artist text lives in a span so long titles can scroll without moving
+      // the clipping box. If the text is wider than the visible track (would hit the
+      // transport buttons), enable a marquee instead of clipping or disappearing.
+      function setTrackText(el, text) {
+        let span = el.firstElementChild;
+        if (!span) {
+          el.textContent = '';
+          span = document.createElement('span');
+          el.appendChild(span);
+        }
+        span.textContent = text;
+        applyMarquee(el);
+      }
+
+      function applyMarquee(el) {
+        if (!el) return;
+        const span = el.firstElementChild;
+        const track = el.parentElement;
+        if (!span || !track) return;
+        const textW = span.offsetWidth;
+        const avail = el.clientWidth;
+        if (textW > avail + 2) {
+          span.classList.add('scrolling');
+          track.classList.add('scrolling');
+          span.style.setProperty('--marquee-dist', (-(textW + 16)) + 'px');
+          span.style.setProperty('--marquee-dur', Math.max(6, Math.round(textW / 35)) + 's');
+        } else {
+          span.classList.remove('scrolling');
+          track.classList.remove('scrolling');
+          span.style.removeProperty('--marquee-dist');
+          span.style.removeProperty('--marquee-dur');
+        }
+      }
+
+      function hidePreview() {
+        if (taskbarPreview) taskbarPreview.hidden = true;
+      }
+
+      function showPreview() {
+        if (isClosed) {
+          hidePreview();
+          return;
+        }
+        clearTimeout(previewHideTimer);
+        if (!taskbarPreview || !previewBody || !card) return;
+        previewBody.innerHTML = '';
+        const clone = card.cloneNode(true);
+        clone.removeAttribute('hidden');
+        clone.removeAttribute('style');
+        clone.classList.remove('dragging');
+        clone.style.position = 'relative';
+        clone.style.top = '0';
+        clone.style.left = '0';
+        clone.style.margin = '0';
+        const cloneShell = clone.querySelector('.retro-player-shell');
+        if (cloneShell) {
+          cloneShell.style.transform = '';
+          cloneShell.style.opacity = '';
+        }
+        // The preview renders a retro player: give the clone its own nested shadow
+        // root with the retro styles + xp.css so it looks identical, while keeping
+        // xp.css scoped ONLY to retro content (never leaking to the modern taskbar).
+        const nestedHost = document.createElement('div');
+        nestedHost.style.cssText = 'width:100%;height:100%';
+        const nestedRoot = nestedHost.attachShadow({ mode: 'open' });
+        const retroLink = document.createElement('link');
+        retroLink.rel = 'stylesheet';
+        retroLink.href = 'xp.css';
+        nestedRoot.appendChild(retroLink);
+        const retroStyleEl = document.createElement('style');
+        retroStyleEl.textContent = retroStyleText;
+        nestedRoot.appendChild(retroStyleEl);
+        // The cloned card keeps its own retro gradient background (that's the widget's
+        // look — tabs/main sit on it). Only the outer drop shadow is removed: it
+        // painted a dark band over the padding ring and the media row below the
+        // card (the original seam). The inset bevel is kept.
+        const flatStyleEl = document.createElement('style');
+        flatStyleEl.textContent = '.retro-player-shell { box-shadow: inset 0 0.03906vw 0 rgba(255, 255, 255, 0.08); }';
+        nestedRoot.appendChild(flatStyleEl);
+        nestedRoot.appendChild(clone);
+        previewBody.appendChild(nestedHost);
+        taskbarPreview.hidden = false;
+        const cw = clone.offsetWidth;
+        const ch = clone.offsetHeight;
+        if (!cw || !ch) { hidePreview(); return; }
+        const previewW = Math.min(250, window.innerWidth - 16);
+        // Blue box is a fixed 2:1 rectangle; the card is contained (aspect kept) and centered.
+        const boxW = previewW + PREVIEW_THUMB_PAD * 2;
+        const boxH = Math.round(boxW / 2);
+        const fitW = previewW;
+        const fitH = boxH - PREVIEW_VPAD * 2;
+        let scale = Math.min(fitW / cw, fitH / ch);
+        scale = Math.max(0.1, scale);
+        clone.style.transform = 'scale(' + scale + ')';
+        clone.style.transformOrigin = 'top left';
+        const pw2 = Math.round(cw * scale);
+        const ph2 = Math.round(ch * scale);
+        nestedHost.style.width = pw2 + 'px';
+        nestedHost.style.height = ph2 + 'px';
+        previewBody.style.width = boxW + 'px';
+        syncPreviewTrack();
+        const btnRect = taskbarLaunch.getBoundingClientRect();
+        const totalW = boxW + PREVIEW_BLUE_MARGIN * 2;
+        // Pin the popup width (border-box) so long title text can't grow it — the
+        // media row then stays fixed and the track flex-shrinks/clips instead.
+        taskbarPreview.style.width = (totalW + 2) + 'px';
+        const left = Math.max(6, Math.min(btnRect.left + btnRect.width / 2 - totalW / 2, window.innerWidth - totalW - 6));
+        taskbarPreview.style.left = left + 'px';
+        taskbarPreview.style.bottom = (window.innerHeight - btnRect.top + 8) + 'px';
+        taskbarPreview.hidden = false;
+      }
+
+      if (taskbarLaunch) {
+        taskbarLaunch.addEventListener('mouseenter', scheduleShowPreview);
+        taskbarLaunch.addEventListener('mouseleave', scheduleHidePreview);
+      }
+
+      if (taskbarPreview) {
+        taskbarPreview.addEventListener('mouseenter', () => clearTimeout(previewHideTimer));
+        taskbarPreview.addEventListener('mouseleave', scheduleHidePreview);
+        taskbarPreview.addEventListener('click', (e) => {
+          if (e.target.closest('.taskbar-preview-close, .taskbar-preview-btn')) return;
+          if (!e.target.closest('.taskbar-preview-body')) return;
+          restorePlayer();
+        });
+      }
+
+      const previewClose = taskbarRoot.querySelector('.taskbar-preview-close');
+      if (previewClose) previewClose.addEventListener('click', closePlayer);
+
+      function scheduleShowPreview() {
+        clearTimeout(previewHideTimer);
+        clearTimeout(previewShowTimer);
+        previewShowTimer = window.setTimeout(showPreview, 200);
+      }
+
+      function scheduleHidePreview() {
+        clearTimeout(previewShowTimer);
+        clearTimeout(previewHideTimer);
+        previewHideTimer = window.setTimeout(hidePreview, 150);
+      }
+
+      function pad2(n) {
+        return String(n).padStart(2, '0');
+      }
+
+      const TZ_KEY = 'spotify-tz';
+      const TIMEZONES = [
+        { off: -12, name: 'IDLW' }, { off: -11, name: 'SST' }, { off: -10, name: 'HST' },
+        { off: -9, name: 'AKST' }, { off: -8, name: 'PST' }, { off: -7, name: 'MST' },
+        { off: -6, name: 'CST' }, { off: -5, name: 'EST' }, { off: -4, name: 'AST' },
+        { off: -3, name: 'BRT' }, { off: -2, name: 'FNT' }, { off: -1, name: 'AZOT' },
+        { off: 0, name: 'GMT' }, { off: 1, name: 'CET' }, { off: 2, name: 'EET' },
+        { off: 3, name: 'EEST' }, { off: 4, name: 'GST' }, { off: 5, name: 'PKT' },
+        { off: 6, name: 'BST' }, { off: 7, name: 'ICT' }, { off: 8, name: 'CST' },
+        { off: 9, name: 'JST' }, { off: 10, name: 'AEST' }, { off: 11, name: 'SBT' },
+        { off: 12, name: 'NZST' }, { off: 13, name: 'PHOT' }, { off: 14, name: 'LINT' }
+      ];
+
+      function tzLabel(offHours) {
+        const sign = offHours >= 0 ? '+' : '-';
+        const abs = Math.abs(offHours);
+        const hrs = Math.floor(abs);
+        const mins = Math.round((abs - hrs) * 60);
+        return 'UTC' + sign + pad2(hrs) + (mins ? ':' + pad2(mins) : '');
+      }
+
+      function localOffsetHours() {
+        return -(new Date().getTimezoneOffset()) / 60;
+      }
+
+      let tzSetting = 'auto';
+      try {
+        const saved = localStorage.getItem(TZ_KEY);
+        if (saved !== null) tzSetting = saved;
+      } catch (e) {}
+
+      function buildTzList() {
+        if (!tzList) return;
+        tzList.textContent = '';
+        TIMEZONES.forEach((tz) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'tz-opt';
+          btn.setAttribute('role', 'menuitemradio');
+          btn.dataset.tz = String(tz.off);
+          const label = document.createElement('span');
+          label.className = 'tz-label';
+          label.textContent = tzLabel(tz.off);
+          const sub = document.createElement('span');
+          sub.className = 'tz-sub';
+          sub.textContent = tz.name || '';
+          btn.appendChild(label);
+          btn.appendChild(sub);
+          btn.addEventListener('click', () => selectTz(String(tz.off)));
+          tzList.appendChild(btn);
+        });
+      }
+
+      function selectTz(value) {
+        tzSetting = value;
+        try { localStorage.setItem(TZ_KEY, value); } catch (e) {}
+        markTzSelection();
+        updateClock();
+        closeTzPopup();
+      }
+
+      function markTzSelection() {
+        if (!tzPopup) return;
+        tzPopup.querySelectorAll('.tz-opt').forEach((opt) => {
+          const sel = opt.dataset.tz === tzSetting;
+          opt.classList.toggle('is-selected', sel);
+          opt.setAttribute('aria-checked', sel ? 'true' : 'false');
+        });
+      }
+
+      function openTzPopup() {
+        if (!tzPopup) return;
+        if (tzAutoSub) tzAutoSub.textContent = tzLabel(localOffsetHours());
+        markTzSelection();
+        tzPopup.hidden = false;
+      }
+
+      function closeTzPopup() {
+        if (tzPopup) tzPopup.hidden = true;
+      }
+
+      function toggleTzPopup() {
+        if (tzPopup && tzPopup.hidden) openTzPopup();
+        else closeTzPopup();
+      }
+
+      if (clockEl) clockEl.addEventListener('click', toggleTzPopup);
+
+      document.addEventListener('click', (e) => {
+        const path = e.composedPath();
+        if (tzPopup && !tzPopup.hidden && !path.includes(clockEl) && !path.includes(tzPopup)) {
+          closeTzPopup();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && tzPopup && !tzPopup.hidden) closeTzPopup();
+      });
+
+      buildTzList();
+      if (tzAutoSub) tzAutoSub.textContent = tzLabel(localOffsetHours());
+      const tzAutoOpt = tzPopup ? tzPopup.querySelector('.tz-opt[data-tz="auto"]') : null;
+      if (tzAutoOpt) tzAutoOpt.addEventListener('click', () => selectTz('auto'));
+
+      function currentTzOffsetHours() {
+        if (tzSetting === 'auto') return null;
+        const off = Number(tzSetting);
+        return Number.isFinite(off) ? off : null;
+      }
+
+      function updateClock() {
+        const now = new Date();
+        const off = currentTzOffsetHours();
+        if (clockTimeEl) {
+          const t = off === null ? now : new Date(now.getTime() + off * 3600000);
+          const get = off === null ? 'get' : 'getUTC';
+          clockTimeEl.textContent = pad2(t[get + 'Hours']()) + ':' + pad2(t[get + 'Minutes']());
+        }
+        if (clockDateEl) {
+          const t = off === null ? now : new Date(now.getTime() + off * 3600000);
+          const get = off === null ? 'get' : 'getUTC';
+          clockDateEl.textContent = pad2(t[get + 'Date']()) + '.' + pad2(t[get + 'Month']() + 1) + '.' + String(t[get + 'FullYear']()).slice(-2);
+        }
+      }
+      updateClock();
+      window.setInterval(updateClock, 1000);
 
       function clamp(value, min, max) {
         return Math.min(Math.max(value, min), max);
@@ -2153,6 +3104,7 @@
           youtube: false,
         });
 
+        syncPreviewTrack();
         syncTicker();
       }
 
@@ -2213,6 +3165,7 @@
         }
 
         updateProgressDisplay();
+        syncPreviewTrack();
         syncTicker();
       }
 
