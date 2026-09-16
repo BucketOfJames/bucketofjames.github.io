@@ -18,6 +18,8 @@
 //   - Inline: `code`, **bold**, _italic_, ~~strikethrough~~,
 //     ++underline++, ==highlight==, H~2~O (sub), x^2^ (sup),
 //     [links](url), ![images](url).
+//   - Emphasis ** and * nest and stack (delimiter-run resolution):
+//     ***bold italic***, *a **b** c*, **a *b* c**.
 //   - A backslash escapes any ASCII punctuation: \* renders a literal *.
 
 import { escapeHtml } from "./http.js";
@@ -116,16 +118,121 @@ function renderBlocks(lines) {
 const INLINE_RULES = [
   { type: "escape", re: /^\\([!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~])/ },
   { type: "code", re: /^(`+)(.+?)\1/ },
-  { type: "strong", re: /^(\*\*|__)(.+?)\1/ },
   { type: "del", re: /^(~~)(.+?)\1/ },
   { type: "underline", re: /^(\+\+)(.+?)\1/ },
   { type: "mark", re: /^(==)(.+?)\1/ },
   { type: "sub", re: /^(~)([^~\s](?:[^~]*[^~\s])?)\1/ },
   { type: "sup", re: /^(\^)([^\^\s](?:[^\^]*[^\^\s])?)\1/ },
-  { type: "em", re: /^(\*|_)(.+?)\1/ },
   { type: "img", re: /^!\[([^\]]*)\]\(([^)]+)\)/ },
   { type: "link", re: /^\[([^\]]+)\]\(([^)]+)\)/ },
 ];
+
+// ------------------------------------------------------------------
+// Bold/italic via delimiter-run resolution (CommonMark-style flanking),
+// so emphasis nests and stacks: ***bold italic***, *a **b** c*, ...
+// Runs of "*" / "_" are paired on a stack; flanking prevents delimiters
+// that merely border whitespace/punctuation from opening or closing.
+// ------------------------------------------------------------------
+const WS_RE = /[\s\u00a0]/;
+const PUNCT_RE = /[!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~]/;
+
+function canOpenEmph(prevCh, nextCh) {
+  if (nextCh === null || WS_RE.test(nextCh)) return false;
+  if (!PUNCT_RE.test(nextCh)) return true;
+  return prevCh === null || WS_RE.test(prevCh) || PUNCT_RE.test(prevCh);
+}
+
+function canCloseEmph(prevCh, nextCh) {
+  if (prevCh === null || WS_RE.test(prevCh)) return false;
+  if (!PUNCT_RE.test(prevCh)) return true;
+  return nextCh === null || WS_RE.test(nextCh) || PUNCT_RE.test(nextCh);
+}
+
+// Split text into delimiter runs and plain-text tokens. Backslash escapes
+// and backtick code spans are kept intact inside text tokens so any
+// * / _ they contain stays literal (the recursive inline() pass handles
+// them). text.length>0 is guaranteed because callers only try emphasis
+// when the string begins with * or _. Returns null when nothing pairs.
+function resolveEmphasis(text) {
+  const toks = [];
+  let buf = "";
+  const flush = () => { if (buf) { toks.push({ d: "", s: buf }); buf = ""; } };
+  for (let i = 0; i < text.length; ) {
+    const ch = text[i];
+    if (ch === "\\" && i + 1 < text.length) {
+      // Keep the escape + escaped char: inline() unescapes later.
+      buf += text.slice(i, i + 2);
+      i += 2;
+      continue;
+    }
+    if (ch === "`") {
+      // Code span: a backtick run, its content, then the same run again.
+      const run = /`+/.exec(text.slice(i))[0];
+      const close = text.indexOf(run, i + run.length);
+      if (close !== -1) {
+        buf += text.slice(i, close + run.length);
+        i = close + run.length;
+        continue;
+      }
+      buf += ch;
+      i++;
+      continue;
+    }
+    if (ch === "*" || ch === "_") {
+      let j = i;
+      while (j < text.length && text[j] === ch) j++;
+      flush();
+      toks.push({
+        d: ch, n: j - i,
+        prev: i > 0 ? text[i - 1] : null,
+        next: j < text.length ? text[j] : null,
+        openTags: [], closeTags: [],
+      });
+      i = j;
+      continue;
+    }
+    buf += ch;
+    i++;
+  }
+  flush();
+
+  const stack = [];
+  let paired = false;
+  for (const tok of toks) {
+    if (!tok.d) continue;
+    const isOpen = canOpenEmph(tok.prev, tok.next);
+    const isClose = canCloseEmph(tok.prev, tok.next);
+    if (isClose) {
+      // Pair this run with the nearest still-open run of the same char.
+      while (tok.n > 0 && stack.length > 0) {
+        const op = stack[stack.length - 1];
+        if (op.d !== tok.d) { stack.pop(); continue; }
+        const use = op.n >= 2 && tok.n >= 2 ? 2 : 1;
+        const tag = use === 2 ? ["<strong>", "</strong>"] : ["<em>", "</em>"];
+        // Opens are created inner-first but must render outer-first, so
+        // unshift them (closes stay pushed: inner closes first).
+        op.openTags.unshift(tag[0]);
+        tok.closeTags.push(tag[1]);
+        op.n -= use;
+        tok.n -= use;
+        paired = true;
+        if (op.n <= 0) stack.pop();
+      }
+    }
+    if (isOpen && tok.n > 0) stack.push(tok);
+  }
+  if (!paired) return null;
+
+  let out = "";
+  for (const tok of toks) {
+    if (!tok.d) {
+      out += inline(tok.s);
+      continue;
+    }
+    out += tok.closeTags.join("") + escapeHtml(tok.d.repeat(tok.n)) + tok.openTags.join("");
+  }
+  return out;
+}
 
 function inline(text) {
   let i = 0;
@@ -133,6 +240,16 @@ function inline(text) {
   const stopRe = /[*_~`[!\\^+=]/; // chars that start an inline rule
   while (i < text.length) {
     const rest = text.slice(i);
+    // Emphasis first: the delimiter-run resolver handles the whole rest
+    // when it can form any pair (stacked/nested ** and *).
+    if (rest[0] === "*" || rest[0] === "_") {
+      const resolved = resolveEmphasis(rest);
+      if (resolved !== null) {
+        out += resolved;
+        i += rest.length;
+        continue;
+      }
+    }
     let matched = false;
     for (const rule of INLINE_RULES) {
       const m = rule.re.exec(rest);
@@ -142,8 +259,6 @@ function inline(text) {
           out += escapeHtml(m[1]);
         } else if (rule.type === "code") {
           out += `<code>${escapeHtml(m[2])}</code>`;
-        } else if (rule.type === "strong") {
-          out += `<strong>${inline(m[2])}</strong>`;
         } else if (rule.type === "del") {
           out += `<del>${inline(m[2])}</del>`;
         } else if (rule.type === "underline") {
@@ -154,8 +269,6 @@ function inline(text) {
           out += `<sub>${inline(m[2])}</sub>`;
         } else if (rule.type === "sup") {
           out += `<sup>${inline(m[2])}</sup>`;
-        } else if (rule.type === "em") {
-          out += `<em>${inline(m[2])}</em>`;
         } else if (rule.type === "img") {
           out += `<img src="${escapeAttr(m[2])}" alt="${escapeAttr(m[1])}">`;
         } else if (rule.type === "link") {
@@ -239,12 +352,16 @@ function parseHtmlTree(html) {
 
 function treeToMd(nodes) {
   let out = "";
-  // Append a block element, normalizing inter-block whitespace (the renderer
-  // joins blocks with "\n", which would otherwise pile up as blank lines).
+  // Blank-line-aware block joining: the renderer joins adjacent blocks with
+  // "\n" and encodes a blank line as an empty <p></p>. Reproduce that here so
+  // markdown -> HTML -> markdown is byte-identical: adjacent blocks join with
+  // a single "\n", and an empty <p></p> marker becomes the "\n\n" blank line.
+  let blankBefore = false;
   const block = (text) => {
     if (!text) return;
     out = out.replace(/\s+$/, "");
-    out += (out ? "\n\n" : "") + text;
+    out += (out ? (blankBefore ? "\n\n" : "\n") : "") + text;
+    blankBefore = false;
   };
   for (const node of nodes) {
     if (typeof node === "string") { out += decodeEntities(node); continue; }
@@ -252,6 +369,7 @@ function treeToMd(nodes) {
     if (node.tag === "p" || node.tag === "div") {
       const inner = treeToMd(node.children).trim();
       if (inner) block(inner);
+      else blankBefore = true; // empty <p></p> = blank line between blocks
     } else if (/^h[1-6]$/.test(node.tag)) {
       const lvl = parseInt(node.tag[1]);
       block("#".repeat(lvl) + " " + treeToMd(node.children).trim());

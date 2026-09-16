@@ -28,6 +28,16 @@ assertEq(renderMarkdown("```\n<hi> & x\n```"), "<pre><code>&lt;hi&gt; &amp; x</c
 // --- inline ---
 assertEq(renderMarkdown("**b**"), "<p><strong>b</strong></p>", "strong");
 assertEq(renderMarkdown("*i*"), "<p><em>i</em></p>", "em");
+assertEq(renderMarkdown("***t***"), "<p><em><strong>t</strong></em></p>", "*** stacked -> em+strong");
+assertEq(renderMarkdown("___t___"), "<p><em><strong>t</strong></em></p>", "___ stacked -> em+strong");
+assertEq(renderMarkdown("*a **b** c*"), "<p><em>a <strong>b</strong> c</em></p>", "em wrapping strong");
+assertEq(renderMarkdown("**a *b* c**"), "<p><strong>a <em>b</em> c</strong></p>", "strong wrapping em");
+assertEq(renderMarkdown("*em with **strong** inside*"), "<p><em>em with <strong>strong</strong> inside</em></p>", "em with strong inside");
+assertEq(renderMarkdown("**bold *italic* bold**"), "<p><strong>bold <em>italic</em> bold</strong></p>", "strong with em inside");
+assertEq(renderMarkdown("**a * b**"), "<p><strong>a * b</strong></p>", "lone * literal inside strong");
+assertEq(renderMarkdown("\\***t\\***"), "<p>*<strong>t*</strong></p>", "escape: remaining unescaped ** still strong (CommonMark)");
+assertEq(renderMarkdown("\\*not em\\*"), "<p>*not em*</p>", "escaped stars fully literal");
+assertEq(renderMarkdown("`***`"), "<p><code>***</code></p>", "stars in code span are inert");
 assertEq(renderMarkdown("~~d~~"), "<p><del>d</del></p>", "del");
 assertEq(renderMarkdown("++u++"), "<p><u>u</u></p>", "underline");
 assertEq(renderMarkdown("==m=="), "<p><mark>m</mark></p>", "mark");
@@ -50,7 +60,8 @@ assertEq(htmlToMarkdown("<h1>H</h1>"), "# H", "h1 -> #");
 assertEq(htmlToMarkdown("<ul><li>a</li><li>b</li></ul>"), "- a\n- b", "ul -> - list");
 assertEq(htmlToMarkdown("<blockquote><p>q</p></blockquote>"), "> q", "blockquote -> >");
 assertEq(htmlToMarkdown("<pre><code>x</code></pre>"), "```\nx\n```", "pre -> fence");
-assertEq(htmlToMarkdown("<p>a</p><p>b</p>"), "a\n\nb", "paragraphs");
+assertEq(htmlToMarkdown("<p>a</p><p>b</p>"), "a\nb", "adjacent paragraphs keep single line break");
+assertEq(htmlToMarkdown("<p>a</p>\n<p></p>\n<p>b</p>"), "a\n\nb", "blank line (<p></p>) -> blank line in md");
 assertEq(htmlToMarkdown("<script>alert(1)</script>hi"), "alert(1)hi", "unknown tags stripped, content kept as escaped text");
 assertEq(htmlToMarkdown("<p>a<br>b</p>"), "a\nb", "br -> newline");
 assertEq(htmlToMarkdown("<p>a &amp; b</p>"), "a & b", "entities decoded in text");
@@ -62,6 +73,9 @@ function norm(md) { return htmlToMarkdown(renderMarkdown(md)); }
 const corpus = [
   "Hello",
   "Line one\n\nLine two",
+  "Line one\nLine two",
+  "My list:\n- apples\n- pears",
+  "My list:\n\n- apples\n- pears",
   "# Big\n\nSome *text* with **bold** and `code`.",
   "- a\n- b\n- c",
   "1. one\n2. two",
@@ -69,6 +83,8 @@ const corpus = [
   "> [!TIP]\n> try this",
   "```\ncode\nhere\n```",
   "***",
+  "***bold italic***",
+  "*a **b** c* and **a *b* c**",
   "H~2~O and x^2^ and ~~del~~ and ++u++ and ==m==",
   "[link](https://example.com/a?b=1&c=2) and ![img](https://example.com/i.png)",
   "\\*not em\\* and \\[not link\\]",
