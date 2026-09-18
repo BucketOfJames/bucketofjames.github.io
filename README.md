@@ -1,3 +1,3 @@
-This is a repo for my webpage. Has a bunch of stuff about me.
+This is a repo for my webpage. Has a bunch of stuff about me and just for funs.
 
 See `docs/ARCHITECTURE.md` for how the site editor pipeline works.
